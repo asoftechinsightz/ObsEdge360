@@ -1,0 +1,38 @@
+# Build a microservice from the OpsEdge360 monorepo
+# Usage: docker build -f infra/docker/Dockerfile.service --build-arg SERVICE_PKG=@opsedge360/discovery --build-arg SERVICE_PATH=services/discovery -t opsedge360-discovery .
+
+ARG SERVICE_PKG=@opsedge360/discovery
+ARG SERVICE_PATH=services/discovery
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+ARG SERVICE_PKG
+ARG SERVICE_PATH
+
+COPY package.json package-lock.json* ./
+COPY packages ./packages
+COPY ${SERVICE_PATH} ./${SERVICE_PATH}
+
+RUN npm install \
+    --workspace=${SERVICE_PKG} \
+    --workspace=@opsedge360/shared-db \
+    --workspace=@opsedge360/shared-types \
+    --workspace=@opsedge360/event-bus \
+    --workspace=@opsedge360/platform-config \
+    --workspace=@opsedge360/cache
+
+RUN npm run build -w @opsedge360/platform-config -w @opsedge360/cache -w @opsedge360/shared-types -w @opsedge360/shared-db -w @opsedge360/event-bus
+RUN npm run build -w ${SERVICE_PKG}
+
+FROM node:20-alpine
+WORKDIR /app
+ARG SERVICE_PKG
+ARG SERVICE_PATH
+ENV NODE_ENV=production
+ENV SERVICE_PKG=${SERVICE_PKG}
+ENV SERVICE_PATH=${SERVICE_PATH}
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/services ./services
+COPY --from=builder /app/package.json ./
+CMD ["sh", "-c", "node ${SERVICE_PATH}/dist/index.js"]

@@ -1,0 +1,16 @@
+{
+  "name": "@opsedge360/host-agent",
+  "version": "1.0.0",
+  "description": "OpsEdge360 Universal Agent — heartbeat + host metrics",
+  "private": true,
+  "bin": {
+    "opsedge360-agent": "./bin/opsedge360-agent.js"
+  },
+  "scripts": {
+    "start": "node bin/opsedge360-agent.js",
+    "once": "node bin/opsedge360-agent.js --once"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

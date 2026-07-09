@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: trinetra360-api-gateway
+    static_configs:
+      - targets: ['api-gateway:4000']
+    metrics_path: /metrics
+
+  - job_name: trinetra360-discovery
+    static_configs:
+      - targets: ['discovery:4001']
+
+  - job_name: trinetra360-cmdb
+    static_configs:
+      - targets: ['cmdb:4002']

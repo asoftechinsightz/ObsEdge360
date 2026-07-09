@@ -1,0 +1,389 @@
+openapi: 3.1.0
+info:
+  title: OpsEdge360 API
+  description: AI-Native Autonomous Enterprise Intelligence Platform
+  version: 1.0.0
+  contact:
+    name: AsoftechInsightz
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development
+  - url: https://api.trinetra360.example.com/api/v1
+    description: Production
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: health
+  - name: executive
+  - name: cmdb
+  - name: discovery
+  - name: twin
+  - name: compliance
+  - name: agents
+  - name: transactions
+  - name: observability
+  - name: security
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      security: []
+      summary: Platform health check
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /executive/kpis:
+    get:
+      tags: [executive]
+      summary: Executive dashboard KPIs
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutiveKpis'
+
+  /executive/services:
+    get:
+      tags: [executive]
+      summary: Business service health summary
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessService'
+
+  /cmdb/cis:
+    get:
+      tags: [cmdb]
+      summary: List configuration items
+      parameters:
+        - name: ciType
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConfigurationItem'
+    post:
+      tags: [cmdb]
+      summary: Create or update configuration item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationItemInput'
+      responses:
+        '201':
+          description: Created
+
+  /cmdb/cis/{id}:
+    get:
+      tags: [cmdb]
+      summary: Get configuration item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationItem'
+
+  /cmdb/cis/{id}/relationships:
+    get:
+      tags: [cmdb]
+      summary: Get CI relationships
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  relationships:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Relationship'
+
+  /discovery/connectors:
+    get:
+      tags: [discovery]
+      summary: List discovery connectors
+      responses:
+        '200':
+          description: Connector list
+    post:
+      tags: [discovery]
+      summary: Create discovery connector
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscoveryConnectorInput'
+
+  /discovery/scan:
+    post:
+      tags: [discovery]
+      summary: Trigger discovery scan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                connectorId:
+                  type: string
+
+  /twin/graph:
+    get:
+      tags: [twin]
+      summary: Get digital twin topology
+      parameters:
+        - name: layers
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwinGraph'
+
+  /twin/impact/{ciId}:
+    get:
+      tags: [twin]
+      summary: Blast radius impact analysis
+      parameters:
+        - name: ciId
+          in: path
+          required: true
+          schema:
+            type: string
+
+  /compliance/frameworks:
+    get:
+      tags: [compliance]
+      summary: List compliance frameworks
+
+  /compliance/controls:
+    get:
+      tags: [compliance]
+      summary: List controls with status
+      parameters:
+        - name: framework
+          in: query
+          schema:
+            type: string
+
+  /agents/runs:
+    get:
+      tags: [agents]
+      summary: List AI agent runs
+
+  /agents/approvals:
+    get:
+      tags: [agents]
+      summary: Pending remediation approvals
+
+  /agents/approvals/{id}/approve:
+    post:
+      tags: [agents]
+      summary: Approve agent action
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        platform:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ExecutiveKpis:
+      type: object
+      properties:
+        availability:
+          type: number
+        revenueAtRisk:
+          type: number
+        complianceScore:
+          type: integer
+        securityPosture:
+          type: string
+          enum: [low, medium, high, critical]
+        sustainabilityScore:
+          type: integer
+        activeIncidents:
+          type: integer
+        totalAssets:
+          type: integer
+        openAlerts:
+          type: integer
+
+    BusinessService:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        tier:
+          type: integer
+        availability:
+          type: number
+        slaTarget:
+          type: number
+        status:
+          type: string
+
+    ConfigurationItem:
+      type: object
+      properties:
+        id:
+          type: string
+        tenantId:
+          type: string
+        name:
+          type: string
+        ciType:
+          type: string
+        status:
+          type: string
+        healthScore:
+          type: integer
+        complianceScore:
+          type: integer
+        riskScore:
+          type: integer
+        aiConfidenceScore:
+          type: integer
+        attributes:
+          type: object
+        tags:
+          type: array
+          items:
+            type: string
+
+    ConfigurationItemInput:
+      type: object
+      required: [name, ciType]
+      properties:
+        name:
+          type: string
+        ciType:
+          type: string
+        attributes:
+          type: object
+
+    Relationship:
+      type: object
+      properties:
+        id:
+          type: string
+        sourceCiId:
+          type: string
+        targetCiId:
+          type: string
+        relationshipType:
+          type: string
+        strength:
+          type: string
+        aiConfidenceScore:
+          type: integer
+
+    DiscoveryConnectorInput:
+      type: object
+      required: [name, protocol, config]
+      properties:
+        name:
+          type: string
+        protocol:
+          type: string
+        config:
+          type: object
+
+    TwinGraph:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+              type:
+                type: string
+              healthScore:
+                type: integer
+              riskScore:
+                type: integer
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              target:
+                type: string
+              type:
+                type: string

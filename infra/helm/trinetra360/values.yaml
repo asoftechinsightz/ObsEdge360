@@ -1,0 +1,132 @@
+global:
+  imageRegistry: ""
+  tenantId: default
+  # Deployment: saas | hybrid | onprem
+  deploymentMode: saas
+  # Performance: local | standard | high
+  performanceProfile: high
+  dataResidencyRegion: ap-south-1
+
+apiGateway:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+  image:
+    repository: trinetra360/api-gateway
+    tag: latest
+  service:
+    port: 4000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  env:
+    CACHE_ENABLED: "true"
+    CACHE_BACKEND: redis
+
+web:
+  replicaCount: 2
+  image:
+    repository: trinetra360/web
+    tag: latest
+  service:
+    port: 3000
+
+discovery:
+  replicaCount: 1
+  image:
+    repository: trinetra360/discovery
+    tag: latest
+
+cmdb:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilization: 75
+  image:
+    repository: trinetra360/cmdb
+    tag: latest
+
+observability:
+  replicaCount: 2
+  image:
+    repository: trinetra360/observability
+    tag: latest
+
+compliance:
+  replicaCount: 1
+  image:
+    repository: trinetra360/compliance
+    tag: latest
+
+security:
+  replicaCount: 2
+  image:
+    repository: trinetra360/security
+    tag: latest
+
+aiAgents:
+  replicaCount: 1
+  image:
+    repository: trinetra360/ai-agents
+    tag: latest
+
+postgresql:
+  enabled: true
+  auth:
+    username: trinetra
+    database: trinetra360
+  # On-prem/hybrid: use external managed Postgres
+  external:
+    enabled: false
+    host: ""
+
+redis:
+  enabled: true
+  architecture: replication
+  master:
+    persistence:
+      enabled: true
+
+kafka:
+  enabled: true
+  # Set false for on-prem lite (HTTP event fallback)
+  required: true
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: app.trinetra360.example.com
+      paths:
+        - path: /
+          service: web
+    - host: api.trinetra360.example.com
+      paths:
+        - path: /
+          service: api-gateway
+
+# Hybrid: deploy data-plane services in customer region
+hybrid:
+  dataPlaneRegion: ap-south-1
+  controlPlaneRegion: eu-west-1
+  servicesInDataPlane:
+    - cmdb
+    - observability
+    - discovery
+
+# On-prem: single-tenant, reduced infra
+onprem:
+  kafka:
+    enabled: false
+  opensearch:
+    enabled: false
+  replicaCount: 1

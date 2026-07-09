@@ -1,0 +1,51 @@
+{
+  "name": "opsedge360",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpsEdge360 — Standalone enterprise observability platform",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "predev": "npm run build -w @opsedge360/platform-config -w @opsedge360/cache -w @opsedge360/shared-types -w @opsedge360/shared-db -w @opsedge360/event-bus",
+    "dev": "concurrently -n web,gw,disc,cmdb,obs,tx,compl,sec,rem,anl,qtm,gov -c blue,green,yellow,magenta,cyan,white,red,brightRed,gray,violet,brightMagenta,brightCyan \"npm run dev -w @opsedge360/web\" \"npm run dev -w @opsedge360/api-gateway\" \"npm run dev -w @opsedge360/discovery\" \"npm run dev -w @opsedge360/cmdb\" \"npm run dev -w @opsedge360/observability\" \"npm run dev -w @opsedge360/transactions\" \"npm run dev -w @opsedge360/compliance\" \"npm run dev -w @opsedge360/security\" \"npm run dev -w @opsedge360/remediation\" \"npm run dev -w @opsedge360/analytics\" \"npm run dev -w @opsedge360/quantum\" \"npm run dev -w @opsedge360/governance\"",
+    "dev:agents": "cd ai-agents && uvicorn src.main:app --reload --port 5000",
+    "build": "npm run build -w @opsedge360/platform-config && npm run build -w @opsedge360/cache && npm run build -w @opsedge360/shared-types && npm run build -w @opsedge360/shared-db && npm run build -w @opsedge360/event-bus && npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "docker:up": "docker compose --profile core up -d",
+    "docker:full": "docker compose --profile full up -d",
+    "docker:down": "docker compose --profile core --profile full down",
+    "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod up -d --build",
+    "db:migrate": "node database/migrations/run.js",
+    "phase1:bootstrap": "node scripts/phase1-bootstrap.js",
+    "phase2:bootstrap": "node scripts/phase2-bootstrap.js",
+    "phase3:bootstrap": "node scripts/phase3-bootstrap.js",
+    "phase4:bootstrap": "node scripts/phase4-bootstrap.js",
+    "smoke": "node scripts/opsedge360-smoke.mjs",
+    "retest:discovery": "node scripts/opsedge360-discovery-retest.mjs",
+    "retest:cmdb": "node scripts/opsedge360-cmdb-retest.mjs",
+    "retest:topology": "node scripts/opsedge360-topology-retest.mjs",
+    "retest:infra": "node scripts/opsedge360-infra-retest.mjs",
+    "retest:apm": "node scripts/opsedge360-apm-retest.mjs",
+    "retest:transactions": "node scripts/opsedge360-transactions-retest.mjs",
+    "retest:banking360": "node scripts/opsedge360-banking360-retest.mjs",
+    "retest:copilot": "node scripts/opsedge360-copilot-retest.mjs",
+    "ha:smoke": "node scripts/opsedge360-ha-smoke.mjs",
+    "agent": "node agents/host-agent/bin/opsedge360-agent.js",
+    "agent:once": "node agents/host-agent/bin/opsedge360-agent.js --once",
+    "backup": "node -e \"console.log('Use scripts/backup-postgres.sh or backup-postgres.ps1')\""
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

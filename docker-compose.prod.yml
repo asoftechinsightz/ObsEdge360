@@ -1,0 +1,244 @@
+# OpsEdge360 — Production Compose
+# Usage:
+#   cp .env.prod.example .env
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core up -d --build
+#
+# Domains (nginx): observability360.asoftechinsightz.com + api.observability360.asoftechinsightz.com
+
+x-prod-service: &prod-service
+  restart: unless-stopped
+  environment: &service-env
+    NODE_ENV: production
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: 5432
+    POSTGRES_USER: ${POSTGRES_USER:-trinetra}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    POSTGRES_DB: ${POSTGRES_DB:-trinetra360}
+    REDIS_URL: redis://redis:6379
+    KAFKA_BROKERS: kafka:9092
+    KAFKA_ENABLED: ${KAFKA_ENABLED:-true}
+
+services:
+  migrate:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-trinetra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-trinetra360}
+    command: sh -c "npm install pg && node database/migrations/run.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    profiles: ["prod"]
+
+  discovery:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PKG: "@opsedge360/discovery"
+        SERVICE_PATH: services/discovery
+    environment:
+      <<: *service-env
+      DISCOVERY_PORT: 4001
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4001/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["prod"]
+
+  cmdb:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PKG: "@opsedge360/cmdb"
+        SERVICE_PATH: services/cmdb
+    environment:
+      <<: *service-env
+      CMDB_PORT: 4002
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4002/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["prod"]
+
+  observability:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PKG: "@opsedge360/observability"
+        SERVICE_PATH: services/observability
+    environment:
+      <<: *service-env
+      OBSERVABILITY_PORT: 4003
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4003/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["prod"]
+
+  compliance:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PKG: "@opsedge360/compliance"
+        SERVICE_PATH: services/compliance
+    environment:
+      <<: *service-env
+      COMPLIANCE_PORT: 4004
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4004/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["prod"]
+
+  transactions:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PKG: "@opsedge360/transactions"
+        SERVICE_PATH: services/transactions
+    environment:
+      <<: *service-env
+      TRANSACTIONS_PORT: 4005
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4005/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["prod"]
+
+  security:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PKG: "@opsedge360/security"
+        SERVICE_PATH: services/security
+    environment:
+      <<: *service-env
+      SECURITY_PORT: 4006
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4006/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["prod"]
+
+  api-gateway:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      API_GATEWAY_PORT: 4000
+      AUTH_REQUIRED: ${AUTH_REQUIRED:-true}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://observability360.asoftechinsightz.com}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-trinetra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-trinetra360}
+      REDIS_URL: redis://redis:6379
+      CACHE_ENABLED: "true"
+      CACHE_BACKEND: redis
+      DISCOVERY_URL: http://discovery:4001
+      CMDB_URL: http://cmdb:4002
+      OBSERVABILITY_URL: http://observability:4003
+      COMPLIANCE_URL: http://compliance:4004
+      TRANSACTIONS_URL: http://transactions:4005
+      SECURITY_URL: http://security:4006
+      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-saas}
+      PERFORMANCE_PROFILE: ${PERFORMANCE_PROFILE:-standard}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4000/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - discovery
+      - cmdb
+      - observability
+      - compliance
+      - transactions
+      - security
+    profiles: ["prod"]
+
+  web:
+    <<: *prod-service
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.observability360.asoftechinsightz.com}
+    ports:
+      - "127.0.0.1:3002:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.observability360.asoftechinsightz.com}
+    depends_on:
+      - api-gateway
+    profiles: ["prod"]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/observability360.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${SSL_CERT_PATH:-./infra/nginx/certs}:/etc/nginx/certs:ro
+    depends_on:
+      - web
+      - api-gateway
+    profiles: ["prod"]

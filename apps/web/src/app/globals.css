@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #0ea5e9;
+  --accent: #8b5cf6;
+  --surface: #0f172a;
+  --surface-elevated: #1e293b;
+}
+
+body {
+  @apply bg-surface text-slate-100 antialiased;
+}
+
+@layer components {
+  .kpi-card {
+    @apply rounded-xl border border-slate-700 bg-surface-elevated p-5;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-white;
+  }
+  .nav-link-active {
+    @apply bg-slate-800 text-white;
+  }
+}
