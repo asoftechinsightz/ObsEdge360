@@ -1,10 +1,10 @@
-name: CI/CD — OpsEdge360
+name: CI/CD — OpsEdge360 Sprint 0
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/sprint0-enterprise-foundation]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 env:
   NODE_VERSION: '20'
@@ -23,29 +23,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build shared types
-        run: npm run build -w @opsedge360/shared-types
+      - name: Typecheck and lint
+        run: npm run typecheck
 
-      - name: Build API Gateway
-        run: npm run build -w @opsedge360/api-gateway
+      - name: Run unit tests
+        run: npm run test
 
-      - name: Build Web
-        run: npm run build -w @opsedge360/web
-
-  python-agents:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install AI agents dependencies
-        run: pip install -r ai-agents/requirements.txt
-
-      - name: Validate AI agents import
-        run: python -c "from ai_agents.src.main import app" 2>/dev/null || python -c "import sys; sys.path.insert(0,'ai-agents'); from src.main import app; print('OK')"
+      - name: Build all workspaces
+        run: npm run build
 
   security-scan:
     runs-on: ubuntu-latest
@@ -60,26 +45,51 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: '0'
 
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+  license-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: License check
+        run: npx license-checker --summary --production
+
   docker-build:
     needs: [lint-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/sprint0-enterprise-foundation'
     steps:
       - uses: actions/checkout@v4
 
       - name: Build API Gateway image
-        run: docker build -t trinetra360/api-gateway:latest -f apps/api-gateway/Dockerfile .
+        run: docker build -t opsedge360/api-gateway:latest -f apps/api-gateway/Dockerfile .
 
       - name: Build Web image
-        run: docker build -t trinetra360/web:latest -f apps/web/Dockerfile .
+        run: docker build -t opsedge360/web:latest -f apps/web/Dockerfile .
 
-  deploy-staging:
-    needs: [docker-build, python-agents]
+      - name: Scan API Gateway image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: opsedge360/api-gateway:latest
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+  python-agents:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: staging
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy to staging (Helm)
-        run: echo "helm upgrade --install trinetra360 infra/helm/trinetra360 -n trinetra360-staging"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r ai-agents/requirements.txt
+      - run: python -c "import sys; sys.path.insert(0,'ai-agents'); from src.main import app; print('OK')"

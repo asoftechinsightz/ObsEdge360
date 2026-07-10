@@ -9,12 +9,13 @@
     "packages/*"
   ],
   "scripts": {
-    "predev": "npm run build -w @opsedge360/platform-config -w @opsedge360/cache -w @opsedge360/shared-types -w @opsedge360/shared-db -w @opsedge360/event-bus",
-    "dev": "concurrently -n web,gw,disc,cmdb,obs,tx,compl,sec,rem,anl,qtm,gov -c blue,green,yellow,magenta,cyan,white,red,brightRed,gray,violet,brightMagenta,brightCyan \"npm run dev -w @opsedge360/web\" \"npm run dev -w @opsedge360/api-gateway\" \"npm run dev -w @opsedge360/discovery\" \"npm run dev -w @opsedge360/cmdb\" \"npm run dev -w @opsedge360/observability\" \"npm run dev -w @opsedge360/transactions\" \"npm run dev -w @opsedge360/compliance\" \"npm run dev -w @opsedge360/security\" \"npm run dev -w @opsedge360/remediation\" \"npm run dev -w @opsedge360/analytics\" \"npm run dev -w @opsedge360/quantum\" \"npm run dev -w @opsedge360/governance\"",
+    "predev": "npm run build -w @opsedge360/platform-config -w @opsedge360/cache -w @opsedge360/shared-types -w @opsedge360/shared-db -w @opsedge360/event-bus -w @opsedge360/shared-logger -w @opsedge360/agent-framework -w @opsedge360/shared-security -w @opsedge360/plugin-sdk",
+    "dev": "concurrently -n web,gw,disc,cmdb,obs,tx,compl,sec,rem,anl,qtm,gov,sch,cfg -c blue,green,yellow,magenta,cyan,white,red,brightRed,gray,violet,brightMagenta,brightCyan,brightYellow,brightGreen \"npm run dev -w @opsedge360/web\" \"npm run dev -w @opsedge360/api-gateway\" \"npm run dev -w @opsedge360/discovery\" \"npm run dev -w @opsedge360/cmdb\" \"npm run dev -w @opsedge360/observability\" \"npm run dev -w @opsedge360/transactions\" \"npm run dev -w @opsedge360/compliance\" \"npm run dev -w @opsedge360/security\" \"npm run dev -w @opsedge360/remediation\" \"npm run dev -w @opsedge360/analytics\" \"npm run dev -w @opsedge360/quantum\" \"npm run dev -w @opsedge360/governance\" \"npm run dev -w @opsedge360/scheduler\" \"npm run dev -w @opsedge360/config-management\"",
     "dev:agents": "cd ai-agents && uvicorn src.main:app --reload --port 5000",
-    "build": "npm run build -w @opsedge360/platform-config && npm run build -w @opsedge360/cache && npm run build -w @opsedge360/shared-types && npm run build -w @opsedge360/shared-db && npm run build -w @opsedge360/event-bus && npm run build --workspaces --if-present",
+    "build": "npm run build -w @opsedge360/platform-config && npm run build -w @opsedge360/cache && npm run build -w @opsedge360/shared-types && npm run build -w @opsedge360/shared-db && npm run build -w @opsedge360/event-bus && npm run build -w @opsedge360/shared-logger && npm run build -w @opsedge360/agent-framework && npm run build -w @opsedge360/shared-security && npm run build -w @opsedge360/plugin-sdk && npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run lint --workspaces --if-present",
     "docker:up": "docker compose --profile core up -d",
     "docker:full": "docker compose --profile full up -d",
     "docker:down": "docker compose --profile core --profile full down",
@@ -36,6 +37,11 @@
     "ha:smoke": "node scripts/opsedge360-ha-smoke.mjs",
     "agent": "node agents/host-agent/bin/opsedge360-agent.js",
     "agent:once": "node agents/host-agent/bin/opsedge360-agent.js --once",
+    "agent:linux": "node agents/linux-agent/bin/opsedge360-linux-agent.js",
+    "agent:windows": "node agents/windows-agent/bin/opsedge360-windows-agent.js",
+    "agent:mac": "node agents/mac-agent/bin/opsedge360-mac-agent.js",
+    "agent:docker": "node agents/docker-agent/bin/opsedge360-docker-agent.js",
+    "agent:k8s": "node agents/kubernetes-agent/bin/opsedge360-k8s-agent.js",
     "backup": "node -e \"console.log('Use scripts/backup-postgres.sh or backup-postgres.ps1')\""
   },
   "dependencies": {
