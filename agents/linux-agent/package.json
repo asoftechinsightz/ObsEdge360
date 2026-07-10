@@ -1,0 +1,12 @@
+{
+  "name": "@opsedge360/linux-agent",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "opsedge360-linux-agent": "./bin/opsedge360-linux-agent.js"
+  },
+  "dependencies": {
+    "@opsedge360/agent-framework": "*",
+    "@opsedge360/shared-logger": "*"
+  }
+}
