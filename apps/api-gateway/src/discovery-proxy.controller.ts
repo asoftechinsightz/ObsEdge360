@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Res, Headers } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, Res, Headers } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiQuery } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ProxyService } from './proxy.service';
 import { CurrentUser } from './auth/current-user.decorator';
@@ -103,6 +103,60 @@ export class DiscoveryProxyController {
       method: 'POST',
       body,
       headers: { 'X-Agent-Key': agentKey },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Public()
+  @Get('agents/:id/config')
+  @ApiOperation({
+    summary: 'Pull agent configuration (X-Agent-Key)',
+    description: 'JWT not required. Discovery validates X-Agent-Key (ADR-004).',
+  })
+  async getAgentConfig(
+    @Param('id') id: string,
+    @Headers('x-agent-key') agentKey: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.discovery(`/agents/${id}/config`, {
+      headers: { 'X-Agent-Key': agentKey ?? '' },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Public()
+  @Put('agents/:id/config')
+  @ApiOperation({
+    summary: 'Push agent configuration revision (X-Agent-Key)',
+  })
+  async putAgentConfig(
+    @Param('id') id: string,
+    @Headers('x-agent-key') agentKey: string,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.discovery(`/agents/${id}/config`, {
+      method: 'PUT',
+      body,
+      headers: { 'X-Agent-Key': agentKey ?? '' },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Public()
+  @Get('agents/:id/updates')
+  @ApiOperation({
+    summary: 'Check agent auto-update manifest (X-Agent-Key)',
+  })
+  async getAgentUpdates(
+    @Param('id') id: string,
+    @Headers('x-agent-key') agentKey: string,
+    @Query('version') version: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.discovery(`/agents/${id}/updates`, {
+      headers: { 'X-Agent-Key': agentKey ?? '' },
+      query: { ...(version ? { version } : {}) },
     });
     return res.status(result.status).json(result.data);
   }

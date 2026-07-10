@@ -124,4 +124,37 @@ export class CmdbProxyController {
     }
     return res.status(result.status).json(result.data);
   }
+
+  @Get('topology/:type')
+  @ApiOperation({
+    summary: 'Get versioned topology snapshot',
+    description:
+      'Returns latest topology for type: application | infrastructure | cloud | network | business-service. Proxies CMDB topology engine.',
+  })
+  async getTopology(
+    @CurrentUser() user: JwtPayload,
+    @Param('type') type: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb(`/topology/${encodeURIComponent(type)}`, {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('topology/:type/refresh')
+  @ApiOperation({
+    summary: 'Incrementally refresh and version a topology snapshot',
+  })
+  async refreshTopology(
+    @CurrentUser() user: JwtPayload,
+    @Param('type') type: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb(`/topology/${encodeURIComponent(type)}/refresh`, {
+      method: 'POST',
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
 }

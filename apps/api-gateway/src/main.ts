@@ -55,6 +55,9 @@ async function bootstrap() {
       .addTag('twin')
       .addTag('compliance')
       .addTag('agents')
+      .addTag('observability')
+      .addTag('transactions')
+      .addTag('security')
       .addTag('copilot')
       .build();
 

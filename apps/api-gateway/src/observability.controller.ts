@@ -330,4 +330,45 @@ export class ObservabilityController {
     const result = await this.proxy.observability('/alert-events', { tenantId: user.tenantId });
     return res.status(result.status).json(result.data);
   }
+
+  @Get('pipeline/sources')
+  @ApiOperation({
+    summary: 'List telemetry pipeline sources',
+    description: 'Enterprise log/metric source adapters (nginx, syslog, cloudwatch, etc.).',
+  })
+  async listPipelineSources(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/pipeline/sources', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('pipeline/sources')
+  @ApiOperation({ summary: 'Register a telemetry pipeline source' })
+  async createPipelineSource(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability('/pipeline/sources', {
+      method: 'POST',
+      body,
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('pipeline/ingest/:sourceId')
+  @ApiOperation({ summary: 'Ingest payload into a registered telemetry source' })
+  async ingestPipeline(
+    @CurrentUser() user: JwtPayload,
+    @Param('sourceId') sourceId: string,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability(`/pipeline/ingest/${encodeURIComponent(sourceId)}`, {
+      method: 'POST',
+      body,
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
 }

@@ -31,14 +31,169 @@ paths:
     get:
       tags: [health]
       security: []
-      summary: Platform health check
+      summary: Platform health check with dependency probes
       responses:
         '200':
-          description: Healthy
+          description: Healthy or degraded (default)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Unhealthy when HEALTH_FAIL_ON_DEGRADED=true
+
+  /ready:
+    get:
+      tags: [health]
+      security: []
+      summary: Gateway readiness
+      responses:
+        '200':
+          description: Ready
+
+  /live:
+    get:
+      tags: [health]
+      security: []
+      summary: Gateway liveness
+      responses:
+        '200':
+          description: Live
+
+  /version:
+    get:
+      tags: [health]
+      security: []
+      summary: Gateway version
+      responses:
+        '200':
+          description: Version metadata
+
+  /metrics:
+    get:
+      tags: [health]
+      security: []
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: Prometheus text exposition
+
+  /cmdb/topology/{type}:
+    get:
+      tags: [cmdb]
+      summary: Get versioned topology snapshot
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [application, infrastructure, cloud, network, business-service]
+      responses:
+        '200':
+          description: Topology snapshot
+    post:
+      tags: [cmdb]
+      summary: Refresh topology snapshot
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: New topology version created
+
+  /observability/pipeline/sources:
+    get:
+      tags: [observability]
+      summary: List telemetry pipeline sources
+      responses:
+        '200':
+          description: Source list
+    post:
+      tags: [observability]
+      summary: Register telemetry pipeline source
+      responses:
+        '201':
+          description: Source created
+
+  /observability/pipeline/ingest/{sourceId}:
+    post:
+      tags: [observability]
+      summary: Ingest into telemetry pipeline source
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ingest result
+
+  /discovery/agents/{id}/config:
+    get:
+      tags: [discovery]
+      security: []
+      summary: Pull agent configuration (X-Agent-Key)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Agent-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent config revision
+    put:
+      tags: [discovery]
+      security: []
+      summary: Push agent configuration (X-Agent-Key)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Agent-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Applied config
+
+  /discovery/agents/{id}/updates:
+    get:
+      tags: [discovery]
+      security: []
+      summary: Agent update manifest (X-Agent-Key)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: string
+        - name: X-Agent-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Update manifest or null
 
   /executive/kpis:
     get:
