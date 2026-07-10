@@ -1,7 +1,7 @@
 # Phase 2 — Not Started (Gate)
 
 **Status:** BLOCKED  
-**Reason:** Phase 1 is only **conditionally approved**. Staging smoke, production/deploy verification, performance, security, documentation checklist, and **Production Readiness Review** must pass first.
+**Reason:** Phase 1 **PRR = FAIL** (2026-07-10). Production is healthy at a pre–Phase 1 build, but Phase 1 is not deployed, backups are missing, and data-plane ports are public. See `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`.
 
 **Production code:** **FORBIDDEN** until DoR is fully met.
 
