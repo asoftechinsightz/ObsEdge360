@@ -12,7 +12,7 @@ import clsx from 'clsx';
 import { AUTH_COOKIE, logout } from '@/lib/auth';
 import { CopilotPanel } from '@/components/CopilotPanel';
 
-const NAV = [
+const CORE_NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Executive Home' },
   { href: '/discovery', icon: Radar, label: 'Discovery' },
   { href: '/twin', icon: Network, label: 'Digital Twin' },
@@ -24,7 +24,6 @@ const NAV = [
   { href: '/ot', icon: Factory, label: 'OT / Industrial' },
   { href: '/security', icon: Shield, label: 'Security' },
   { href: '/compliance', icon: CheckCircle, label: 'Compliance' },
-  { href: '/banking360', icon: Building2, label: 'Banking360' },
   { href: '/sustainability', icon: Leaf, label: 'Sustainability' },
   { href: '/analytics', icon: TrendingUp, label: 'Predictive Analytics' },
   { href: '/quantum', icon: Atom, label: 'Quantum Ready' },
@@ -32,6 +31,28 @@ const NAV = [
   { href: '/agents', icon: Bot, label: 'AI Agents' },
   { href: '/settings/sso', icon: KeyRound, label: 'SSO settings' },
 ];
+
+/** Banking360 is an optional Solution Pack (ADR-001). Default enabled for backward compatibility. */
+function isBanking360PackEnabled(): boolean {
+  const raw = process.env.NEXT_PUBLIC_PACK_BANKING360_ENABLED;
+  if (raw === undefined || raw === '') return true;
+  return raw !== 'false' && raw !== '0';
+}
+
+function buildNav() {
+  const nav = [...CORE_NAV];
+  if (isBanking360PackEnabled()) {
+    const complianceIdx = nav.findIndex((n) => n.href === '/compliance');
+    nav.splice(complianceIdx + 1, 0, {
+      href: '/banking360',
+      icon: Building2,
+      label: 'Banking360',
+    });
+  }
+  return nav;
+}
+
+const NAV = buildNav();
 
 function readUserLabel(): string {
   if (typeof document === 'undefined') return 'User';

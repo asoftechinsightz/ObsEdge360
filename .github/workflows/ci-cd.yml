@@ -42,7 +42,15 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
+          exit-code: '1'
+
+      - name: Run Trivy HIGH (non-blocking)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH
           exit-code: '0'
 
       - name: Generate SBOM
@@ -81,8 +89,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: opsedge360/api-gateway:latest
-          severity: CRITICAL,HIGH
-          exit-code: '0'
+          severity: CRITICAL
+          exit-code: '1'
 
   python-agents:
     runs-on: ubuntu-latest
