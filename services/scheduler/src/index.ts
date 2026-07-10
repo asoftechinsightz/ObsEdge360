@@ -1,5 +1,5 @@
 import express from 'express';
-import { closePool, resolveTenantId } from '@opsedge360/shared-db';
+import { closePool, resolveTenantId, mountOpsEndpoints } from '@opsedge360/shared-db';
 import { createLogger } from '@opsedge360/shared-logger';
 import * as scheduler from './scheduler.service';
 import { startSchedulerRunner, stopSchedulerRunner } from './runner';
@@ -8,17 +8,15 @@ const log = createLogger('scheduler-service');
 const app = express();
 app.use(express.json());
 
+/** EXPERIMENTAL / non-production (ADR-003 Option B). Not in docker-compose.prod.yml. */
+mountOpsEndpoints(app, {
+  service: 'scheduler',
+  version: '1.0.0-experimental',
+});
+
 async function tenantFrom(req: express.Request): Promise<string> {
   return resolveTenantId(req.headers['x-tenant-id'] as string);
 }
-
-app.get('/health', (_, res) => res.json({ status: 'healthy', service: 'scheduler' }));
-app.get('/ready', (_, res) => res.json({ status: 'ready', service: 'scheduler' }));
-app.get('/live', (_, res) => res.json({ status: 'live', service: 'scheduler' }));
-app.get('/metrics', (_, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send('# HELP scheduler_up Scheduler service availability\nscheduler_up 1\n');
-});
 
 app.get('/jobs', async (req, res) => {
   try {

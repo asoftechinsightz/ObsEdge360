@@ -50,11 +50,22 @@ app.get('/health', (_, res) => {
   });
 });
 
-app.get('/ready', (_, res) => res.json({ status: 'ready', service: 'observability' }));
-app.get('/live', (_, res) => res.json({ status: 'live', service: 'observability' }));
+app.get('/ready', (_, res) => res.json({ status: 'ready', service: 'observability', version: '1.0.0' }));
+app.get('/live', (_, res) => res.json({ status: 'live', service: 'observability', version: '1.0.0' }));
+app.get('/version', (_, res) => {
+  res.json({ service: 'observability', version: '1.0.0', platform: 'OpsEdge360', node: process.version });
+});
 app.get('/metrics', (_, res) => {
   res.set('Content-Type', 'text/plain');
-  res.send(`# HELP otlp_logs_buffered Buffered OTLP logs\notlp_logs_buffered ${recentLogs.length}\n`);
+  res.send(
+    [
+      `# HELP otlp_logs_buffered Buffered OTLP logs`,
+      `# TYPE otlp_logs_buffered gauge`,
+      `otlp_logs_buffered{service="observability"} ${recentLogs.length}`,
+      `service_up{service="observability"} 1`,
+      '',
+    ].join('\n'),
+  );
 });
 
 app.get('/pipeline/sources', async (req, res) => {

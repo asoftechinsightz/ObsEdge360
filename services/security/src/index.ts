@@ -1,10 +1,12 @@
 import express from 'express';
-import { resolveTenantId, closePool } from '@opsedge360/shared-db';
+import { resolveTenantId, closePool, mountOpsEndpoints } from '@opsedge360/shared-db';
 import { EventBus, TOPICS, createEvent } from '@opsedge360/event-bus';
 import * as engine from './security.engine';
 
 const app = express();
 app.use(express.json());
+
+mountOpsEndpoints(app, { service: 'security', version: '1.0.0' });
 
 let bus: EventBus | null = null;
 function getBus() {
@@ -15,8 +17,6 @@ function getBus() {
 async function tid(req: express.Request) {
   return resolveTenantId((req.headers['x-tenant-id'] as string) ?? 'default');
 }
-
-app.get('/health', (_, res) => res.json({ status: 'healthy', service: 'security' }));
 
 app.get('/posture', async (req, res) => {
   try {

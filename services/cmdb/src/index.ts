@@ -4,11 +4,25 @@ import * as repo from './cmdb.repository';
 import { startKafkaConsumer, getEventBus, ingestDiscoveredAsset } from './kafka-consumer';
 import { getImpactFromGraph } from './graph-sync';
 import { closeGraph } from './graph-sync';
-import { closePool } from '@opsedge360/shared-db';
+import { closePool, mountOpsEndpoints } from '@opsedge360/shared-db';
 import * as topology from './topology.service';
 
 const app = express();
 app.use(express.json());
+
+mountOpsEndpoints(app, {
+  service: 'cmdb',
+  version: '1.0.0',
+  includeHealth: false,
+  readyCheck: async () => {
+    try {
+      await resolveTenantId();
+      return true;
+    } catch {
+      return false;
+    }
+  },
+});
 
 function paramId(req: express.Request, name = 'id'): string {
   const value = req.params[name];

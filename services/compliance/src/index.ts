@@ -1,5 +1,5 @@
 import express from 'express';
-import { resolveTenantId, closePool } from '@opsedge360/shared-db';
+import { resolveTenantId, closePool, mountOpsEndpoints } from '@opsedge360/shared-db';
 import { EventBus, TOPICS, createEvent } from '@opsedge360/event-bus';
 import * as engine from './compliance.engine';
 import * as packs from './industry-packs.engine';
@@ -7,6 +7,8 @@ import * as banking from './banking360.engine';
 
 const app = express();
 app.use(express.json());
+
+mountOpsEndpoints(app, { service: 'compliance', version: '1.0.0' });
 
 let bus: EventBus | null = null;
 function getBus() {
@@ -22,8 +24,6 @@ function paramId(req: express.Request, name = 'id'): string {
   const value = req.params[name];
   return Array.isArray(value) ? value[0] : value;
 }
-
-app.get('/health', (_, res) => res.json({ status: 'healthy', service: 'compliance' }));
 
 app.get('/frameworks', async (req, res) => {
   try {

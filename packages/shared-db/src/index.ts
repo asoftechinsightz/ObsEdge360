@@ -70,3 +70,6 @@ export async function closePool(): Promise<void> {
     pool = null;
   }
 }
+
+export { mountOpsEndpoints } from './ops-endpoints';
+export type { OpsEndpointOptions } from './ops-endpoints';

@@ -1,5 +1,5 @@
 import express from 'express';
-import { closePool } from '@opsedge360/shared-db';
+import { closePool, mountOpsEndpoints, query } from '@opsedge360/shared-db';
 import { SUPPORTED_PROTOCOLS } from './connectors/types';
 import * as discovery from './discovery.service';
 import * as agents from './agent.service';
@@ -8,6 +8,19 @@ import * as schedules from './schedule.service';
 
 const app = express();
 app.use(express.json());
+
+mountOpsEndpoints(app, {
+  service: 'discovery',
+  version: '1.0.0',
+  readyCheck: async () => {
+    try {
+      await query('SELECT 1');
+      return true;
+    } catch {
+      return false;
+    }
+  },
+});
 
 function mapConnector(c: {
   id: string;
@@ -31,8 +44,6 @@ async function tenantIdFrom(req: express.Request): Promise<string> {
   const { resolveTenantId } = await import('@opsedge360/shared-db');
   return resolveTenantId(req.headers['x-tenant-id'] as string);
 }
-
-app.get('/health', (_, res) => res.json({ status: 'healthy', service: 'discovery' }));
 
 app.get('/protocols', (_, res) => res.json({ protocols: SUPPORTED_PROTOCOLS }));
 

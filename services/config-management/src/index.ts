@@ -1,5 +1,5 @@
 import express from 'express';
-import { closePool, resolveTenantId } from '@opsedge360/shared-db';
+import { closePool, resolveTenantId, mountOpsEndpoints } from '@opsedge360/shared-db';
 import { createLogger } from '@opsedge360/shared-logger';
 import * as config from './config.service';
 
@@ -7,17 +7,15 @@ const log = createLogger('config-management');
 const app = express();
 app.use(express.json());
 
+/** EXPERIMENTAL / non-production (ADR-003 Option B). Not in docker-compose.prod.yml. */
+mountOpsEndpoints(app, {
+  service: 'config-management',
+  version: '1.0.0-experimental',
+});
+
 async function tenantFrom(req: express.Request): Promise<string> {
   return resolveTenantId(req.headers['x-tenant-id'] as string);
 }
-
-app.get('/health', (_, res) => res.json({ status: 'healthy', service: 'config-management' }));
-app.get('/ready', (_, res) => res.json({ status: 'ready' }));
-app.get('/live', (_, res) => res.json({ status: 'live' }));
-app.get('/metrics', (_, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send('config_management_up 1\n');
-});
 
 app.get('/templates', async (req, res) => {
   const tenantId = await tenantFrom(req);
