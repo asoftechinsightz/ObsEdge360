@@ -138,6 +138,14 @@ async function main() {
     console.log('014_password_reset.sql already applied.');
   }
 
+  const sprint0Table = await tableExists(client, 'roles');
+  if (!sprint0Table) {
+    const s15 = path.join(migrationsDir, '015_sprint0_enterprise_foundation.sql');
+    if (fs.existsSync(s15)) await runSqlFile(client, s15);
+  } else {
+    console.log('015_sprint0_enterprise_foundation.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
