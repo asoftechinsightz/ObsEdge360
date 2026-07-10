@@ -1,24 +1,45 @@
 # Phase 2 — Not Started (Gate)
 
 **Status:** BLOCKED  
-**Reason:** Phase 1 is only **conditionally approved**. Staging smoke, production/deploy verification, performance, security, and documentation checklist must pass first.
+**Reason:** Phase 1 is only **conditionally approved**. Staging smoke, production/deploy verification, performance, security, documentation checklist, and **Production Readiness Review** must pass first.
 
-## Do not start until
+**Production code:** **FORBIDDEN** until DoR is fully met.
 
-See `docs/phase1/PHASE1_PRE_SIGNOFF_CHECKLIST.md` §6.
+## Do not start implementation until
+
+1. Phase 1 **PRR** is PASS or PASS WITH CONDITIONS — `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`  
+2. `docs/phase1/PHASE1_PRE_SIGNOFF_CHECKLIST.md` complete  
+3. Staging smoke tests pass; no Critical/High regressions  
+4. Documentation matches implementation  
+5. Phase 2 **Definition of Ready** satisfied — `docs/governance/DEFINITION_OF_READY.md`  
+6. Phase 2 ADRs **Accepted** by EAB (ADR-009 … ADR-018 for Phase 2 scope; later ADRs as needed)  
+7. Phase 2 implementation plan approved (WBS, milestones, dependencies, acceptance criteria, test strategy, rollback, schedule)
+8. HLD/LLD updates reviewed if Phase 2 requires `v1.1` architecture docs
+
+## Allowed now (planning artifacts only)
+
+| Artifact | Status |
+|----------|--------|
+| ADR-009 … ADR-025 drafts | **Proposed** (documentation only; not Accepted) |
+| Release Governance Framework + baselines | **Published** |
+| Architecture baseline v1.0 | **Frozen** |
+| Phase 2 implementation plan / WBS | **Not started** — after Phase 1 final approval |
+| Phase 2 production code | **Not started** — blocked |
 
 ## Intended Phase 2 scope (after gate)
 
-- RBAC enforcement  
-- ABAC enforcement  
-- Tenant isolation validation  
-- Secrets management  
-- API authorization  
-- Session management (ADR-008)  
+- Security architecture enforcement (ADR-009)  
+- RBAC / ABAC (ADR-010)  
+- Multi-tenant security (ADR-011)  
+- Compliance rule engine foundation (ADR-012)  
+- Audit logging framework (ADR-013)  
+- Secrets management foundation (ADR-014)  
+- Zero Trust foundation (ADR-015)  
+- Quantum Shield architecture only / non-blocking (ADR-016)  
+- Security dashboards (ADR-017)  
+- Vulnerability management framework (ADR-018)  
+- Session management (ADR-008 implementation)  
 - MFA foundation  
-- Audit logging enhancements  
-- Security dashboards  
-- Zero Trust foundation  
 
 ## Required before coding Phase 2
 
@@ -27,3 +48,5 @@ See `docs/phase1/PHASE1_PRE_SIGNOFF_CHECKLIST.md` §6.
 3. Phase 2 implementation plan approved  
 
 **No Phase 2 production code in this repository until the above are complete.**
+
+See: `docs/governance/RELEASE_GOVERNANCE_FRAMEWORK.md` · `PHASE_GATE_MODEL.md` · `EXECUTIVE_ARCHITECTURE_BOARD.md`

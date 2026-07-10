@@ -5,7 +5,7 @@
 **Decision:** 🟡 **CONDITIONALLY APPROVED**  
 **Phase 2:** **NOT AUTHORIZED** until pre-sign-off checklist is fully evidenced  
 
-**Prerequisite for Phase 2:** Complete `PHASE1_PRE_SIGNOFF_CHECKLIST.md` (functional, production, performance, security, documentation) + staging smoke + clean-env deploy verification.
+**Prerequisite for Phase 2:** Complete `PHASE1_PRE_SIGNOFF_CHECKLIST.md` **and** `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md` (PRR) as PASS or PASS WITH CONDITIONS, with staging/operational evidence.
 
 ## Exit criteria checklist (from PHASE1_IMPLEMENTATION_PLAN)
 

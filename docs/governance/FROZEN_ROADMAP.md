@@ -12,6 +12,8 @@
 
 This six-phase roadmap is the **only authorized delivery sequence** until formally amended.  
 No phase may start until the previous phase exit criteria are met and signed off.  
+Every phase follows the permanent gate model in `PHASE_GATE_MODEL.md` (Planning → ADRs → Implementation → Unit → Integration → Security → Performance → **PRR** → Docs → Sign-off).  
+All work must meet `DEFINITION_OF_DONE.md`.  
 Production locks (domains, `trinetra360`, Nginx/SSL, volumes, migrations 001–014) remain in force across all phases.
 
 ---
@@ -23,7 +25,7 @@ Production locks (domains, `trinetra360`, Nginx/SSL, volumes, migrations 001–0
 3. **Wire before invent** — Complete Sprint 0 hardening before net-new vision features.
 4. **Secure by default** — Security enforcement precedes AI and Studio expansion.
 5. **Runnable after every milestone** — Application remains deployable and backward compatible.
-6. **Audit → Plan → ADR → Implement → Validate → Commit** — No production code without approved plan + ADRs for that phase.
+6. **Plan → ADR → Implement → Test → Security → Performance → PRR → Docs → Sign-off** — No production code without approved plan + ADRs; no next phase without PRR. See `PHASE_GATE_MODEL.md`.
 
 ---
 
@@ -91,7 +93,8 @@ Installable Helm, CD, Vault/KMS, HA, OpenSearch, multi-region.
 | Gate | Requirement |
 |------|-------------|
 | Before Phase 1 code | Phase 1 Implementation Plan **approved** + Phase 1 ADRs **accepted** |
-| Before Phase N code | Phase N−1 exit signed + Phase N plan + ADRs approved |
+| Before Phase N code | Phase N−1 **PRR** PASS/PASS WITH CONDITIONS + Phase N plan + ADRs approved |
+| Before Phase N final approval | PRR + docs review + role sign-off (`docs/reviews/`) |
 | Production deploy | Change control + backup + smoke + rollback plan |
 
 ---
@@ -101,5 +104,19 @@ Installable Helm, CD, Vault/KMS, HA, OpenSearch, multi-region.
 - `docs/governance/FROZEN_PRODUCT_VISION.md`
 - `docs/governance/FROZEN_ARCHITECTURE.md`
 - `docs/governance/INDUSTRY_SOLUTION_PACKS.md`
+- `docs/governance/PHASE_GATE_MODEL.md`
+- `docs/governance/DEFINITION_OF_DONE.md`
+- `docs/governance/DEFINITION_OF_READY.md`
+- `docs/governance/RELEASE_GOVERNANCE_FRAMEWORK.md`
+- `docs/governance/EXECUTIVE_ARCHITECTURE_BOARD.md`
+- `docs/governance/CODING_STANDARDS.md`
+- `docs/governance/RELEASE_CHECKLIST.md`
+- `docs/governance/TECHNICAL_DEBT_REGISTER.md`
+- `docs/governance/RISK_REGISTER.md`
+- `docs/governance/DOCUMENTATION_STANDARD.md`
+- `docs/governance/SECURITY_BASELINE.md`
+- `docs/governance/PERFORMANCE_BASELINE.md`
+- `docs/architecture/ARCHITECTURE_BASELINE_v1.0.md`
 - `docs/phase1/PHASE1_IMPLEMENTATION_PLAN.md`
+- `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`
 - `docs/adr/` (Architecture Decision Records)
