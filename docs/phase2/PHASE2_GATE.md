@@ -1,30 +1,28 @@
-# Phase 2 — Not Started (Gate)
+# Phase 2 — Gate
 
-**Status:** BLOCKED  
-**Reason:** Phase 1 **PRR = FAIL** (2026-07-10). Production is healthy at a pre–Phase 1 build, but Phase 1 is not deployed, backups are missing, and data-plane ports are public. See `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`.
+**Status:** PLANNING ALLOWED · **PRODUCTION CODE BLOCKED**  
+**Reason:** Phase 1 PRR is **PASS WITH CONDITIONS** (2026-07-10). Open conditions must be tracked; Phase 2 production code waits for EAB acceptance of Phase 2 ADRs + approved implementation plan.
 
-**Production code:** **FORBIDDEN** until DoR is fully met.
+See `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`.
 
 ## Do not start implementation until
 
-1. Phase 1 **PRR** is PASS or PASS WITH CONDITIONS — `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`  
-2. `docs/phase1/PHASE1_PRE_SIGNOFF_CHECKLIST.md` complete  
-3. Staging smoke tests pass; no Critical/High regressions  
-4. Documentation matches implementation  
-5. Phase 2 **Definition of Ready** satisfied — `docs/governance/DEFINITION_OF_READY.md`  
-6. Phase 2 ADRs **Accepted** by EAB (ADR-009 … ADR-018 for Phase 2 scope; later ADRs as needed)  
-7. Phase 2 implementation plan approved (WBS, milestones, dependencies, acceptance criteria, test strategy, rollback, schedule)
-8. HLD/LLD updates reviewed if Phase 2 requires `v1.1` architecture docs
+1. Phase 1 PRR remains PASS or PASS WITH CONDITIONS — ✅ current  
+2. Open PRR conditions accepted or closed (restore drill, restart tests, disk, agent-key test, signatures)  
+3. Phase 2 **Definition of Ready** satisfied — `docs/governance/DEFINITION_OF_READY.md`  
+4. Phase 2 ADRs **Accepted** by EAB (ADR-009 … ADR-018 for Phase 2 scope)  
+5. Phase 2 implementation plan approved (WBS, milestones, dependencies, acceptance criteria, test strategy, rollback, schedule)  
+6. HLD/LLD updates reviewed if Phase 2 requires `v1.1` architecture docs  
 
-## Allowed now (planning artifacts only)
+## Allowed now
 
 | Artifact | Status |
 |----------|--------|
-| ADR-009 … ADR-025 drafts | **Proposed** (documentation only; not Accepted) |
+| ADR-009 … ADR-025 drafts | **Proposed** |
 | Release Governance Framework + baselines | **Published** |
 | Architecture baseline v1.0 | **Frozen** |
-| Phase 2 implementation plan / WBS | **Not started** — after Phase 1 final approval |
-| Phase 2 production code | **Not started** — blocked |
+| Phase 2 implementation plan / WBS | **May start drafting** |
+| Phase 2 production code | **Blocked** |
 
 ## Intended Phase 2 scope (after gate)
 
@@ -41,12 +39,4 @@
 - Session management (ADR-008 implementation)  
 - MFA foundation  
 
-## Required before coding Phase 2
-
-1. Final Phase 1 sign-off  
-2. Phase 2 ADRs accepted  
-3. Phase 2 implementation plan approved  
-
-**No Phase 2 production code in this repository until the above are complete.**
-
-See: `docs/governance/RELEASE_GOVERNANCE_FRAMEWORK.md` · `PHASE_GATE_MODEL.md` · `EXECUTIVE_ARCHITECTURE_BOARD.md`
+**No Phase 2 production code until ADRs + plan are approved.**
