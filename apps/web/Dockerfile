@@ -7,9 +7,9 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY package.json package-lock.json* ./
 COPY packages/shared-types ./packages/shared-types
 COPY apps/web ./apps/web
-RUN npm install --workspace=@trinetra360/web --workspace=@trinetra360/shared-types
-RUN npm run build -w @trinetra360/shared-types
-RUN npm run build -w @trinetra360/web
+RUN npm install --workspace=@opsedge360/web --workspace=@opsedge360/shared-types
+RUN npm run build -w @opsedge360/shared-types
+RUN npm run build -w @opsedge360/web
 
 FROM node:20-alpine
 WORKDIR /app
