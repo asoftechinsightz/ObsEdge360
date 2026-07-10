@@ -38,12 +38,13 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 | Memory (headroom; no OOM) | ☑ | 15 GiB RAM; ~3.1 GiB used; ~12 GiB available; swap 0 |
 | Disk (space + inode; logs not filling disk) | ⚠ | **82% used** (157G / 193G, 37G free) — above comfort; monitor / reclaim |
 | Docker / Compose engine healthy | ☑ | Core OpsEdge360 containers Up ~18h |
-| Network (ports 80/443; internal service DNS) | ⚠ | 80/443 OK via `opsedge360-nginx-1`; **Postgres 5432, Redis 6379, Kafka 9092, Gateway 4000 bound on 0.0.0.0** (public) |
+| Network (ports 80/443; internal service DNS) | ☑ | 80/443 public via nginx; **Postgres/Redis/Kafka/Gateway bound to 127.0.0.1** after 2026-07-10 remediation |
 | SSL certificates valid (not expired; chain OK) | ☑ | `notBefore=2026-07-06` · `notAfter=2026-10-04` · CN=`observability360.asoftechinsightz.com` |
 | DNS (web + API A records correct) | ☑ | Both A → `187.127.179.138` |
-| Backup status (recent successful dump exists) | ✗ | **No** `opsedge360` / `trinetra360` dump under `/var/backups`; only OS apt backups |
+| Backup status (recent successful dump exists) | ☑ | `/var/backups/opsedge360-trinetra360-2026-07-10-233846.sql.gz` (256K, `gzip -t` OK) — created 2026-07-10 during remediation |
+| Public data-plane ports | ☑ | Remediated: Postgres/Redis/Kafka/Gateway now `127.0.0.1` only; 80/443 remain public via nginx |
 
-**Infrastructure verdict:** ✗ **FAIL** (backup missing; public DB/cache/broker ports; disk elevated)
+**Infrastructure verdict:** ⚠ **PASS WITH CONDITIONS** (backup + port lockdown done; disk still ~82%; restore drill pending)
 
 ---
 
@@ -72,7 +73,7 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 | JWT validation (login → protected route; invalid token rejected) | ☐ | Not fully exercised this pass — defer to re-run after Phase 1 deploy |
 | Agent authentication (`X-Agent-Key` valid/invalid) | ☐ | Not exercised — Phase 1 agent routes may not be on this build |
 | Secret management (no secrets in git, logs, or client bundles) | ⚠ | `.env` on host (`/opt/OpsEdge360/.env`); shared VPS with other stacks |
-| Public endpoint review (only intended public routes) | ✗ | **5432 / 6379 / 9092 / 4000** publicly listening — violates deploy guide intent |
+| Public endpoint review (only intended public routes) | ☑ | After remediation: only 80/443 public for OpsEdge360 edge; 5432/6379/9092/4000 localhost-only |
 | RBAC unchanged / not falsely claimed as enforced | ☑ | Not claimed enforced |
 | OWASP Top 10 checklist (below) | ⚠ | A05 fail dominates |
 
@@ -84,14 +85,14 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 | A02 | Cryptographic Failures | ☑ | TLS at edge valid through 2026-10-04 |
 | A03 | Injection | ☐ | Not re-tested on VPS this pass |
 | A04 | Insecure Design | ⚠ | Agent key model deferred until Phase 1 deploy verified |
-| A05 | Security Misconfiguration | ✗ | Public Postgres/Redis/Kafka/Gateway ports |
+| A05 | Security Misconfiguration | ☑ | Public data-plane ports closed 2026-07-10 (localhost binds) |
 | A06 | Vulnerable Components | ☐ | CI gate exists in repo; image CVE scan not re-run on VPS images this pass |
 | A07 | Identification & Auth Failures | ⚠ | Cookie HttpOnly still deferred (ADR-008) |
 | A08 | Software & Data Integrity | ⚠ | Deploy path manual; branch drift vs Phase 1 |
 | A09 | Security Logging Failures | ⚠ | Partial; Phase 2 audit |
 | A10 | SSRF | ☐ | Not re-tested this pass |
 
-**Security verdict:** ✗ **FAIL** (public data-plane ports)
+**Security verdict:** ⚠ **PASS WITH CONDITIONS** (public data-plane closed; Phase 1 auth surfaces not fully re-tested; JWT cookie residual)
 
 ---
 
@@ -135,13 +136,13 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 
 | Check | Status | Evidence / notes |
 |-------|--------|------------------|
-| Backup verified | ✗ | No OpsEdge360 / `trinetra360` dump found |
-| Restore procedure verified | ✗ | No drill; no backup artifact |
+| Backup verified | ☑ | `/var/backups/opsedge360-trinetra360-2026-07-10-233846.sql.gz` verified (`gzip -t`) |
+| Restore procedure verified | ⚠ | Artifact exists; full restore drill still pending |
 | Logs verified | ⚠ | Containers running; deep log secret scan not completed |
 | Monitoring verified | ⚠ | Host has Prometheus/Grafana (`asoftech-*`); OpsEdge360 `/metrics` **404** on gateway |
 | Alerts verified | ✗ | No OpsEdge360-specific alert verification |
 
-**Operations verdict:** ✗ **FAIL**
+**Operations verdict:** ⚠ **PASS WITH CONDITIONS** (backup exists; restore drill + alerts still open)
 
 ---
 
@@ -168,14 +169,21 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 
 | # | Condition | Owner | Priority | Closed |
 |---|-----------|-------|----------|--------|
-| 1 | Take verified `trinetra360` backup; store under `/var/backups`; document restore dry-run | SRE | Critical | ☐ |
-| 2 | Bind Postgres/Redis/Kafka to localhost (or firewall drop public 5432/6379/9092); review gateway `:4000` exposure | SRE / Security | Critical | ☐ |
+| 1 | Take verified `trinetra360` backup; store under `/var/backups`; document restore dry-run | SRE | Critical | ☑ backup done 2026-07-10; ☐ restore drill |
+| 2 | Bind Postgres/Redis/Kafka to localhost (or firewall drop public 5432/6379/9092); review gateway `:4000` exposure | SRE / Security | Critical | ☑ 2026-07-10 (`127.0.0.1` binds; HTTPS still 200) |
 | 3 | Deploy Phase 1 from `feature/sprint0-enterprise-foundation` (or release tag) to VPS with change control | SRE / Eng | Critical | ☐ |
 | 4 | Confirm `/api/v1/health` Phase 1 probe shape + `/ready` `/live` `/version` `/metrics` | Eng | High | ☐ |
 | 5 | Smoke topology / pipeline / agent-config via gateway | Eng | High | ☐ |
 | 6 | Reclaim disk or expand volume (target &lt; 70–75% use) | SRE | Medium | ☐ |
-| 7 | Run restart/recovery tests **after** backup | SRE | High | ☐ |
+| 7 | Run restart/recovery tests **after** backup | SRE | High | ☐ (backup exists; tests not yet run) |
 | 8 | Clarify single canonical deploy path (`/opt/OpsEdge360` vs `/opt/observability360`) | SRE | Medium | ☐ |
+
+### Remediation log (2026-07-10)
+
+- Backup: `/var/backups/opsedge360-trinetra360-2026-07-10-233846.sql.gz`
+- Compose on VPS patched + containers recreated: postgres, redis, kafka, api-gateway → `127.0.0.1` binds
+- Post-check: `PASS_no_public_dataplane`; health=200; web=200; DB `SELECT 1` OK
+- **Overall PRR decision remains FAIL** until Phase 1 is deployed and remaining blockers close
 
 ---
 
@@ -193,7 +201,7 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 |-------|-------|
 | **Final decision** | ☑ **FAIL** |
 | Date | 2026-07-10 |
-| Summary | Production stack is **up** and TLS/DNS/DB connectivity look healthy, but Phase 1 is **not deployed** (wrong branch/commit; ready/metrics/version 404), **no DB backup**, and **data-plane ports are public**. Phase 1 final approval and Phase 2 remain blocked. |
+| Summary | Critical ops remediations (backup + localhost binds) completed 2026-07-10. **FAIL remains** because Phase 1 code is still not deployed (`rebrand/opsedge360-phase-0b` @ `e45a0cc`; `/ready` `/metrics` `/version` 404). Re-run PRR after Phase 1 deploy. |
 
 | Role | Name | Signature | Date |
 |------|------|-----------|------|

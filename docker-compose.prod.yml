@@ -175,7 +175,8 @@ services:
       context: .
       dockerfile: apps/api-gateway/Dockerfile
     ports:
-      - "4000:4000"
+      # Gateway reachable via Docker network + localhost only; public API via Nginx :443
+      - "127.0.0.1:4000:4000"
     environment:
       NODE_ENV: production
       API_GATEWAY_PORT: 4000
