@@ -5,6 +5,7 @@ import { startKafkaConsumer, getEventBus, ingestDiscoveredAsset } from './kafka-
 import { getImpactFromGraph } from './graph-sync';
 import { closeGraph } from './graph-sync';
 import { closePool } from '@opsedge360/shared-db';
+import * as topology from './topology.service';
 
 const app = express();
 app.use(express.json());
@@ -238,6 +239,32 @@ app.get('/twin/blast-radius/:ciId', tenantMiddleware, async (req, res) => {
 app.get('/stats', tenantMiddleware, async (req, res) => {
   const tenantId = (req as express.Request & { tenantId: string }).tenantId;
   res.json(await repo.getStats(tenantId));
+});
+
+app.get('/topology/:type', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const type = paramId(req, 'type') as topology.TopologyType;
+    const latest = await topology.getLatestTopology(tenantId, type);
+    if (!latest) {
+      const refreshed = await topology.incrementalRefresh(tenantId, type);
+      return res.json(refreshed);
+    }
+    res.json(latest);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/topology/:type/refresh', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const type = paramId(req, 'type') as topology.TopologyType;
+    const snapshot = await topology.incrementalRefresh(tenantId, type);
+    res.status(201).json(snapshot);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
 });
 
 /** Internal endpoint for discovery service when Kafka is unavailable */
