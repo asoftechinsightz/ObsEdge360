@@ -13,7 +13,8 @@ export interface DiscoveryConnector {
 
 export const SUPPORTED_PROTOCOLS = [
   'ssh', 'snmp', 'kubernetes', 'aws', 'azure', 'gcp', 'static',
-  'opc-ua', 'modbus', 'mqtt',
+  'opc-ua', 'modbus', 'mqtt', 'rest', 'winrm', 'wmi', 'vmware',
+  'network', 'dependency', 'business-service',
 ] as const;
 
 export type SupportedProtocol = (typeof SUPPORTED_PROTOCOLS)[number];

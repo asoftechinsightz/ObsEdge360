@@ -3,6 +3,7 @@ import { closePool } from '@opsedge360/shared-db';
 import { SUPPORTED_PROTOCOLS } from './connectors/types';
 import * as discovery from './discovery.service';
 import * as agents from './agent.service';
+import * as agentConfig from './agent-config.service';
 import * as schedules from './schedule.service';
 
 const app = express();
@@ -141,7 +142,6 @@ app.post('/agents/:id/heartbeat', async (req, res) => {
   }
 });
 
-/** Dedicated metrics push (same auth as heartbeat; also refreshes heartbeat). */
 app.post('/agents/:id/metrics', async (req, res) => {
   try {
     const agentKey = req.headers['x-agent-key'] as string;
@@ -160,6 +160,45 @@ app.post('/agents/:id/metrics', async (req, res) => {
       agent: agents.serializeAgent(result.agent),
       metricsIngested: result.metricsIngested,
     });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/agents/:id/config', async (req, res) => {
+  try {
+    const agentKey = req.headers['x-agent-key'] as string;
+    if (!agentKey) return res.status(401).json({ error: 'Missing X-Agent-Key header' });
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const config = await agentConfig.getAgentConfig(agentId, agentKey);
+    if (!config) return res.status(401).json({ error: 'Invalid agent or key' });
+    res.json(config);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.put('/agents/:id/config', async (req, res) => {
+  try {
+    const agentKey = req.headers['x-agent-key'] as string;
+    if (!agentKey) return res.status(401).json({ error: 'Missing X-Agent-Key header' });
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const config = await agentConfig.setAgentConfig(agentId, agentKey, req.body);
+    if (!config) return res.status(401).json({ error: 'Invalid agent or key' });
+    res.json(config);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/agents/:id/updates', async (req, res) => {
+  try {
+    const agentKey = req.headers['x-agent-key'] as string;
+    if (!agentKey) return res.status(401).json({ error: 'Missing X-Agent-Key header' });
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const version = (req.query.version as string) ?? '0.0.0';
+    const manifest = await agentConfig.getAgentUpdateManifest(agentId, agentKey, version);
+    res.json(manifest);
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }
