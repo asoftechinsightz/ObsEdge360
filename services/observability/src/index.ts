@@ -3,6 +3,7 @@ import { query, closePool } from '@opsedge360/shared-db';
 import { EventBus, TOPICS, createEvent } from '@opsedge360/event-bus';
 import * as monitoring from './monitoring.service';
 import * as apm from './apm.service';
+import * as pipeline from './telemetry-pipeline.service';
 
 const app = express();
 
@@ -47,6 +48,43 @@ app.get('/health', (_, res) => {
     logsBuffered: recentLogs.length,
     spansBuffered: recentSpans.length,
   });
+});
+
+app.get('/ready', (_, res) => res.json({ status: 'ready', service: 'observability' }));
+app.get('/live', (_, res) => res.json({ status: 'live', service: 'observability' }));
+app.get('/metrics', (_, res) => {
+  res.set('Content-Type', 'text/plain');
+  res.send(`# HELP otlp_logs_buffered Buffered OTLP logs\notlp_logs_buffered ${recentLogs.length}\n`);
+});
+
+app.get('/pipeline/sources', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    res.json({ sources: await pipeline.listSources(tenantId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/pipeline/sources', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const source = await pipeline.registerSource(tenantId, req.body);
+    res.status(201).json(source);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/pipeline/ingest/:sourceId', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const sourceId = Array.isArray(req.params.sourceId) ? req.params.sourceId[0] : req.params.sourceId;
+    const result = await pipeline.ingestFromSource(tenantId, sourceId, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
 });
 
 /** OTLP metrics HTTP/JSON — validated, rate-limited, persisted */
