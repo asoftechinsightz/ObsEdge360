@@ -47,10 +47,13 @@ LeadEdge360 and RetailEdge360 may link to OpsEdge360 from marketing pages (`/pro
 
 ## Industry packs (within OpsEdge360)
 
-- **Banking360** — BFSI compliance, UPI/transaction flows (not LeadEdge growth modules)
-- **Retail360** — store/OT observability (not RetailEdge360 POS)
-- **Manufacturing360**, **Healthcare360** — planned
+Industry capabilities are **optional Solution Packs** (see `docs/governance/INDUSTRY_SOLUTION_PACKS.md`). The core platform is industry-agnostic.
 
+- **Banking360** — Optional BFSI pack (nav gated by `NEXT_PUBLIC_PACK_BANKING360_ENABLED`, default `true`)
+- **Retail360** — Planned optional pack
+- **Manufacturing360**, **Healthcare360** — Planned optional packs
+
+Core discovery, CMDB, observability, and compliance **engine** must run with all packs disabled.
 ---
 
 ## Deployment modes

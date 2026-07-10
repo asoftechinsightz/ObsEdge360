@@ -24,7 +24,7 @@
 }
 ```
 
-## New Endpoints
+## New Endpoints (Phase 1 — production path)
 
 ### Agent Framework
 
@@ -33,10 +33,6 @@
 | GET | `/discovery/agents/:id/config` | X-Agent-Key | Pull agent configuration |
 | PUT | `/discovery/agents/:id/config` | X-Agent-Key | Push agent configuration |
 | GET | `/discovery/agents/:id/updates` | X-Agent-Key | Check for agent updates |
-
-### Discovery v2 Protocols
-
-`GET /discovery/protocols` now includes: `rest`, `winrm`, `wmi`, `vmware`, `network`, `dependency`, `business-service`
 
 ### Telemetry Pipeline
 
@@ -55,29 +51,24 @@
 
 Types: `application`, `infrastructure`, `cloud`, `network`, `business-service`
 
-### Scheduler
+### Scheduler & Config Management — NOT in production (ADR-003 Option B)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/scheduler/jobs` | List scheduled jobs |
-| POST | `/scheduler/jobs` | Create job |
-| GET | `/scheduler/dead-letter` | List dead letter queue |
+| Service | Status |
+|---------|--------|
+| `services/scheduler` (:4011) | **Experimental** — local/lab only; no gateway routes; not in `docker-compose.prod.yml` |
+| `services/config-management` (:4012) | **Experimental** — local/lab only; no gateway routes; not in `docker-compose.prod.yml` |
 
-### Config Management
+Do not call `/scheduler/*` or `/config-management/*` on production API — those paths are not exposed.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/config-management/templates` | List templates |
-| POST | `/config-management/templates` | Create template |
-| POST | `/config-management/deploy` | Deploy rendered config |
-| POST | `/config-management/deployments/:id/rollback` | Rollback deployment |
+## Health Endpoints (all production services + gateway)
 
-## Health Endpoints (all services)
-
-- `GET /health` — liveness
-- `GET /ready` — readiness (scheduler, config-management, observability)
+- `GET /health` — liveness/health (gateway probes dependencies)
+- `GET /ready` — readiness
 - `GET /live` — process alive
+- `GET /version` — version metadata
 - `GET /metrics` — Prometheus text exposition
+
+Gateway paths are under `/api/v1/*`.
 
 ## Pagination / Filtering
 
