@@ -178,12 +178,46 @@ export class AuthService {
     return this.issueToken({ ...user, slug: tenant.slug });
   }
 
-  me(payload: JwtPayload): JwtPayload {
-    return payload;
-  }
-
   verifyToken(token: string): JwtPayload {
     return jwt.verify(token, this.secret) as JwtPayload;
+  }
+
+  /** Sliding access-token refresh — same identity, new expiry (Wave 1 session foundation). */
+  refreshToken(token: string): { accessToken: string; user: JwtPayload; expiresIn: string } {
+    let payload: JwtPayload;
+    try {
+      payload = this.verifyToken(token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+    const next: JwtPayload = {
+      sub: payload.sub,
+      email: payload.email,
+      tenantId: payload.tenantId,
+      role: payload.role,
+      name: payload.name,
+    };
+    const accessToken = jwt.sign(next, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
+    return { accessToken, user: next, expiresIn: this.expiresIn };
+  }
+
+  async me(user: JwtPayload) {
+    const { buildAuthContext } = await import('@opsedge360/shared-security');
+    let authContext = null;
+    try {
+      authContext = await buildAuthContext({
+        userId: user.sub,
+        tenantSlug: user.tenantId,
+        legacyRole: user.role,
+      });
+    } catch {
+      authContext = null;
+    }
+    return {
+      ...user,
+      roles: authContext?.roles ?? [user.role],
+      permissions: authContext?.permissions ?? [],
+    };
   }
 
   async requestPasswordReset(email: string, tenantSlug?: string): Promise<{ message: string; resetToken?: string }> {

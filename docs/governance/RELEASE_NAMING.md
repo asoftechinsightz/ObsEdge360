@@ -39,7 +39,17 @@ Hotfixes: `v0.9.2.x` style patches without scope change.
 4. Do not claim **v1.0.0 GA** until EAB GA checklist is met.  
 5. Preview (`v0.9.x`) may ship with tracked operational conditions.
 
-## 4. Current mapping
+## 5. Roadmap recommendation (not frozen until EAB amends)
 
-- Production: **v0.9.1** @ `b0f85fa`  
-- Implementation train (ADRs Accepted): **v0.9.2** Enterprise Security & Compliance Foundation  
+Strategic option under discussion: place AI before advanced observability:
+
+| Version | Proposed name |
+|---------|----------------|
+| v0.9.3 | AI & Agentic AI Foundation |
+| v0.9.4 | Advanced Observability & SRE |
+| v0.9.5 | Dashboard Studio & Workflow Automation |
+| v0.9.6 | Industry & Country Solution Packs |
+| v0.9.7 | Marketplace & Plugin SDK |
+| v1.0.0 | Enterprise GA |
+
+Formal freeze remains §2 until EAB amends `FROZEN_ROADMAP.md`.

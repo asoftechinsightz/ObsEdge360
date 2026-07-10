@@ -64,13 +64,126 @@ export function hasPermission(ctx: AuthContext, permission: string): boolean {
   return all.some((p) => matchPermission(p, permission));
 }
 
+/** Map legacy users.role string to permission grants (catalog — not scattered in controllers). */
+export const LEGACY_ROLE_PERMISSIONS: Record<string, string[]> = {
+  admin: ['*'],
+  operator: [
+    'discovery:*',
+    'cmdb:*',
+    'observability:*',
+    'transactions:*',
+    'compliance:read',
+    'security:read',
+    'agents:*',
+    'remediation:*',
+    'network:read',
+    'analytics:read',
+    'platform:read',
+  ],
+  viewer: ['*:read'],
+};
+
+export function permissionsForLegacyRole(role: string): string[] {
+  return LEGACY_ROLE_PERMISSIONS[role] ?? LEGACY_ROLE_PERMISSIONS.viewer;
+}
+
+export function mergePermissions(...lists: string[][]): string[] {
+  const set = new Set<string>();
+  for (const list of lists) {
+    for (const p of list) set.add(p);
+  }
+  return [...set];
+}
+
+/**
+ * Infer required permission from HTTP method + path (central policy — services must not reimplement).
+ * Examples: GET /api/v1/cmdb/cis → cmdb:read ; POST /api/v1/discovery/scan → discovery:write
+ */
+export function inferPermission(method: string, path: string): string {
+  const normalized = path.replace(/^\/api\/v1\/?/, '').replace(/^\//, '');
+  const segment = normalized.split('/').filter(Boolean)[0] ?? 'platform';
+  const resource = segment === 'auth' ? 'platform' : segment;
+  const m = method.toUpperCase();
+  const action =
+    m === 'GET' || m === 'HEAD' || m === 'OPTIONS'
+      ? 'read'
+      : m === 'DELETE'
+        ? 'delete'
+        : 'write';
+  return `${resource}:${action}`;
+}
+
+export function authorize(
+  ctx: AuthContext,
+  permission: string,
+  policies: AbacPolicyRow[] = [],
+  attributes: Record<string, unknown> = {},
+): { allowed: boolean; reason: string } {
+  if (!hasPermission(ctx, permission)) {
+    return { allowed: false, reason: 'rbac_deny' };
+  }
+  if (policies.length === 0) {
+    return { allowed: true, reason: 'rbac_allow' };
+  }
+  const [resource, action] = permission.split(':');
+  const abacOk = evaluateAbac(policies, resource ?? permission, action ?? '*', {
+    tenantId: ctx.tenantId,
+    ...attributes,
+  });
+  // If no policy matched, evaluateAbac returns false — treat as allow when RBAC passed and no matching policy
+  const anyMatch = policies.some((p) => {
+    const resourceMatch = new RegExp(`^${p.resource_pattern.replace(/\*/g, '.*')}$`).test(resource ?? '');
+    const actionMatch = new RegExp(`^${p.action_pattern.replace(/\*/g, '.*')}$`).test(action ?? '');
+    return resourceMatch && actionMatch;
+  });
+  if (!anyMatch) {
+    return { allowed: true, reason: 'rbac_allow_no_abac_match' };
+  }
+  if (!abacOk) {
+    return { allowed: false, reason: 'abac_deny' };
+  }
+  return { allowed: true, reason: 'rbac_abac_allow' };
+}
+
+export async function buildAuthContext(input: {
+  userId: string;
+  tenantSlug: string;
+  legacyRole?: string;
+}): Promise<AuthContext> {
+  let roles: RoleRow[] = [];
+  try {
+    roles = await loadUserRoles(input.userId);
+  } catch {
+    roles = [];
+  }
+  const roleNames = roles.map((r) => r.name);
+  const dbPerms = roles.flatMap((r) => (Array.isArray(r.permissions) ? r.permissions : []));
+  const legacyPerms = permissionsForLegacyRole(input.legacyRole ?? 'viewer');
+  const permissions = dbPerms.length > 0 ? dbPerms : legacyPerms;
+  return {
+    userId: input.userId,
+    tenantId: input.tenantSlug,
+    roles: roleNames.length ? roleNames : [input.legacyRole ?? 'viewer'],
+    permissions,
+  };
+}
+
+
 export async function loadUserRoles(userId: string): Promise<RoleRow[]> {
-  return query<RoleRow>(
-    `SELECT r.* FROM roles r
+  const rows = await query<RoleRow & { permissions: string[] | string }>(
+    `SELECT r.id, r.tenant_id, r.name, r.permissions FROM roles r
      JOIN user_roles ur ON ur.role_id = r.id
      WHERE ur.user_id = $1`,
     [userId],
   );
+  return rows.map((r) => ({
+    ...r,
+    permissions: Array.isArray(r.permissions)
+      ? r.permissions
+      : typeof r.permissions === 'string'
+        ? (JSON.parse(r.permissions) as string[])
+        : [],
+  }));
 }
 
 export async function loadTenantPolicies(tenantId: string): Promise<AbacPolicyRow[]> {

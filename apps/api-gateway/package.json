@@ -7,7 +7,7 @@
     "dev": "nest start --watch",
     "start": "node dist/main",
     "lint": "tsc --noEmit -p tsconfig.json",
-    "test": "nest build"
+    "test": "node --import tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
@@ -18,6 +18,7 @@
     "@opsedge360/cache": "*",
     "@opsedge360/platform-config": "*",
     "@opsedge360/shared-db": "*",
+    "@opsedge360/shared-security": "*",
     "axios": "^1.7.9",
     "express": "^4.21.2",
     "class-transformer": "^0.5.1",

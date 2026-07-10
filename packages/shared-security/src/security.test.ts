@@ -8,6 +8,9 @@ import {
   verifyApiKey,
   evaluateAbac,
   TokenBucketRateLimiter,
+  inferPermission,
+  authorize,
+  permissionsForLegacyRole,
 } from './index';
 
 describe('shared-security', () => {
@@ -40,6 +43,23 @@ describe('shared-security', () => {
     }];
     assert.equal(evaluateAbac(policies, 'cmdb:cis', 'read', { env: 'prod' }), true);
     assert.equal(evaluateAbac(policies, 'cmdb:cis', 'read', { env: 'dev' }), false);
+  });
+
+  it('infers permissions from method and path', () => {
+    assert.equal(inferPermission('GET', '/api/v1/cmdb/cis'), 'cmdb:read');
+    assert.equal(inferPermission('POST', '/api/v1/discovery/scan'), 'discovery:write');
+    assert.equal(inferPermission('DELETE', '/api/v1/security/rules/1'), 'security:delete');
+  });
+
+  it('authorizes with RBAC and optional ABAC', () => {
+    const ctx = { tenantId: 't1', roles: ['viewer'], permissions: ['cmdb:read'] };
+    assert.equal(authorize(ctx, 'cmdb:read').allowed, true);
+    assert.equal(authorize(ctx, 'cmdb:write').allowed, false);
+  });
+
+  it('maps legacy roles to permissions', () => {
+    assert.deepEqual(permissionsForLegacyRole('admin'), ['*']);
+    assert.ok(permissionsForLegacyRole('viewer').includes('*:read'));
   });
 
   it('rate limits token bucket', () => {

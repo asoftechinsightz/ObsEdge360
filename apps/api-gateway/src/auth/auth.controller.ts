@@ -96,9 +96,20 @@ export class AuthController {
 
   @Get('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Current authenticated user' })
+  @ApiOperation({ summary: 'Current authenticated user with roles/permissions' })
   me(@CurrentUser() user: JwtPayload) {
     return this.authService.me(user);
+  }
+
+  @Post('refresh')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Refresh access token (sliding expiry)' })
+  refresh(@Req() req: Request) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing bearer token');
+    }
+    return this.authService.refreshToken(authHeader.slice(7));
   }
 
   private assertAuthRateLimit(req: Request, email: string) {

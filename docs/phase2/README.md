@@ -1,7 +1,9 @@
 # Phase 2 — Enterprise Security & Compliance Foundation
 
-**Implementation:** ✅ Authorized for `v0.9.2` (EAB 2026-07-11)  
-**EAB resolution:** [EAB_RESOLUTION_2026-07-11.md](../governance/EAB_RESOLUTION_2026-07-11.md)
+**Planning:** ✅ Accepted  
+**Implementation:** ✅ Authorized — Wave 1 in progress / complete pending review  
+**EAB:** [EAB_RESOLUTION_2026-07-11.md](../governance/EAB_RESOLUTION_2026-07-11.md)  
+**Waves:** [PHASE2_IMPLEMENTATION_WAVES.md](./PHASE2_IMPLEMENTATION_WAVES.md)  
 
 ## Documents
 
