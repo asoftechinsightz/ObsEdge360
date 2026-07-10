@@ -1,11 +1,11 @@
 # Phase 2 — Implementation Plan
 
 **Document ID:** OE360-P2-PLAN-001  
-**Status:** PROPOSED — awaiting EAB approval  
+**Status:** ✅ ACCEPTED by EAB 2026-07-11 — implementation authorized for `v0.9.2`  
 **Phase title:** Enterprise Security & Compliance Foundation  
-**Target release:** `v0.9.2` — Security Foundation  
-**Depends on:** Phase 1 Approved with Operational Conditions  
-**Coding:** ❌ Forbidden until this plan + companion docs + ADRs are Accepted  
+**Target release:** `v0.9.2` — Enterprise Security & Compliance Foundation  
+**Depends on:** Phase 1 Approved with Operational Conditions · ADR-009…018 **Accepted**  
+**Coding:** ✅ Authorized (follow WBS; no scope expansion beyond approved list)  
 
 ---
 
@@ -124,6 +124,6 @@ Adjust after EAB approval.
 
 | Field | Value |
 |-------|-------|
-| Plan status | ☐ Approved · ☐ Approved with conditions · ☐ Rejected |
-| Date | |
-| Conditions | |
+| Plan status | ☑ **Approved** (EAB 2026-07-11) |
+| Date | 2026-07-11 |
+| Conditions | Finalize ADR mandatory sections (done); keep module/plugin principle; track Phase 1 OCs |

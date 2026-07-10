@@ -1,43 +1,70 @@
 # ADR-014: Secrets Management
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** SRE Lead, Security Architect  
-**Phase:** 2 (foundation) · Phase 6 (Vault/KMS hardening)  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Phase 2 foundation · Vault/KMS Phase 6  
 **Depends on:** ADR-009  
 
 ---
 
-## Context
+## Business Context
 
-Production secrets live primarily in host `.env` / compose environment. This is common for VPS bootstrap but risks sprawl, weak rotation, and accidental leakage into logs/images.
+Enterprise deployments require controlled secret storage, rotation, and service identity — without blocking Phase 2 AuthZ delivery.
+
+## Problem Statement
+
+Secrets live mainly in host `.env` / compose env. Sprawl, weak rotation, and accidental log leakage are risks (R-SEC-005).
 
 ## Decision
 
 **Phase 2 foundation:**
 
-1. Inventory all secrets (DB, JWT, agent keys, Redis, Kafka, third-party).  
-2. Standardize naming (`OE360_*` / documented env contract).  
-3. Forbid secrets in git, client bundles, and logs (coding standards).  
-4. Document rotation procedures for JWT signing key and agent keys.  
-5. Optional: introduce a thin **secrets provider interface** in shared code (env backend now).  
+1. Inventory secrets (DB, JWT, agent keys, Redis, Kafka, third parties).  
+2. Standardize naming; forbid secrets in git/client bundles/logs.  
+3. Document rotation for JWT signing key and agent keys.  
+4. Introduce `SecretsProvider` interface with **Env** backend now.  
+5. Define service-to-service authentication direction (gateway→service shared network today; evolve to explicit service identity).  
 
-**Phase 6 target:** HashiCorp Vault / cloud KMS backend behind the same interface; dynamic DB creds where feasible.
+**Later:** Vault/KMS backend behind same interface (Phase 6).
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected for Phase 2 |
 |-------------|--------------------------|
-| Full Vault now | Ops heavy before PRR maturity |
-| Keep ad-hoc forever | Unacceptable debt |
-| Sealed secrets in git | Still secret sprawl; wrong threat model |
+| Full Vault now | Ops heavy before process maturity |
+| Sealed secrets in git | Wrong threat model |
+| Ad-hoc forever | Unacceptable debt |
 
 ## Consequences
 
-**Positive:** Clear path to enterprise secret ops without blocking Phase 2 authz work.  
-**Negative:** Env-file residual risk until Phase 6 (R-SEC-005).
+**Positive:** Clear path to enterprise secret ops.  
+**Negative:** Env-file residual until Vault.
 
-## Compliance
+## Security Impact
 
-- Production lock: do not break running deploy; change-control rotations.  
-- Linked debt: TD-011.  
+Reduces accidental leakage; rotation strategy documented. Residual: host file theft.
+
+## Performance Impact
+
+Negligible (env reads at startup / cached).
+
+## Scalability Impact
+
+Interface allows per-environment backends without code forks.
+
+## Compliance Impact
+
+Supports secret management control narratives; full Vault evidence later.
+
+## Rollback Strategy
+
+Revert to direct `process.env` reads if provider bugs; no data migration.
+
+## Future Considerations
+
+Dynamic DB creds, per-tenant secrets, mTLS service identity.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11 (foundation).  

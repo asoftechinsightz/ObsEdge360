@@ -2,32 +2,44 @@
 
 **Document ID:** OE360-REL-NAME-001  
 **Status:** FROZEN  
-**Effective:** 2026-07-10  
+**Effective:** 2026-07-11 (updated per EAB)  
 **Authority:** EAB / Product Owner  
 
 ---
 
-## 1. Version line (pre-GA)
+## 1. Semantic release governance (from v0.9.2 onward)
 
-| Version | Name | Phase alignment | Status |
-|---------|------|-----------------|--------|
-| **v0.9.0** | Enterprise Foundation | Phase 0 audit + Sprint 0 foundation | Historical |
-| **v0.9.1** | Production Hardening | Phase 1 Harden & Wire (deployed) | **Current** |
-| **v0.9.2** | Security Foundation | Phase 2 Enterprise Security & Compliance Foundation | Planned |
-| **v0.9.3** | Compliance Foundation | Phase 2 exit / compliance depth (or early Phase 3 overlap) | Planned |
-| **v0.9.4** | AI Foundation | Phase 4 AI Platform | Planned |
-| **v1.0.0** | Enterprise GA | Post Phase 5/6 readiness criteria | Future |
+| Version pattern | Meaning |
+|-----------------|--------|
+| **v0.9.x** | Enterprise Preview |
+| **v1.0.0** | General Availability (GA) |
+| **v1.x** | Backward-compatible feature releases |
+| **v2.x** | Major architecture changes |
 
-Patch increments (`v0.9.1.x`) may be used for hotfixes that do not change phase scope.
+## 2. Enterprise milestone roadmap
 
-## 2. Rules
+| Version | Name | Status |
+|---------|------|--------|
+| **v0.9.1** | Enterprise Foundation / Production Hardening | ✅ Current (Phase 1) |
+| **v0.9.2** | Enterprise Security & Compliance Foundation | Next (Phase 2) |
+| **v0.9.3** | Enterprise Observability Platform | Planned |
+| **v0.9.4** | AI & Agentic AI Foundation | Planned |
+| **v0.9.5** | Dashboard Studio & Workflow Automation | Planned |
+| **v0.9.6** | Industry & Country Solution Packs | Planned |
+| **v0.9.7** | Marketplace & Plugin SDK | Planned |
+| **v1.0.0** | OpsEdge360 Enterprise General Availability | Future |
 
-1. Every production deploy tags or records a release id in release notes + PRR.  
-2. Marketing/customer communication uses the **Name** column, not internal phase numbers alone.  
-3. Phase gates still govern delivery; release names are the external/versioning lens.  
-4. Do not claim **v1.0.0 Enterprise GA** until EAB GA checklist is met.
+Hotfixes: `v0.9.2.x` style patches without scope change.
 
-## 3. Current mapping
+## 3. Rules
 
-- Production VPS (2026-07-10): **v0.9.1 Production Hardening** @ `b0f85fa`  
-- Next coding train (after plan approval): **v0.9.2 Security Foundation**  
+1. Every production deploy records a release id in notes + PRR.  
+2. External communication uses the **Name** column.  
+3. Phase gates still govern delivery.  
+4. Do not claim **v1.0.0 GA** until EAB GA checklist is met.  
+5. Preview (`v0.9.x`) may ship with tracked operational conditions.
+
+## 4. Current mapping
+
+- Production: **v0.9.1** @ `b0f85fa`  
+- Implementation train (ADRs Accepted): **v0.9.2** Enterprise Security & Compliance Foundation  

@@ -1,40 +1,68 @@
 # ADR-013: Audit Logging Architecture
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** Security Architect, SRE Lead  
-**Phase:** 2  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Phase 2 · `v0.9.2`  
 **Depends on:** ADR-009  
 
 ---
 
-## Context
+## Business Context
 
-Structured application logs exist partially; security-relevant **audit events** (who did what, when, to which tenant/resource, outcome) are incomplete for enterprise forensics and compliance.
+Forensics, compliance, and security operations require an accountable record of who did what, when, to which tenant/resource.
+
+## Problem Statement
+
+Application logs are partial; security-relevant audit events for authz denies and mutations are incomplete.
 
 ## Decision
 
-1. Introduce a dedicated **audit event schema**: actor, tenant, action, resource, outcome, ip, requestId, timestamp, metadata.  
-2. Emit audits for: login/logout, authz deny, mutations (create/update/delete), admin/impersonation, secret/key changes, config changes.  
-3. **Gateway** is primary emitter for HTTP API audits; services may emit domain audits.  
-4. Storage: PostgreSQL audit tables initially (append-oriented); retention policy documented.  
-5. Audit records are **update-restricted** (no silent edits); admin access audited.  
-6. Correlation with request/access logs without storing secrets or raw passwords.
+1. Dedicated audit schema: actor, tenant, action, resource, outcome, ip, requestId, timestamp, metadata.  
+2. Emit for: login/logout, authz deny, mutations, admin/impersonation, key/config changes.  
+3. Gateway is primary HTTP audit emitter; services may emit domain audits.  
+4. PostgreSQL append-oriented storage initially; retention documented.  
+5. Update-restricted; admin access audited.  
+6. No secrets/passwords in audit payloads.  
+7. Feed security observability (events, dashboards, alerts).
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected |
 |-------------|--------------|
-| App logs only | Not queryable/immutable enough |
-| External SIEM only in Phase 2 | Still need first-party audit API |
-| Sync audit in every service without schema | Inconsistent |
+| App logs only | Weak query/immutability |
+| SIEM-only in Phase 2 | Still need first-party audit API |
+| Unschema’d per-service logs | Inconsistent |
 
 ## Consequences
 
 **Positive:** Forensics + compliance evidence.  
-**Negative:** Volume/retention costs; PII minimization required.
+**Negative:** Volume/retention cost; PII minimization required.
 
-## Compliance
+## Security Impact
 
-- Linked debt: TD-010 · risk: R-SEC-006.  
-- OpenAPI for audit query APIs if exposed.  
+Mitigates R-SEC-006 / TD-010; improves repudiation controls.
+
+## Performance Impact
+
+Sync insert on mutations — budgeted in perf assessment; async path if needed via ADR addendum.
+
+## Scalability Impact
+
+Partition/archive by time; future ship to SIEM without changing emitters.
+
+## Compliance Impact
+
+Core evidence collection framework for access and change accountability.
+
+## Rollback Strategy
+
+Stop emitters via flag; retain table; prior release without audit UI.
+
+## Future Considerations
+
+WORM storage, SIEM connectors, tamper-evident hashing.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11.  

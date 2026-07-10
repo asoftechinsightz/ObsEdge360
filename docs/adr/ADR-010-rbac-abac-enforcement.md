@@ -1,42 +1,68 @@
 # ADR-010: RBAC & ABAC Enforcement
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** Security Architect, Chief Architect  
-**Phase:** 2  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Phase 2 · `v0.9.2`  
 **Depends on:** ADR-009  
 
 ---
 
-## Context
+## Business Context
 
-RBAC tables/library exist from Sprint 0 / migration 015, but gateway does not consistently enforce permissions. ABAC (attributes such as tenant, environment, sensitivity) is not applied. This is broken access control risk (OWASP A01).
+Customers expect role-based and attribute-based access control so operators only see and change what their job requires across tenants.
+
+## Problem Statement
+
+RBAC tables/libraries exist but are not enforced at the gateway. ABAC (tenant, environment, sensitivity) is absent. This is broken access control (OWASP A01).
 
 ## Decision
 
-1. **Enforce at API gateway** for all non-public routes.  
-2. **RBAC:** role → permissions on resources/actions (e.g. `cmdb:read`, `security:write`).  
-3. **ABAC:** attribute checks layered on RBAC (tenant match, optional env/classification).  
-4. **Deny by default** when permission missing.  
-5. **Public exceptions** only via explicit allowlist (auth pages, agent-key routes per ADR-004).  
-6. **Admin bootstrap** documented; no hardcoded backdoors in production.  
-7. Reuse/extend `@opsedge360/shared-security` rather than duplicating policy engines per service.
+1. Enforce AuthZ at API gateway for all non-public routes.  
+2. RBAC: roles → permissions (`resource:action`).  
+3. ABAC: layered attributes (tenant mandatory; env/classification as designed).  
+4. Deny by default.  
+5. Public exceptions only via explicit allowlist.  
+6. Extend `@opsedge360/shared-security`; no per-service duplicate engines.  
+7. Admin bootstrap documented; no production backdoors.
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected |
 |-------------|--------------|
-| Service-only enforcement | Bypass via misconfigured proxy |
-| OPA/Sidecar in Phase 2 | Heavy ops; defer to later if needed |
-| RBAC without ABAC | Insufficient for multi-tenant |
+| Service-only enforcement | Proxy bypass risk |
+| OPA/sidecar in Phase 2 | Ops heavy; defer |
+| RBAC without ABAC | Insufficient multi-tenant |
 
 ## Consequences
 
-**Positive:** Enterprise-grade access control; pack features can declare permissions.  
-**Negative:** Requires careful permission catalog; migration of existing users/roles; test matrix grows.
+**Positive:** Enterprise access control; packs declare permissions.  
+**Negative:** Permission catalog + test matrix growth.
 
-## Compliance
+## Security Impact
 
-- OpenAPI security schemes updated.  
-- Negative tests required (DoD).  
-- Linked debt: TD-002 · risk: R-SEC-002.  
+Directly mitigates R-SEC-002 / TD-002. Misconfigured allowlists remain a residual risk — controlled by review.
+
+## Performance Impact
+
+Permission lookup per request; cache in Redis/memory with TTL. Budget: +1–5 ms p50 when cached.
+
+## Scalability Impact
+
+Cacheable role→permission maps scale with gateway replicas; avoid N+1 DB hits per request.
+
+## Compliance Impact
+
+Supports least-privilege evidence; required for SOC2-style access reviews later.
+
+## Rollback Strategy
+
+Disable enforcement feature flag; keep catalog data; redeploy prior gateway.
+
+## Future Considerations
+
+Fine-grained resource-level policies, OPA optional later, break-glass with dual control.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11.  

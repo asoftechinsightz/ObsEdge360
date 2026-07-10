@@ -1,39 +1,67 @@
 # ADR-017: Security Dashboard Architecture
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** Product Owner, Security Architect, Frontend Lead  
-**Phase:** 2  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Phase 2 foundation · `v0.9.2`  
 **Depends on:** ADR-009, ADR-010, ADR-013  
 
 ---
 
-## Context
+## Business Context
 
-Security UI exists in places, but there is no coherent **security dashboard framework** for posture, authz events, vulnerabilities, and compliance summaries. Phase 5 Studio must not be required for basic security visibility.
+Operators need security observability: auth events, authz denials, audit highlights, posture — without waiting for full Dashboard Studio.
+
+## Problem Statement
+
+Security UI is fragmented; no coherent dashboard framework for security events, authn/authz metrics, and alerts.
 
 ## Decision
 
-1. Define a **Security Dashboard Framework**: widgets/APIs for posture score, recent authz denies, audit highlights, open vulns, compliance pass rate, tenant security summary.  
-2. Data sourced from audit (ADR-013), vuln feed (ADR-018), compliance evaluations (ADR-012), gateway metrics.  
-3. Phase 2 delivers **API contracts + baseline web views** (not full Dashboard Studio).  
-4. RBAC-gated (`security:read` / admin).  
-5. Industry packs may add widgets later without forking core.
+1. Security Dashboard Framework: APIs/widgets for posture, authz denies, audit highlights, vulns, compliance summary.  
+2. Sources: audit (ADR-013), vuln feed (ADR-018), compliance (ADR-012), gateway metrics (authn/authz).  
+3. Phase 2: API contracts + baseline web views (not Studio).  
+4. RBAC-gated (`security:read`).  
+5. Security alerts hooks (log/metric thresholds) — foundation.  
+6. Delivered as product module surfaces; Studio integration later (ADR-019).
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected |
 |-------------|--------------|
-| Wait for Phase 5 Studio | Security visibility needed sooner |
-| Grafana-only | Not tenant-aware product UX |
-| Static mock dashboards | Misleading |
+| Wait for Phase 5 Studio | Visibility needed now |
+| Grafana-only | Weak tenant product UX |
+| Static mocks | Misleading |
 
 ## Consequences
 
-**Positive:** Operator visibility; supports PRR/monitoring story.  
-**Negative:** UI scope must be time-boxed to avoid Phase 5 bleed.
+**Positive:** Operator visibility.  
+**Negative:** UI scope must stay time-boxed.
 
-## Compliance
+## Security Impact
 
-- OpenAPI for dashboard APIs.  
-- No PII over-exposure in widgets.  
+Dashboards themselves are sensitive — strict AuthZ; minimize PII.
+
+## Performance Impact
+
+Aggregate queries — cache short TTL; avoid heavy scans on homepage.
+
+## Scalability Impact
+
+Per-tenant aggregates; future move to metrics store.
+
+## Compliance Impact
+
+Supports security monitoring control evidence.
+
+## Rollback Strategy
+
+Hide routes via flag; APIs remain inert.
+
+## Future Considerations
+
+Studio widgets, SIEM export, SOAR hooks.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11 (foundation).  

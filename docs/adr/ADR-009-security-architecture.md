@@ -1,45 +1,72 @@
 # ADR-009: Enterprise Security Architecture
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** EAB (Chief Architect, Security Architect, Product Owner)  
-**Phase:** 2 — Enterprise Security  
-**Depends on:** Phase 1 final approval · ADR-008  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Phase 2 · `v0.9.2` Enterprise Security & Compliance Foundation  
+**Depends on:** Phase 1 Approved with Operational Conditions · ADR-008  
 
 ---
 
-## Context
+## Business Context
 
-OpsEdge360 has authentication (JWT) and partial security libraries, but lacks a unified security architecture: enforcement points, trust boundaries, session model, secrets, audit, and zero-trust posture are incomplete. Phase 2 must establish the security spine before deeper observability and AI.
+Enterprise customers require a coherent security architecture before deeper observability, AI, and packs. OpsEdge360 must enforce identity, authorization, tenancy, audit, and secrets consistently at the platform edge.
+
+## Problem Statement
+
+Authentication exists (JWT), but authorization, tenant isolation, audit, secrets lifecycle, and zero-trust posture are incomplete or unenforced. Without a unified architecture, Phase 2 work would fragment across services.
 
 ## Decision
 
 Adopt a **gateway-centric security architecture**:
 
-1. **Edge trust:** TLS terminated at Nginx; only gateway is the public API plane.  
-2. **Identity:** User JWT (evolve per ADR-008); agents via `X-Agent-Key` (ADR-004); future API keys.  
-3. **Authorization:** Enforce RBAC/ABAC at gateway (ADR-010) before proxying.  
-4. **Tenancy:** Mandatory tenant binding and isolation checks (ADR-011).  
-5. **Secrets:** Centralized secrets approach (ADR-014); no secrets in git.  
-6. **Audit:** Immutable-ish audit trail for authz and mutations (ADR-013).  
-7. **Zero Trust direction:** Authenticate every request; authorize every action; least privilege (ADR-015).  
-8. **Supporting frameworks:** Compliance rules (ADR-012), security dashboards (ADR-017), vuln management (ADR-018), Quantum Shield as optional advanced layer (ADR-016) — not blocking core Phase 2.
+1. TLS at Nginx; gateway is the public API plane.  
+2. Identity: JWT/session (ADR-008); agents via `X-Agent-Key` (ADR-004).  
+3. Authorization: RBAC/ABAC at gateway (ADR-010).  
+4. Tenancy: token-bound isolation (ADR-011).  
+5. Secrets: provider interface (ADR-014).  
+6. Audit: authz/mutation trail (ADR-013).  
+7. Zero Trust foundation (ADR-015).  
+8. Compliance foundation (ADR-012), security dashboards (ADR-017), vuln process (ADR-018).  
+9. Quantum Shield design-only / optional module (ADR-016) — never tightly coupled into core.
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected |
 |-------------|--------------|
-| Per-service authz only | Inconsistent; easy to miss routes |
-| Defer all security to Phase 6 | Unacceptable enterprise risk |
-| Mesh/mTLS everywhere now | Ops complexity before compose maturity |
+| Per-service authz only | Inconsistent; easy bypass |
+| Defer security to Phase 6 | Unacceptable enterprise risk |
+| Full mesh mTLS in Phase 2 | Premature operational load |
 
 ## Consequences
 
-**Positive:** Clear enforcement point; auditable; aligns with frozen roadmap.  
-**Negative:** Gateway becomes critical path; must stay highly available and well-tested.
+**Positive:** Single enforcement point; auditable; pack-friendly.  
+**Negative:** Gateway is critical path; requires strong tests and HA discipline.
 
-## Compliance
+## Security Impact
 
-- Production locks unchanged.  
-- No Phase 2 production code until this ADR is **Accepted** and Phase 2 plan approved.  
-- OWASP Top 10 addressed via Phase 2 PRR.  
+Reduces OWASP A01/A07 residual risk; establishes deny-default AuthZ and auditability. Residual: MFA depth and Vault cutover deferred.
+
+## Performance Impact
+
+Per-request AuthZ/audit overhead; budgets in `PHASE2_PERFORMANCE_IMPACT.md`. Mitigate with permission caching.
+
+## Scalability Impact
+
+Gateway-centric model scales horizontally with gateway replicas; policy evaluation must remain O(1)/cached for hot paths.
+
+## Compliance Impact
+
+Enables evidence of access control and audit for enterprise assessments; does not by itself achieve certification.
+
+## Rollback Strategy
+
+Feature-flag AuthZ enforcement; redeploy prior gateway image; additive schema left in place. See `PHASE2_ROLLBACK_STRATEGY.md`.
+
+## Future Considerations
+
+SSO/OIDC depth, continuous risk-based auth, service mesh, Vault/KMS backend, marketplace-signed plugins.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11 (Planning Pack Accepted with Recommendations).  

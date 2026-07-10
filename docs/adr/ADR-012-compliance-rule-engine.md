@@ -1,39 +1,67 @@
 # ADR-012: Compliance Rule Engine
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** Security Architect, Product Owner, Compliance stakeholder  
-**Phase:** 2 (foundation) · deeper packs later  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Phase 2 · `v0.9.2` (foundation)  
 **Depends on:** ADR-009, ADR-013  
 
 ---
 
-## Context
+## Business Context
 
-Compliance service exists in production compose, but a durable **rule engine** model (evaluate controls, evidence, pass/fail, frameworks) is not fully enterprise-grade. Country/solution packs will need pluggable rules without forking core.
+Enterprises need policy evaluation and evidence collection without hardcoding industry or country law into the core platform.
+
+## Problem Statement
+
+Compliance service exists, but a durable metadata-driven rule/evidence model is incomplete. Risk of over-claiming certification automation.
 
 ## Decision
 
-1. Define a **metadata-driven rule model**: framework → control → rule → evidence source → result.  
-2. Core engine is **industry-agnostic**; Banking360/etc. contribute rule packs.  
-3. Phase 2 delivers **foundation**: rule schema, evaluation API via gateway, audit of evaluation runs.  
-4. Full framework coverage (ISO, SOC2, RBI, etc.) may span Phase 2–5; Phase 2 does not claim complete certification automation.  
-5. Rules versioned; evaluations immutable once recorded.
+1. Metadata-driven model: framework → control → rule → evidence → result.  
+2. Core engine industry-agnostic; packs supply rules (ADR-024/025).  
+3. Phase 2 delivers **foundation**: schema, evaluation API, audited runs, risk scoring framework hooks.  
+4. Full framework coverage spans later releases; no false “certified” claims.  
+5. Rules versioned; evaluations immutable once recorded.  
+6. Implemented as a **module/service**, not entangled UI/business logic in gateway core.
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected |
 |-------------|--------------|
-| Hardcode banking rules in core | Violates frozen pack policy |
-| Delay all compliance work to Phase 5 | Blocks security narrative |
-| External GRC-only (no in-product) | Weak product differentiator |
+| Hardcode banking rules in core | Violates pack policy |
+| Delay all compliance work | Blocks security narrative |
+| External GRC only | Weak product differentiator |
 
 ## Consequences
 
-**Positive:** Pack-friendly compliance; auditor-friendly evidence path.  
-**Negative:** Scope creep risk — must time-box Phase 2 to foundation.
+**Positive:** Pack-friendly compliance path.  
+**Negative:** Scope creep — time-box to foundation.
 
-## Compliance
+## Security Impact
 
-- Risk: R-COMP-001.  
-- No false “certified” marketing claims without evidence.  
+Evaluation APIs RBAC-gated; evidence may contain sensitive metadata — classify and restrict.
+
+## Performance Impact
+
+Batch evaluations may be heavy — async jobs for large frameworks.
+
+## Scalability Impact
+
+Rule packs versioned independently; engine scales with compliance service replicas.
+
+## Compliance Impact
+
+Foundation for evidence collection and policy engine; not a substitute for legal certification.
+
+## Rollback Strategy
+
+Disable new evaluation endpoints; retain tables; prior compliance APIs remain.
+
+## Future Considerations
+
+Country packs, continuous control monitoring, auditor export packages.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11 (foundation scope).  

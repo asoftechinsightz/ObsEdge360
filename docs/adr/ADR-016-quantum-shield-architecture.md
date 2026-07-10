@@ -1,39 +1,66 @@
 # ADR-016: Quantum Shield Architecture
 
-**Status:** Proposed  
-**Date:** 2026-07-10  
-**Deciders:** Chief Architect, Security Architect, Product Owner  
-**Phase:** 2 (architecture only / non-blocking) · deeper delivery later  
+**Decision Status:** Accepted  
+**Date:** 2026-07-10 · **Accepted:** 2026-07-11  
+**Deciders:** EAB  
+**Phase / Release:** Design in Phase 2 · implementation later as **module**  
 **Depends on:** ADR-009  
 
 ---
 
-## Context
+## Business Context
 
-A quantum-related service/surface exists in the monorepo vision. Enterprise buyers may ask about post-quantum readiness, but Phase 2 core must prioritize RBAC, tenancy, audit, and secrets. Over-building Quantum Shield now risks scope distraction.
+Post-quantum readiness is a differentiator, but must not delay core AuthZ/compliance foundations.
+
+## Problem Statement
+
+Quantum-related surfaces exist in vision/repo; coupling them into Phase 2 critical path risks scope distraction and over-claims.
 
 ## Decision
 
-1. **Quantum Shield** is an **optional advanced security capability**, not a Phase 2 exit blocker.  
-2. Phase 2 ADR defines intent: inventory crypto usage (TLS, JWT, data-at-rest), document PQC roadmap, keep quantum service **out of critical prod path** unless separately accepted.  
-3. No production dependency from core authz on quantum service in Phase 2.  
-4. Future work: PQC algorithms for selected channels, crypto-agility interfaces, compliance mapping.  
-5. Claims in docs/UI must match implemented maturity (no false “quantum-safe production” claims).
+1. Quantum Shield is an **optional advanced security module/plugin**, never a hard dependency of core AuthZ.  
+2. Phase 2 delivers **architecture/design**: crypto inventory, PQC roadmap, crypto-agility interfaces.  
+3. No production dependency from gateway authz on quantum service in `v0.9.2`.  
+4. Claims must match maturity.  
+5. Permanent rule: implement as module — not tightly coupled into platform core.
 
-## Alternatives considered
+## Alternatives Considered
 
 | Alternative | Why rejected |
 |-------------|--------------|
-| Full PQC rollout in Phase 2 | Blocks security basics; immature ops |
-| Remove all quantum mentions | Loses roadmap differentiator |
-| Make gateway depend on quantum service | Availability risk |
+| Full PQC in Phase 2 | Blocks basics |
+| Remove all quantum mentions | Loses roadmap |
+| Gateway depends on quantum service | Availability risk |
 
 ## Consequences
 
 **Positive:** Honest roadmap; protects Phase 2 focus.  
-**Negative:** Quantum feature remains thin until later investment.
+**Negative:** Feature remains thin until later investment.
 
-## Compliance
+## Security Impact
 
-- Risk: R-Q-001.  
-- EAB approval required before adding quantum to prod compose critical path.  
+No reduction of Phase 2 AuthZ scope; avoids false quantum-safe claims.
+
+## Performance Impact
+
+None in `v0.9.2` runtime path.
+
+## Scalability Impact
+
+Module can evolve independently.
+
+## Compliance Impact
+
+Supports future crypto-agility narratives without present over-claim.
+
+## Rollback Strategy
+
+N/A for design-only; if later enabled, disable module flag.
+
+## Future Considerations
+
+PQC TLS experiments, hybrid KEMs, compliance mapping.
+
+## Decision Status
+
+**Accepted** — EAB 2026-07-11 (design-only for `v0.9.2`).  

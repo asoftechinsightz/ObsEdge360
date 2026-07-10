@@ -11,6 +11,11 @@
 
 This document freezes the **architectural shape** of OpsEdge360 for Phases 1–6. Detailed component decisions are recorded as ADRs. Implementation must not violate these constraints without a new ADR and architecture amendment.
 
+### Permanent module/plugin principle (EAB 2026-07-11)
+
+**Every new enterprise capability must be implemented as a module or plugin, never tightly coupled into the platform core.**  
+See `MODULE_PLUGIN_PRINCIPLE.md`. Applies to Quantum Shield, AI Copilot, packs, dashboards, connectors, workflow, marketplace, and SDK.
+
 ---
 
 ## 2. Logical architecture (frozen)

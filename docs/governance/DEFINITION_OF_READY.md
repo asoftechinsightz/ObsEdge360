@@ -53,13 +53,13 @@ A phase cannot start **implementation** unless:
 |-----------|--------|
 | Phase 1 Approved with Operational Conditions | ✅ |
 | Phase 2 planning approved | ✅ |
-| Planning pack documents drafted | ✅ (awaiting EAB acceptance) |
-| ADR-009 … ADR-018 Accepted | ☐ Proposed — acceptance review open |
-| Phase 2 implementation plan approved | ☐ |
-| Test / rollback / deploy / threat / perf docs approved | ☐ |
-| HLD/LLD v1.1 accepted | ☐ Proposed |
+| Planning pack accepted | ✅ EAB 2026-07-11 |
+| ADR-009 … ADR-018 Accepted (mandatory sections) | ✅ |
+| Phase 2 implementation plan approved | ✅ |
+| HLD/LLD v1.1 available | ✅ Proposed with Accepted plan |
+| Module/plugin principle | ✅ Frozen |
 
-**No Phase 2 production code until this DoR is fully met.**
+**Phase 2 production code:** ✅ **Authorized** for approved `v0.9.2` scope.
 
 ---
 

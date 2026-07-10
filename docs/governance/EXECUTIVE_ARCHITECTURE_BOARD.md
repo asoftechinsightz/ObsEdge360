@@ -66,9 +66,10 @@ Quorum for binding decisions: **Chief Architect + Security Architect + Product O
 **Rules:**
 
 1. No production code for a capability until its ADR is **Accepted**.  
-2. Phase ADRs may be drafted while the prior phase is conditionally approved, but **acceptance review** waits until the prior phase PRR is PASS / PASS WITH CONDITIONS (unless EAB explicitly allows early acceptance for planning-only ADRs).  
-3. ADR template: Context → Decision → Alternatives → Consequences → Compliance → Status.  
+2. From ADR-009 onward, ADRs MUST include all mandatory sections in `docs/adr/ADR_TEMPLATE.md`.  
+3. Phase ADRs may be drafted while the prior phase is conditionally approved, but **acceptance** requires EAB quorum.  
 4. Index maintained in `docs/adr/README.md`.  
+5. Decision Status values: Proposed · Accepted · Superseded · Deprecated.  
 
 ---
 

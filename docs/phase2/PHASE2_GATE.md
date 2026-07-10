@@ -1,65 +1,44 @@
 # Phase 2 — Gate
 
-**Status:** ✅ **PLANNING APPROVED** · ❌ **PRODUCTION CODE BLOCKED**  
-**Phase title:** **Enterprise Security & Compliance Foundation**  
-**Target release:** `v0.9.2` — Security Foundation  
+**Status:** ✅ **IMPLEMENTATION AUTHORIZED** (`v0.9.2`)  
+**Phase title:** Enterprise Security & Compliance Foundation  
+**EAB:** [EAB_RESOLUTION_2026-07-11.md](../governance/EAB_RESOLUTION_2026-07-11.md)  
 
-**Prior phase:** Phase 1 ✅ **Approved with Operational Conditions** (`docs/phase1/PHASE1_FINAL_STATUS.md`)
-
----
-
-## Approved now
-
-| Activity | Status |
-|----------|--------|
-| Phase 2 planning | ✅ Approved |
-| ADR reviews (009–018) | ✅ Approved to review / accept |
-| Architecture refinement (HLD/LLD v1.1) | ✅ Approved |
-| WBS / milestones | ✅ Approved to produce |
-| Test / security / documentation planning | ✅ Approved |
-| Phase 2 **production coding** | ❌ **Not approved** |
+**Prior phase:** Phase 1 ✅ Approved with Operational Conditions  
 
 ---
 
-## Required before Phase 2 coding
+## Authorization checklist
 
-EAB must review and approve:
+| Item | Status |
+|------|--------|
+| Phase 2 planning pack accepted | ✅ |
+| Phase 2 scope approved | ✅ |
+| ADR-009 … ADR-018 mandatory sections + **Accepted** | ✅ |
+| HLD/LLD v1.1 proposed with plan | ✅ |
+| Module/plugin principle frozen | ✅ |
+| Production coding for `v0.9.2` | ✅ **May begin** |
 
-1. [PHASE2_IMPLEMENTATION_PLAN.md](./PHASE2_IMPLEMENTATION_PLAN.md)  
-2. [PHASE2_WBS.md](./PHASE2_WBS.md)  
-3. `docs/architecture/HLD_v1.1.md`  
-4. `docs/architecture/LLD_v1.1.md`  
-5. [PHASE2_SECURITY_THREAT_MODEL.md](./PHASE2_SECURITY_THREAT_MODEL.md)  
-6. [PHASE2_SECURITY_TEST_PLAN.md](./PHASE2_SECURITY_TEST_PLAN.md)  
-7. [PHASE2_PERFORMANCE_IMPACT.md](./PHASE2_PERFORMANCE_IMPACT.md)  
-8. [PHASE2_ROLLBACK_STRATEGY.md](./PHASE2_ROLLBACK_STRATEGY.md)  
-9. [PHASE2_DEPLOYMENT_PLAN.md](./PHASE2_DEPLOYMENT_PLAN.md)  
-10. Updated `docs/governance/RISK_REGISTER.md`  
-
-Plus: Phase 2 ADRs **Accepted** (at minimum ADR-009…015, 017, 018; ADR-016 design-only OK).
+Still track Phase 1 operational conditions (restore drill, restart tests, agent-key, EAB PRR signatures, disk warning) in parallel — they do not block `v0.9.2` coding but block broader GA claims.
 
 ---
 
-## Objectives (foundation, not everything)
+## Approved scope (security enforcement & hardening — not feature expansion)
 
-Focus on secure, scalable foundations:
+**Identity:** RBAC · ABAC · tenant isolation · session management · token validation  
+**API security:** authorization middleware · rate limiting · request validation · API versioning · audit logging  
+**Secrets:** secure storage foundation · key rotation strategy · service-to-service auth direction  
+**Compliance foundation:** policy engine · evidence collection · metadata model · risk scoring framework  
+**Security observability:** security events · authn/authz metrics · audit dashboards · security alerts  
+**Quantum Shield:** design/module only (ADR-016)
 
-- RBAC enforcement  
-- ABAC enforcement  
-- Tenant isolation validation  
-- Secure middleware  
-- Secrets management foundation  
-- API authorization  
-- Security audit logging  
-- Compliance framework foundation  
-- Zero Trust foundation  
-- Security dashboard foundation  
-- Quantum Shield — **architecture / design only** unless EAB expands scope  
+## Implementation references
 
----
+- [PHASE2_IMPLEMENTATION_PLAN.md](./PHASE2_IMPLEMENTATION_PLAN.md)  
+- [PHASE2_WBS.md](./PHASE2_WBS.md)  
+- ADRs 009–018 (Accepted)  
+- `MODULE_PLUGIN_PRINCIPLE.md`  
 
-## Operational conditions from Phase 1 (track in parallel)
+## DoD reminder
 
-OC-1 Restore drill · OC-2 Restart validation · OC-3 Agent-key test · OC-4 EAB PRR signatures · OC-5 Disk warning (≥80%)
-
-These do **not** block planning; close before broad customer rollout / GA claims.
+Every WBS package must meet `DEFINITION_OF_DONE.md` before Done.
