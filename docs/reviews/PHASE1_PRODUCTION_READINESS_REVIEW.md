@@ -2,8 +2,9 @@
 
 **Document ID:** OE360-PRR-PHASE1-001  
 **Phase:** 1 — Harden & Wire  
-**Status:** ⚠ **PASS WITH CONDITIONS** — Phase 1 deployed; remaining ops conditions tracked below  
-**Phase 2:** Planning/ADR acceptance allowed; **production code still blocked** until conditions policy met / EAB sign-off  
+**Status:** ⚠ **PASS WITH CONDITIONS** → Phase 1 ✅ **Approved with Operational Conditions** (`PHASE1_FINAL_STATUS.md`)  
+**Phase 2:** ✅ Planning approved · ❌ Production code blocked  
+**Release:** `v0.9.1` Production Hardening  
 
 **Governance:** `docs/governance/PHASE_GATE_MODEL.md` · `RELEASE_GOVERNANCE_FRAMEWORK.md`  
 **DoD / DoR:** `DEFINITION_OF_DONE.md` · `DEFINITION_OF_READY.md`  
@@ -185,7 +186,8 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 - Backup: `/var/backups/opsedge360-trinetra360-2026-07-10-233846.sql.gz`
 - Compose on VPS patched + containers recreated: postgres, redis, kafka, api-gateway → `127.0.0.1` binds
 - Post-check: `PASS_no_public_dataplane`; health=200; web=200; DB `SELECT 1` OK
-- **Overall PRR decision remains FAIL** until Phase 1 is deployed and remaining blockers close
+- **Phase 1 deploy 2026-07-10:** branch `feature/sprint0-enterprise-foundation` @ `b0f85fa`; images rebuilt; ready/live/version/metrics 200; health probes include transactions+security
+- **Overall PRR decision:** **PASS WITH CONDITIONS** (restore drill, restart tests, disk reclaim, agent-key test, EAB sign-off still open)
 
 ---
 
@@ -201,9 +203,9 @@ Legend: ☐ Pending · ☑ Pass · ✗ Fail · ⚠ Conditional · N/A
 
 | Field | Value |
 |-------|-------|
-| **Final decision** | ☑ **FAIL** |
+| **Final decision** | ☑ **PASS WITH CONDITIONS** |
 | Date | 2026-07-10 |
-| Summary | Critical ops remediations (backup + localhost binds) completed 2026-07-10. **FAIL remains** because Phase 1 code is still not deployed (`rebrand/opsedge360-phase-0b` @ `e45a0cc`; `/ready` `/metrics` `/version` 404). Re-run PRR after Phase 1 deploy. |
+| Summary | Phase 1 is **deployed** on production VPS (`b0f85fa`). Health/ready/live/version/metrics pass; data-plane ports locked down; DB backup exists. Remaining conditions: restore drill, restart/recovery tests, disk reclaim (~82%), agent-key auth test, formal EAB signatures. Phase 2 **code** remains blocked; Phase 2 **planning/ADR acceptance** may proceed. |
 
 | Role | Name | Signature | Date |
 |------|------|-----------|------|

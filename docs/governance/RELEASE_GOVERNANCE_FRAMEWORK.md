@@ -22,6 +22,7 @@ Enterprise delivery for OpsEdge360 follows this framework. Phase 2 production co
 | 10 | [DOCUMENTATION_STANDARD.md](./DOCUMENTATION_STANDARD.md) | Doc quality, freeze, versioning |
 | 11 | [PHASE_GATE_MODEL.md](./PHASE_GATE_MODEL.md) | Mandatory phase sequence including PRR |
 | 12 | [DOCUMENTATION_HIERARCHY.md](./DOCUMENTATION_HIERARCHY.md) | Target docs layout |
+| 13 | [RELEASE_NAMING.md](./RELEASE_NAMING.md) | v0.9.x → v1.0.0 release names |
 
 ## Architecture baseline (frozen v1.0)
 

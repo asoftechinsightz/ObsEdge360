@@ -34,7 +34,7 @@ Production locks (domains, `trinetra360`, Nginx/SSL, volumes, migrations 001–0
 ```mermaid
 flowchart LR
   P0[Phase 0 Audit DONE] --> P1[Phase 1 Harden and Wire]
-  P1 --> P2[Phase 2 Enterprise Security]
+  P1 --> P2[Phase 2 Security and Compliance Foundation]
   P2 --> P3[Phase 3 Observability Depth]
   P3 --> P4[Phase 4 AI Platform]
   P4 --> P5[Phase 5 Studio and Packs]
@@ -45,7 +45,7 @@ flowchart LR
 |-------|------|--------------|---------------|------------|
 | **0** | Enterprise Audit | Baseline truth | Complete | — |
 | **1** | Harden & Wire | Make Sprint 0 real, safe, documented | 2–3 weeks | Phase 0 approval |
-| **2** | Enterprise Security | Enforce zero-trust (RBAC/ABAC/API keys/MFA path) | 3–4 weeks | Phase 1 exit |
+| **2** | **Enterprise Security & Compliance Foundation** | Enforce RBAC/ABAC, tenancy, audit, secrets foundation, ZT foundation | 3–5 weeks | Phase 1 exit |
 | **3** | Observability Depth | Platform SRE + telemetry scale path | 3–4 weeks | Phase 2 exit |
 | **4** | AI Platform | LLM Copilot, RCA, prompt registry, RAG | 4–6 weeks | Phase 3 exit |
 | **5** | Studio & Packs | Dashboard/KPI/Report builders; white-label; modular packs | 6–8 weeks | Phase 4 exit |
@@ -55,11 +55,11 @@ flowchart LR
 
 ## Phase summaries
 
-### Phase 1 — Harden & Wire Sprint 0
-Wire topology, pipeline, agent-config APIs through gateway; decide prod posture for scheduler/config-management; fix auth middleware & health probes; harden CI gates; document industry-agnostic pack boundary; **no Banking360 core coupling**.
+### Phase 2 — Enterprise Security & Compliance Foundation
+Gateway RBAC/ABAC, tenant isolation, audit logging, secrets provider foundation, compliance rule foundation, Zero Trust foundation, security dashboard foundation; Quantum Shield design-only; session hardening (ADR-008). Release target: **v0.9.2**.
 
-### Phase 2 — Enterprise Security Enforcement
-Gateway RBAC/ABAC, API keys, audit on mutations, Redis AUTH, rate limits, cookie/session hardening implementation, MFA design/spike.
+### Phase 1 — Harden & Wire Sprint 0
+Wire topology, pipeline, agent-config APIs through gateway; decide prod posture for scheduler/config-management; fix auth middleware & health probes; harden CI gates; document industry-agnostic pack boundary; **no Banking360 core coupling**. **Status: Approved with Operational Conditions (`v0.9.1`).**
 
 ### Phase 3 — Observability Depth / Platform SRE
 Prod Prometheus/Grafana (or managed), real gateway metrics, log retention, sampling, load baselines.
@@ -116,7 +116,10 @@ Installable Helm, CD, Vault/KMS, HA, OpenSearch, multi-region.
 - `docs/governance/DOCUMENTATION_STANDARD.md`
 - `docs/governance/SECURITY_BASELINE.md`
 - `docs/governance/PERFORMANCE_BASELINE.md`
+- `docs/governance/RELEASE_NAMING.md`
+- `docs/phase1/PHASE1_FINAL_STATUS.md`
+- `docs/phase2/PHASE2_IMPLEMENTATION_PLAN.md`
 - `docs/architecture/ARCHITECTURE_BASELINE_v1.0.md`
-- `docs/phase1/PHASE1_IMPLEMENTATION_PLAN.md`
+- `docs/architecture/HLD_v1.1.md` (Proposed)
 - `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`
 - `docs/adr/` (Architecture Decision Records)

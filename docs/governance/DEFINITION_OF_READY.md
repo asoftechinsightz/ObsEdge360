@@ -51,11 +51,13 @@ A phase cannot start **implementation** unless:
 
 | Criterion | Status |
 |-----------|--------|
-| Phase 1 PRR + ops evidence | ☐ Pending |
-| Phase 1 final approval | ☐ Pending |
-| ADR-009 … ADR-018 Accepted | ☐ Drafted as Proposed — acceptance after Phase 1 final |
-| Phase 2 implementation plan approved | ☐ Not started (blocked) |
-| Test strategy / rollback / schedule | ☐ Part of plan (blocked) |
+| Phase 1 Approved with Operational Conditions | ✅ |
+| Phase 2 planning approved | ✅ |
+| Planning pack documents drafted | ✅ (awaiting EAB acceptance) |
+| ADR-009 … ADR-018 Accepted | ☐ Proposed — acceptance review open |
+| Phase 2 implementation plan approved | ☐ |
+| Test / rollback / deploy / threat / perf docs approved | ☐ |
+| HLD/LLD v1.1 accepted | ☐ Proposed |
 
 **No Phase 2 production code until this DoR is fully met.**
 

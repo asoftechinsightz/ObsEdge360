@@ -1,42 +1,65 @@
 # Phase 2 — Gate
 
-**Status:** PLANNING ALLOWED · **PRODUCTION CODE BLOCKED**  
-**Reason:** Phase 1 PRR is **PASS WITH CONDITIONS** (2026-07-10). Open conditions must be tracked; Phase 2 production code waits for EAB acceptance of Phase 2 ADRs + approved implementation plan.
+**Status:** ✅ **PLANNING APPROVED** · ❌ **PRODUCTION CODE BLOCKED**  
+**Phase title:** **Enterprise Security & Compliance Foundation**  
+**Target release:** `v0.9.2` — Security Foundation  
 
-See `docs/reviews/PHASE1_PRODUCTION_READINESS_REVIEW.md`.
+**Prior phase:** Phase 1 ✅ **Approved with Operational Conditions** (`docs/phase1/PHASE1_FINAL_STATUS.md`)
 
-## Do not start implementation until
+---
 
-1. Phase 1 PRR remains PASS or PASS WITH CONDITIONS — ✅ current  
-2. Open PRR conditions accepted or closed (restore drill, restart tests, disk, agent-key test, signatures)  
-3. Phase 2 **Definition of Ready** satisfied — `docs/governance/DEFINITION_OF_READY.md`  
-4. Phase 2 ADRs **Accepted** by EAB (ADR-009 … ADR-018 for Phase 2 scope)  
-5. Phase 2 implementation plan approved (WBS, milestones, dependencies, acceptance criteria, test strategy, rollback, schedule)  
-6. HLD/LLD updates reviewed if Phase 2 requires `v1.1` architecture docs  
+## Approved now
 
-## Allowed now
-
-| Artifact | Status |
+| Activity | Status |
 |----------|--------|
-| ADR-009 … ADR-025 drafts | **Proposed** |
-| Release Governance Framework + baselines | **Published** |
-| Architecture baseline v1.0 | **Frozen** |
-| Phase 2 implementation plan / WBS | **May start drafting** |
-| Phase 2 production code | **Blocked** |
+| Phase 2 planning | ✅ Approved |
+| ADR reviews (009–018) | ✅ Approved to review / accept |
+| Architecture refinement (HLD/LLD v1.1) | ✅ Approved |
+| WBS / milestones | ✅ Approved to produce |
+| Test / security / documentation planning | ✅ Approved |
+| Phase 2 **production coding** | ❌ **Not approved** |
 
-## Intended Phase 2 scope (after gate)
+---
 
-- Security architecture enforcement (ADR-009)  
-- RBAC / ABAC (ADR-010)  
-- Multi-tenant security (ADR-011)  
-- Compliance rule engine foundation (ADR-012)  
-- Audit logging framework (ADR-013)  
-- Secrets management foundation (ADR-014)  
-- Zero Trust foundation (ADR-015)  
-- Quantum Shield architecture only / non-blocking (ADR-016)  
-- Security dashboards (ADR-017)  
-- Vulnerability management framework (ADR-018)  
-- Session management (ADR-008 implementation)  
-- MFA foundation  
+## Required before Phase 2 coding
 
-**No Phase 2 production code until ADRs + plan are approved.**
+EAB must review and approve:
+
+1. [PHASE2_IMPLEMENTATION_PLAN.md](./PHASE2_IMPLEMENTATION_PLAN.md)  
+2. [PHASE2_WBS.md](./PHASE2_WBS.md)  
+3. `docs/architecture/HLD_v1.1.md`  
+4. `docs/architecture/LLD_v1.1.md`  
+5. [PHASE2_SECURITY_THREAT_MODEL.md](./PHASE2_SECURITY_THREAT_MODEL.md)  
+6. [PHASE2_SECURITY_TEST_PLAN.md](./PHASE2_SECURITY_TEST_PLAN.md)  
+7. [PHASE2_PERFORMANCE_IMPACT.md](./PHASE2_PERFORMANCE_IMPACT.md)  
+8. [PHASE2_ROLLBACK_STRATEGY.md](./PHASE2_ROLLBACK_STRATEGY.md)  
+9. [PHASE2_DEPLOYMENT_PLAN.md](./PHASE2_DEPLOYMENT_PLAN.md)  
+10. Updated `docs/governance/RISK_REGISTER.md`  
+
+Plus: Phase 2 ADRs **Accepted** (at minimum ADR-009…015, 017, 018; ADR-016 design-only OK).
+
+---
+
+## Objectives (foundation, not everything)
+
+Focus on secure, scalable foundations:
+
+- RBAC enforcement  
+- ABAC enforcement  
+- Tenant isolation validation  
+- Secure middleware  
+- Secrets management foundation  
+- API authorization  
+- Security audit logging  
+- Compliance framework foundation  
+- Zero Trust foundation  
+- Security dashboard foundation  
+- Quantum Shield — **architecture / design only** unless EAB expands scope  
+
+---
+
+## Operational conditions from Phase 1 (track in parallel)
+
+OC-1 Restore drill · OC-2 Restart validation · OC-3 Agent-key test · OC-4 EAB PRR signatures · OC-5 Disk warning (≥80%)
+
+These do **not** block planning; close before broad customer rollout / GA claims.
