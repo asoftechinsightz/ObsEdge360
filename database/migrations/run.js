@@ -330,6 +330,14 @@ async function main() {
     console.log('038_wave6_enterprise_deployment.sql already applied.');
   }
 
+  const certificationRuns = await tableExists(client, 'certification_runs');
+  if (!certificationRuns) {
+    const s39 = path.join(migrationsDir, '039_wave7_certification.sql');
+    if (fs.existsSync(s39)) await runSqlFile(client, s39);
+  } else {
+    console.log('039_wave7_certification.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

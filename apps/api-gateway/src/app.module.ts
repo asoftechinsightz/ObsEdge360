@@ -51,6 +51,8 @@ import { IntegrationsController } from './admin/integrations.controller';
 import { IntegrationsService } from './admin/integrations.service';
 import { Wave6Controller } from './admin/wave6.controller';
 import { Wave6Service } from './admin/wave6.service';
+import { Wave7Controller } from './admin/wave7.controller';
+import { Wave7Service } from './admin/wave7.service';
 
 @Module({
   controllers: [
@@ -87,6 +89,7 @@ import { Wave6Service } from './admin/wave6.service';
     AutomationController,
     IntegrationsController,
     Wave6Controller,
+    Wave7Controller,
   ],
   providers: [
     ProxyService,
@@ -103,6 +106,7 @@ import { Wave6Service } from './admin/wave6.service';
     AutomationService,
     IntegrationsService,
     Wave6Service,
+    Wave7Service,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },
