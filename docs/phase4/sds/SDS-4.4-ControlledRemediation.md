@@ -3,7 +3,7 @@
 **Document ID:** OE360-SDS-4.4  
 **Wave:** Phase 4 / Wave 4  
 **Release:** `v0.9.4`  
-**Status:** ✅ APPROVED FOR IMPLEMENTATION  
+**Status:** ✅ CLOSED (`v0.9.4-wave4`)  
 **Depends on:** Wave 3 closed (`v0.9.4-wave3`)  
 **ADRs:** ADR-021 (human approval for high-risk) · ADR-027 (approval workflows — partial)
 
