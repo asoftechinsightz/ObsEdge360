@@ -6,11 +6,18 @@ import { AdminShell } from '../AdminShell';
 
 export default function AdminLicensesPage() {
   const [licenses, setLicenses] = useState<Array<Record<string, unknown>>>([]);
+  const [status, setStatus] = useState<Record<string, unknown> | null>(null);
   const [key, setKey] = useState('');
   const [msg, setMsg] = useState('');
 
   const load = () =>
-    apiClient<{ licenses: Array<Record<string, unknown>> }>('/admin/licenses').then((d) => setLicenses(d.licenses));
+    Promise.all([
+      apiClient<{ licenses: Array<Record<string, unknown>> }>('/admin/licenses'),
+      apiClient<Record<string, unknown>>('/admin/licenses/status'),
+    ]).then(([d, s]) => {
+      setLicenses(d.licenses);
+      setStatus(s);
+    });
 
   useEffect(() => {
     load().catch((e: Error) => setMsg(e.message));
@@ -31,8 +38,13 @@ export default function AdminLicensesPage() {
   }
 
   return (
-    <AdminShell title="License Management">
+    <AdminShell title="License Center">
       {msg && <p className="mb-3 text-sm text-slate-300">{msg}</p>}
+      {status && (
+        <pre className="mb-4 overflow-auto rounded-xl border border-slate-700 bg-surface-elevated p-4 text-xs">
+          {JSON.stringify(status, null, 2)}
+        </pre>
+      )}
       <div className="mb-4 flex gap-2">
         <input
           className="flex-1 rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm"

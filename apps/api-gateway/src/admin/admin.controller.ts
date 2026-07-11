@@ -8,6 +8,7 @@ import type { JwtPayload } from '../auth/auth.service';
 import type { TenantContext } from '../auth/authorization.guard';
 import { AdminService } from './admin.service';
 import { HaService } from './ha.service';
+import { GovernanceService } from './governance.service';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -16,6 +17,7 @@ export class AdminController {
   constructor(
     private readonly admin: AdminService,
     private readonly ha: HaService,
+    private readonly gov: GovernanceService,
   ) {}
 
   @Get('overview')
@@ -52,8 +54,22 @@ export class AdminController {
       maxAgents?: number;
       maxCis?: number;
       maxTelemetryPointsPerHour?: number;
+      resourceKey?: string;
+      softLimit?: number;
+      hardLimit?: number;
+      warnPct?: number;
+      enabled?: boolean;
     },
   ) {
+    if (body.resourceKey) {
+      return this.gov.upsertQuotaResource(tenant?.id, user, {
+        resourceKey: body.resourceKey,
+        softLimit: body.softLimit,
+        hardLimit: body.hardLimit,
+        warnPct: body.warnPct,
+        enabled: body.enabled,
+      });
+    }
     return this.admin.upsertQuota(tenant?.id, user, body);
   }
 
@@ -83,7 +99,7 @@ export class AdminController {
   @Get('settings')
   @RequirePermission(PermissionIds.DASHBOARD_VIEW)
   settings(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
-    return this.admin.listSettings(tenant?.id, user).then((settings) => ({ settings }));
+    return this.gov.listSettingsExpanded(tenant?.id, user);
   }
 
   @Put('settings/:key')
@@ -94,6 +110,9 @@ export class AdminController {
     @Param('key') key: string,
     @Body() body: Record<string, unknown>,
   ) {
+    if (['general', 'platform', 'ai', 'notifications'].includes(key)) {
+      return this.gov.putSettingGroup(tenant?.id, user, key, body);
+    }
     return this.admin.upsertSetting(tenant?.id, user, key, body);
   }
 
@@ -303,5 +322,102 @@ export class AdminController {
     @Query('limit') limit?: string,
   ) {
     return this.admin.listAudit(tenant?.id, user, Number(limit ?? 50) || 50).then((events) => ({ events }));
+  }
+
+  @Get('platform')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  @ApiOperation({ summary: 'Platform operations overview' })
+  platform(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.getPlatformOverview(tenant?.id, user);
+  }
+
+  @Get('platform-health')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  platformHealth(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.getPlatformHealth(tenant?.id, user);
+  }
+
+  @Get('quotas')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  quotasGet(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.listQuotas(tenant?.id, user);
+  }
+
+  @Get('quotas/evaluate')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  quotasEvaluate(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.evaluateQuotas(tenant?.id, user);
+  }
+
+  @Put('quotas/:resourceKey')
+  @RequirePermission(PermissionIds.WORKFLOW_EXECUTE)
+  quotasPut(
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @CurrentUser() user: JwtPayload,
+    @Param('resourceKey') resourceKey: string,
+    @Body() body: { softLimit?: number; hardLimit?: number; warnPct?: number; enabled?: boolean },
+  ) {
+    return this.gov.upsertQuotaResource(tenant?.id, user, { resourceKey, ...body });
+  }
+
+  @Get('capacity')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  capacity(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.getCapacity(tenant?.id, user);
+  }
+
+  @Get('storage')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  storage(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.getStorage(tenant?.id, user);
+  }
+
+  @Get('security-policies')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  securityPolicies(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.getSecurityPolicies(tenant?.id, user);
+  }
+
+  @Put('security-policies/:type')
+  @RequirePermission(PermissionIds.WORKFLOW_EXECUTE)
+  putSecurityPolicy(
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @CurrentUser() user: JwtPayload,
+    @Param('type') type: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.gov.putSecurityPolicy(tenant?.id, user, type, body);
+  }
+
+  @Get('licenses/status')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  licenseStatus(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.getLicenseStatus(tenant?.id, user);
+  }
+
+  @Get('governance/audit')
+  @RequirePermission(PermissionIds.AUDIT_READ)
+  governanceAudit(
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @CurrentUser() user: JwtPayload,
+    @Query('limit') limit?: string,
+  ) {
+    return this.gov.listGovernanceAudit(tenant?.id, user, Number(limit ?? 50) || 50);
+  }
+
+  @Get('sessions')
+  @RequirePermission(PermissionIds.USERS_READ)
+  sessions(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
+    return this.gov.listSessions(tenant?.id, user);
+  }
+
+  @Post('sessions/:id/revoke')
+  @RequirePermission(PermissionIds.USERS_WRITE)
+  revokeSession(
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ) {
+    return this.gov.revokeSession(tenant?.id, user, id);
   }
 }

@@ -87,6 +87,15 @@ export class AuthService {
 
   async login(email: string, password: string, tenantId?: string): Promise<{ accessToken: string; user: JwtPayload }> {
     const allowDevBypass = this.isDevAuthOptional();
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const lock = await queryOne<{ locked_until: string | null }>(
+      `SELECT locked_until FROM auth_lockouts WHERE email = $1`,
+      [normalizedEmail],
+    ).catch(() => null);
+    if (lock?.locked_until && new Date(lock.locked_until).getTime() > Date.now()) {
+      throw new UnauthorizedException('Account temporarily locked due to failed login attempts');
+    }
 
     let user: UserRow | null = null;
     try {
@@ -105,13 +114,21 @@ export class AuthService {
       if (allowDevBypass) {
         return this.devLogin(email, tenantId);
       }
+      await this.recordLoginFailure(normalizedEmail, undefined);
       throw new UnauthorizedException('Invalid email or password');
     }
 
     if (!verifyPassword(password, user.password_hash)) {
+      await this.recordLoginFailure(normalizedEmail, user.tenant_id);
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    await query(`DELETE FROM auth_lockouts WHERE email = $1`, [normalizedEmail]).catch(() => undefined);
+    await query(
+      `INSERT INTO user_sessions (user_id, tenant_id, device_label, last_seen_at, expires_at)
+       VALUES ($1, $2, 'web', NOW(), NOW() + INTERVAL '24 hours')`,
+      [user.id, user.tenant_id],
+    ).catch(() => undefined);
     return this.issueToken(user);
   }
 
@@ -121,9 +138,7 @@ export class AuthService {
     name: string,
     organizationName: string,
   ): Promise<{ accessToken: string; user: JwtPayload }> {
-    if (password.length < 8) {
-      throw new BadRequestException('Password must be at least 8 characters');
-    }
+    await this.enforcePasswordPolicy(password);
 
     const normalizedEmail = email.toLowerCase().trim();
     let slug = slugifyOrg(organizationName);
@@ -175,6 +190,15 @@ export class AuthService {
     );
     const user = userRows[0];
     if (!user) throw new BadRequestException('Failed to create user');
+
+    await query(
+      `INSERT INTO security_policies (tenant_id, policy_type, config)
+       VALUES
+         ($1, 'password', '{"minLength":8,"requireComplexity":false,"maxFailedAttempts":5,"lockoutMinutes":15,"historyCount":0}'::jsonb),
+         ($1, 'session', '{"sessionTimeoutMinutes":1440,"idleTimeoutMinutes":60,"maxConcurrentSessions":10,"deviceTracking":true,"forcedLogoutEnabled":true}'::jsonb)
+       ON CONFLICT (tenant_id, policy_type) DO NOTHING`,
+      [tenant.id],
+    ).catch(() => undefined);
 
     return this.issueToken({ ...user, slug: tenant.slug });
   }
@@ -256,24 +280,29 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-    if (newPassword.length < 8) {
-      throw new BadRequestException('Password must be at least 8 characters');
-    }
+    await this.enforcePasswordPolicy(newPassword);
     const tokenHash = createHash('sha256').update(token).digest('hex');
-    const row = await queryOne<{ user_id: string }>(
-      `SELECT user_id FROM password_reset_tokens
-       WHERE token_hash = $1 AND expires_at > NOW() AND used_at IS NULL
-       ORDER BY created_at DESC LIMIT 1`,
+    const row = await queryOne<{ user_id: string; tenant_id?: string }>(
+      `SELECT prt.user_id, u.tenant_id
+       FROM password_reset_tokens prt
+       JOIN users u ON u.id = prt.user_id
+       WHERE prt.token_hash = $1 AND prt.expires_at > NOW() AND prt.used_at IS NULL
+       ORDER BY prt.created_at DESC LIMIT 1`,
       [tokenHash],
     );
     if (!row) throw new BadRequestException('Invalid or expired reset token');
 
+    await this.enforcePasswordPolicy(newPassword, row.tenant_id);
     const passwordHash = hashPassword(newPassword);
     await query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, row.user_id]);
     await query(
       'UPDATE password_reset_tokens SET used_at = NOW() WHERE token_hash = $1 AND used_at IS NULL',
       [tokenHash],
     );
+    await query(
+      `INSERT INTO password_history (user_id, password_hash) VALUES ($1, $2)`,
+      [row.user_id, passwordHash],
+    ).catch(() => undefined);
     return { message: 'Password updated successfully' };
   }
 
@@ -329,6 +358,61 @@ export class AuthService {
 
     if (!user) throw new BadRequestException('Failed to provision SSO user');
     return this.issueToken({ ...user, slug: tenant.slug });
+  }
+
+  private async enforcePasswordPolicy(password: string, tenantId?: string) {
+    let policy: Record<string, unknown> = { minLength: 8, requireComplexity: false };
+    if (tenantId) {
+      const row = await queryOne<{ config: Record<string, unknown> }>(
+        `SELECT config FROM security_policies WHERE tenant_id = $1 AND policy_type = 'password'`,
+        [tenantId],
+      ).catch(() => null);
+      if (row?.config) policy = row.config;
+    }
+    const minLength = Number(policy.minLength ?? 8);
+    if (password.length < minLength) {
+      throw new BadRequestException(`Password must be at least ${minLength} characters`);
+    }
+    if (policy.requireComplexity) {
+      const ok =
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[0-9]/.test(password) &&
+        /[^A-Za-z0-9]/.test(password);
+      if (!ok) {
+        throw new BadRequestException('Password must include upper, lower, number, and special character');
+      }
+    }
+  }
+
+  private async recordLoginFailure(email: string, tenantId?: string) {
+    try {
+      const policy = tenantId
+        ? await queryOne<{ config: Record<string, unknown> }>(
+            `SELECT config FROM security_policies WHERE tenant_id = $1 AND policy_type = 'password'`,
+            [tenantId],
+          )
+        : null;
+      const maxFail = Number(policy?.config?.maxFailedAttempts ?? 5);
+      const lockMinutes = Number(policy?.config?.lockoutMinutes ?? 15);
+      const row = await queryOne<{ failure_count: number }>(
+        `INSERT INTO auth_lockouts (tenant_id, email, failure_count, updated_at)
+         VALUES ($1, $2, 1, NOW())
+         ON CONFLICT (email) DO UPDATE SET
+           failure_count = auth_lockouts.failure_count + 1,
+           updated_at = NOW()
+         RETURNING failure_count`,
+        [tenantId ?? null, email],
+      );
+      if (row && row.failure_count >= maxFail) {
+        await query(
+          `UPDATE auth_lockouts SET locked_until = NOW() + ($1::text || ' minutes')::interval WHERE email = $2`,
+          [String(lockMinutes), email],
+        );
+      }
+    } catch {
+      /* migration 035 may not be applied yet */
+    }
   }
 
   private devLogin(email: string, tenantId = 'default'): { accessToken: string; user: JwtPayload } {

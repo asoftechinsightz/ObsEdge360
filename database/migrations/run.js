@@ -298,6 +298,14 @@ async function main() {
     console.log('034_high_availability.sql already applied.');
   }
 
+  const platformQuotas = await tableExists(client, 'platform_quotas');
+  if (!platformQuotas) {
+    const s35 = path.join(migrationsDir, '035_platform_governance.sql');
+    if (fs.existsSync(s35)) await runSqlFile(client, s35);
+  } else {
+    console.log('035_platform_governance.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

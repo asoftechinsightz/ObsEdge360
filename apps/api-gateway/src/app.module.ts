@@ -44,6 +44,7 @@ import { AiController } from './ai.controller';
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
 import { HaService } from './admin/ha.service';
+import { GovernanceService } from './admin/governance.service';
 
 @Module({
   controllers: [
@@ -89,6 +90,7 @@ import { HaService } from './admin/ha.service';
     MeshBootstrapService,
     AdminService,
     HaService,
+    GovernanceService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },
