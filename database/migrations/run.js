@@ -226,6 +226,14 @@ async function main() {
     console.log('025_topology_live.sql already applied.');
   }
 
+  const opsIncidents = await tableExists(client, 'ops_incidents');
+  if (!opsIncidents) {
+    const s26 = path.join(migrationsDir, '026_ops_intelligence.sql');
+    if (fs.existsSync(s26)) await runSqlFile(client, s26);
+  } else {
+    console.log('026_ops_intelligence.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

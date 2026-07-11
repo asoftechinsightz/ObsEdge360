@@ -1,0 +1,292 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import {
+  Brain, RefreshCw, Crosshair, AlertTriangle, TrendingUp, Shield,
+} from 'lucide-react';
+import { DashboardShell } from '@/components/DashboardShell';
+import { apiClient } from '@/lib/api-client';
+import clsx from 'clsx';
+
+interface Health {
+  openIncidents: number;
+  openAnomalies: number;
+  rcaSessions24h: number;
+  pendingRemediation: number;
+  forecasts24h: number;
+  signals24h: number;
+}
+
+interface Incident {
+  id: string;
+  title: string;
+  severity: string;
+  status: string;
+  signalCounts?: { total?: number; alerts?: number; anomalies?: number };
+  createdAt?: string;
+}
+
+interface RcaSession {
+  id: string;
+  summary: string;
+  confidencePct: number;
+  insufficientSignal?: boolean;
+  hypotheses?: Array<{ hypothesis: string; confidence_pct?: number; confidencePct?: number; rank: number }>;
+}
+
+export default function OpsIntelligencePage() {
+  const [health, setHealth] = useState<Health | null>(null);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [signals, setSignals] = useState<Array<Record<string, unknown>>>([]);
+  const [rca, setRca] = useState<RcaSession | null>(null);
+  const [approvals, setApprovals] = useState<Array<Record<string, unknown>>>([]);
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Incident | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [h, inc, sig, appr] = await Promise.all([
+        apiClient<Health>('/ops-intelligence/health'),
+        apiClient<{ incidents: Incident[] }>('/ops-intelligence/incidents'),
+        apiClient<{ signals: Array<Record<string, unknown>> }>('/ops-intelligence/signals'),
+        apiClient<{ approvals: Array<Record<string, unknown>> }>('/ops-intelligence/remediation/approvals'),
+      ]);
+      setHealth(h);
+      setIncidents(inc.incidents ?? []);
+      setSignals(sig.signals ?? []);
+      setApprovals(appr.approvals ?? []);
+    } catch (err) {
+      setMessage((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function correlate() {
+    setMessage('Correlating…');
+    try {
+      const r = await apiClient<{ incidentsCreated: number }>('/ops-intelligence/correlate', {
+        method: 'POST',
+        body: JSON.stringify({ windowMinutes: 60 }),
+      });
+      setMessage(`Correlated ${r.incidentsCreated} new incident(s)`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function scanAnomalies() {
+    setMessage('Scanning anomalies…');
+    try {
+      const r = await apiClient<{ anomaliesCreated: number; baselinesUpdated: number }>(
+        '/ops-intelligence/anomalies/scan',
+        { method: 'POST', body: JSON.stringify({ windowMinutes: 60 }) },
+      );
+      setMessage(`Anomaly scan: ${r.anomaliesCreated} anomalies, ${r.baselinesUpdated} baselines`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function generateForecasts() {
+    setMessage('Generating forecasts…');
+    try {
+      const r = await apiClient<{ generated: number }>('/ops-intelligence/forecasts/generate', {
+        method: 'POST',
+        body: JSON.stringify({ horizonHours: 24 }),
+      });
+      setMessage(`Generated ${r.generated} forecast(s)`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function runRca(incident?: Incident) {
+    setMessage('Running RCA…');
+    try {
+      const session = await apiClient<RcaSession>('/ops-intelligence/rca', {
+        method: 'POST',
+        body: JSON.stringify({
+          question: incident
+            ? `Root cause for incident: ${incident.title}`
+            : 'What is the most likely active root cause?',
+          incidentId: incident?.id,
+        }),
+      });
+      setRca(session);
+      setMessage(`RCA confidence ${session.confidencePct}%`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function requestRemediation() {
+    if (!selected) {
+      setMessage('Select an incident first');
+      return;
+    }
+    try {
+      const req = await apiClient<{ id: string }>('/ops-intelligence/remediation/request', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: `Investigate and stabilize: ${selected.title}`,
+          incidentId: selected.id,
+          riskTier: selected.severity === 'critical' ? 'high' : 'medium',
+          evidence: 'Requested from Ops Intelligence UI',
+        }),
+      });
+      await apiClient(`/ops-intelligence/remediation/approvals/${req.id}/execute`, {
+        method: 'POST',
+        body: '{}',
+      });
+      setMessage('Remediation dry-run executed');
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  return (
+    <DashboardShell>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-100 flex items-center gap-2">
+              <Brain className="h-6 w-6 text-violet-400" /> Operations Intelligence
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">
+              Evidence-based correlation, RCA, anomaly scan, forecasts, and dry-run remediation.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => void correlate()} className="rounded-md bg-violet-600/80 px-3 py-1.5 text-sm text-white hover:bg-violet-500">
+              Correlate
+            </button>
+            <button type="button" onClick={() => void scanAnomalies()} className="rounded-md bg-amber-600/80 px-3 py-1.5 text-sm text-white hover:bg-amber-500">
+              Scan anomalies
+            </button>
+            <button type="button" onClick={() => void generateForecasts()} className="rounded-md bg-emerald-600/80 px-3 py-1.5 text-sm text-white hover:bg-emerald-500">
+              Forecasts
+            </button>
+            <button type="button" onClick={() => void runRca()} className="rounded-md bg-sky-600/80 px-3 py-1.5 text-sm text-white hover:bg-sky-500">
+              Run RCA
+            </button>
+            <button type="button" onClick={() => void load()} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500">
+              <RefreshCw className={clsx('h-4 w-4 inline', loading && 'animate-spin')} />
+            </button>
+          </div>
+        </div>
+
+        {message && (
+          <div className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-300">{message}</div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          {[
+            { label: 'Open incidents', value: health?.openIncidents, icon: AlertTriangle },
+            { label: 'Open anomalies', value: health?.openAnomalies, icon: Crosshair },
+            { label: 'RCA 24h', value: health?.rcaSessions24h, icon: Brain },
+            { label: 'Pending rem.', value: health?.pendingRemediation, icon: Shield },
+            { label: 'Forecasts 24h', value: health?.forecasts24h, icon: TrendingUp },
+            { label: 'Signals 24h', value: health?.signals24h, icon: RefreshCw },
+          ].map((k) => (
+            <div key={k.label} className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <k.icon className="h-3.5 w-3.5" /> {k.label}
+              </div>
+              <div className="mt-1 text-xl font-semibold text-slate-100">{k.value ?? '—'}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="xl:col-span-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+            <h2 className="text-sm font-medium text-slate-200 mb-2">Correlated incidents</h2>
+            <div className="space-y-2 max-h-[420px] overflow-y-auto">
+              {incidents.length === 0 && <p className="text-xs text-slate-500">No incidents — run Correlate after alerts/anomalies exist.</p>}
+              {incidents.map((inc) => (
+                <button
+                  key={inc.id}
+                  type="button"
+                  onClick={() => setSelected(inc)}
+                  className={clsx(
+                    'w-full text-left rounded-md border px-3 py-2 text-sm',
+                    selected?.id === inc.id
+                      ? 'border-violet-500 bg-violet-500/10'
+                      : 'border-slate-800 hover:border-slate-600',
+                  )}
+                >
+                  <div className="flex justify-between gap-2">
+                    <span className="text-slate-100 font-medium truncate">{inc.title}</span>
+                    <span className="text-xs uppercase text-slate-400">{inc.severity}</span>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    signals {inc.signalCounts?.total ?? 0} · {inc.status}
+                  </div>
+                </button>
+              ))}
+            </div>
+            {selected && (
+              <div className="mt-3 flex gap-2">
+                <button type="button" onClick={() => void runRca(selected)} className="rounded-md bg-sky-700 px-2 py-1 text-xs text-white">
+                  RCA this
+                </button>
+                <button type="button" onClick={() => void requestRemediation()} className="rounded-md bg-rose-700/80 px-2 py-1 text-xs text-white">
+                  Dry-run remediate
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+              <h2 className="text-sm font-medium text-slate-200 mb-2">Latest RCA</h2>
+              {rca ? (
+                <div className="space-y-2 text-xs text-slate-400">
+                  <div className="text-slate-200">Confidence {rca.confidencePct}%</div>
+                  {rca.insufficientSignal && <div className="text-amber-400">Insufficient signal</div>}
+                  <pre className="whitespace-pre-wrap text-slate-300">{rca.summary}</pre>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">Run RCA to populate</p>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+              <h2 className="text-sm font-medium text-slate-200 mb-2">Signals</h2>
+              <ul className="space-y-1 max-h-40 overflow-y-auto text-xs text-slate-400">
+                {signals.slice(0, 15).map((s) => (
+                  <li key={String(s.id)} className="truncate">
+                    <span className="text-slate-500">{String(s.signal_type)}</span> · {String(s.title)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+              <h2 className="text-sm font-medium text-slate-200 mb-2">Remediation</h2>
+              <ul className="space-y-1 max-h-32 overflow-y-auto text-xs text-slate-400">
+                {approvals.slice(0, 8).map((a) => (
+                  <li key={String(a.id)} className="truncate">
+                    {String(a.status)} · {String(a.action)}
+                  </li>
+                ))}
+                {approvals.length === 0 && <li>None pending</li>}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DashboardShell>
+  );
+}

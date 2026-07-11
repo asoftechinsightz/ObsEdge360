@@ -5,6 +5,7 @@ import * as monitoring from './monitoring.service';
 import * as apm from './apm.service';
 import * as pipeline from './telemetry-pipeline.service';
 import * as telemetryPlatform from './telemetry-platform.service';
+import * as opsIntel from './ops-intelligence.service';
 
 const app = express();
 
@@ -913,6 +914,176 @@ app.get('/infra/summary', async (req, res) => {
         totalSpans: recentSpans.length,
       },
     });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+/** Phase 3 Wave 5 — Operations Intelligence */
+
+app.get('/ops-intelligence/health', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    res.json(await opsIntel.getHealth(tenantId));
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/correlate', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await opsIntel.correlate(tenantId, {
+      windowMinutes: Number(req.body?.windowMinutes ?? 60),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/incidents', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const incidents = await opsIntel.listIncidents(tenantId, {
+      status: req.query.status as string | undefined,
+      limit: req.query.limit ? Number(req.query.limit) : 50,
+    });
+    res.json({ incidents, count: incidents.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/incidents/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const incident = await opsIntel.getIncident(tenantId, req.params.id);
+    if (!incident) return res.status(404).json({ error: 'Incident not found' });
+    res.json(incident);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/rca', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const session = await opsIntel.runRca(tenantId, {
+      question: req.body?.question,
+      incidentId: req.body?.incidentId,
+      ciId: req.body?.ciId,
+      createdBy: (req.headers['x-user-email'] as string) ?? undefined,
+    });
+    res.status(201).json(session);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/rca/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const session = await opsIntel.getRca(tenantId, req.params.id);
+    if (!session) return res.status(404).json({ error: 'RCA session not found' });
+    res.json(session);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/anomalies/scan', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await opsIntel.scanAnomalies(tenantId, {
+      windowMinutes: Number(req.body?.windowMinutes ?? 60),
+      sigmaThreshold: Number(req.body?.sigmaThreshold ?? 2.5),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/anomalies', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const anomalies = await opsIntel.listAnomalies(tenantId, req.query.limit ? Number(req.query.limit) : 50);
+    res.json({ anomalies, count: anomalies.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/forecasts/generate', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await opsIntel.generateForecasts(tenantId, {
+      horizonHours: Number(req.body?.horizonHours ?? 24),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/forecasts', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const forecasts = await opsIntel.listForecasts(tenantId, req.query.limit ? Number(req.query.limit) : 50);
+    res.json({ forecasts, count: forecasts.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/remediation/request', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const row = await opsIntel.requestRemediation(tenantId, {
+      action: req.body?.action,
+      incidentId: req.body?.incidentId,
+      riskTier: req.body?.riskTier,
+      evidence: req.body?.evidence,
+      requestedBy: (req.headers['x-user-email'] as string) ?? req.body?.requestedBy,
+      executionMode: 'dry_run',
+    });
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/remediation/approvals', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const approvals = await opsIntel.listRemediation(tenantId, req.query.status as string | undefined);
+    res.json({ approvals, count: approvals.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/remediation/approvals/:id/execute', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const row = await opsIntel.executeRemediationDryRun(
+      tenantId,
+      req.params.id,
+      (req.headers['x-user-email'] as string) ?? undefined,
+    );
+    if (!row) return res.status(404).json({ error: 'Remediation request not found' });
+    res.json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/signals', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const signals = await opsIntel.listSignals(tenantId, req.query.limit ? Number(req.query.limit) : 50);
+    res.json({ signals, count: signals.length });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

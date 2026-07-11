@@ -14,4 +14,4 @@
 | Docs | ✅ |
 | Tag | `v0.9.3-wave4` |
 
-**Wave 5:** 🟢 Authorized — Operations Intelligence
+**Wave 5:** 🟢 Implementing — Operations Intelligence
