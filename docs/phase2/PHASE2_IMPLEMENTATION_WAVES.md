@@ -12,9 +12,9 @@
 | 4 | 2.4 | Secrets & Platform Security | [SDS-2.4-Secrets.md](./sds/SDS-2.4-Secrets.md) — **Closed** (`v0.9.2-wave4`) |
 | 5 | 2.5 | Enterprise Identity & Trust | [SDS-2.5-IdentityTrust.md](./sds/SDS-2.5-IdentityTrust.md) — **Closed** (`v0.9.2-wave5`) |
 | 6 | 2.6 | Security Observability | [SDS-2.6-SecurityObservability.md](./sds/SDS-2.6-SecurityObservability.md) — **Closed** (`v0.9.2-wave6`) |
-| 7 | 2.7 | Service Identity Mesh (mTLS / SPIFFE) | [SDS-2.7-ServiceIdentityMesh.md](./sds/SDS-2.7-ServiceIdentityMesh.md) — **Implementing** |
+| 7 | 2.7 | Service Identity Mesh (mTLS / SPIFFE) | [SDS-2.7-ServiceIdentityMesh.md](./sds/SDS-2.7-ServiceIdentityMesh.md) — **Closed** (`v0.9.2-wave7`) |
 
-**EAB note (2026-07-11):** Wave 5 re-scoped from Security Observability → Identity & Trust. Observability = Wave 6. Wave 7 = mTLS/SPIFFE mesh (approved to start).
+**EAB note (2026-07-11):** Wave 5 re-scoped from Security Observability → Identity & Trust. Observability = Wave 6. Wave 7 = mTLS/SPIFFE mesh (deployed & validated).
 
 **Wave 3 gate:** EAB must Accept SDS-2.3 before implementation. Planning: [WAVE3_PLANNING.md](./WAVE3_PLANNING.md).  
 **Remote push:** Hold branch + `v0.9.2-wave2` until Wave 3 planning pack is complete (EAB).
