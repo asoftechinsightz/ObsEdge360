@@ -35,7 +35,8 @@ services:
       postgres:
         condition: service_healthy
     restart: "no"
-    profiles: ["prod"]
+    # Must include core so postgres (profile core/full) is resolvable when migrate runs
+    profiles: ["prod", "core"]
 
   discovery:
     <<: *prod-service
@@ -181,6 +182,8 @@ services:
       NODE_ENV: production
       API_GATEWAY_PORT: 4000
       AUTH_REQUIRED: ${AUTH_REQUIRED:-true}
+      AUTHZ_ENFORCE: ${AUTHZ_ENFORCE:-true}
+      TENANT_RESOLVE: ${TENANT_RESOLVE:-strict}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://observability360.asoftechinsightz.com}
       POSTGRES_HOST: postgres

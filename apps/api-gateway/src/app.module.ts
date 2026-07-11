@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { Reflector } from '@nestjs/core';
 import { HealthController } from './health.controller';
 import { ExecutiveController } from './executive.controller';
@@ -23,6 +23,8 @@ import { ProxyService } from './proxy.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { AuthGuard } from './auth/auth.guard';
+import { AuthorizationGuard } from './auth/authorization.guard';
+import { SecurityExceptionFilter } from './auth/security-exception.filter';
 import { SsoController } from './auth/sso.controller';
 import { SsoService } from './auth/sso.service';
 import { CopilotController } from './copilot/copilot.controller';
@@ -59,6 +61,8 @@ import { CopilotService } from './copilot/copilot.service';
     CopilotService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: AuthorizationGuard },
+    { provide: APP_FILTER, useClass: SecurityExceptionFilter },
   ],
 })
 export class AppModule {}

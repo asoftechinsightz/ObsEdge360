@@ -146,6 +146,14 @@ async function main() {
     console.log('015_sprint0_enterprise_foundation.sql already applied.');
   }
 
+  const policyVersions = await tableExists(client, 'authz_policy_versions');
+  if (!policyVersions) {
+    const s16 = path.join(migrationsDir, '016_authz_policy_versions.sql');
+    if (fs.existsSync(s16)) await runSqlFile(client, s16);
+  } else {
+    console.log('016_authz_policy_versions.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

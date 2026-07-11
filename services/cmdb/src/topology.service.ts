@@ -41,7 +41,7 @@ export async function buildTopologyGraph(
   const nodes = await query<{ id: string; name: string; ci_type: string; health_score: number; risk_score: number }>(
     `SELECT id, name, ci_type, health_score, risk_score
      FROM configuration_items
-     WHERE tenant_id = $1 AND ci_type = ANY($2::text[])
+     WHERE tenant_id = $1 AND ci_type::text = ANY($2::text[])
      ORDER BY name
      LIMIT 500`,
     [tenantId, typeFilter],

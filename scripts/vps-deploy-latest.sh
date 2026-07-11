@@ -24,10 +24,12 @@ grep -n '127.0.0.1:4000' docker-compose.prod.yml || true
 echo "=== BUILD (gateway + deps via images) ==="
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod build api-gateway web discovery cmdb observability compliance transactions security
 
+echo "=== MIGRATE (016+) ==="
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod run --rm migrate
+
 echo "=== RECREATE APP SERVICES ==="
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod up -d --no-deps --force-recreate \
   discovery cmdb observability compliance transactions security api-gateway web nginx
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod up -d migrate || true
 sleep 20
 
 echo "=== SMOKE ==="
