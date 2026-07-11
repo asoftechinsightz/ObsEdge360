@@ -5,4 +5,6 @@
 3. Recreate api-gateway (+ web)
 4. Validate: `bash scripts/vps-p5-wave5-validate.sh` → `P5_WAVE5_VALIDATION_OK`
 
-Do not claim GA. Do not tag until validation passes.
+**Production:** applied 2026-07-12 · tip `043ff9be` · validation 25/25 green.
+
+Do not claim GA.
