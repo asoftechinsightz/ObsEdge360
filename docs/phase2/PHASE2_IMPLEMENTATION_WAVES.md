@@ -10,8 +10,9 @@
 | 2 | 2.2 | Tenant Security | [SDS-2.2-TenantIsolation.md](./sds/SDS-2.2-TenantIsolation.md) — **Closed** (`v0.9.2-wave2`) |
 | 3 | 2.3 | Audit & Compliance Foundation | [SDS-2.3-AuditFramework.md](./sds/SDS-2.3-AuditFramework.md) — **Closed** (`v0.9.2-wave3`) |
 | 4 | 2.4 | Secrets & Platform Security | [SDS-2.4-Secrets.md](./sds/SDS-2.4-Secrets.md) — **Closed** (`v0.9.2-wave4`) |
-| 5 | 2.5 | Enterprise Identity & Trust | [SDS-2.5-IdentityTrust.md](./sds/SDS-2.5-IdentityTrust.md) — **Deployed & validated** |
-| 6 | 2.6 | Security Observability | SDS-2.6-SecurityObservability.md — **blocked until Wave 5 EAB closure** |
+| 5 | 2.5 | Enterprise Identity & Trust | [SDS-2.5-IdentityTrust.md](./sds/SDS-2.5-IdentityTrust.md) — **Closed** (`v0.9.2-wave5`) |
+| 6 | 2.6 | Security Observability | [SDS-2.6-SecurityObservability.md](./sds/SDS-2.6-SecurityObservability.md) — **Implementing** |
+| 7 | 2.7 | mTLS / SPIFFE Workload Identity | Planned (EAB progression) |
 
 **EAB note (2026-07-11):** Wave 5 re-scoped from Security Observability → Identity & Trust. Observability becomes Wave 6.
 

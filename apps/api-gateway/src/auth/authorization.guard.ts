@@ -14,6 +14,7 @@ import {
   inferPermission,
   loadTenantPolicies,
   emitAudit,
+  ingestSecurityEvent,
   incSecurityMetric,
   type AuthContext,
 } from '@opsedge360/shared-security';
@@ -179,6 +180,26 @@ export class AuthorizationGuard implements CanActivate {
   private async safeAudit(entry: Parameters<typeof emitAudit>[0]): Promise<void> {
     try {
       await emitAudit(entry);
+      if (entry.tenantId && /^[0-9a-f-]{36}$/i.test(entry.tenantId)) {
+        const eventType =
+          entry.eventType === 'tenant_spoof' || entry.reason === 'tenant_spoof'
+            ? 'authz.cross_tenant'
+            : entry.action === 'authz.deny'
+              ? 'authz.deny'
+              : entry.action;
+        await ingestSecurityEvent({
+          tenantId: entry.tenantId,
+          eventType: eventType || 'authz.deny',
+          category: 'authorization',
+          actorId: entry.actor && /^[0-9a-f-]{36}$/i.test(entry.actor) ? entry.actor : undefined,
+          resourceType: entry.resourceType,
+          resourceId: entry.resourceId,
+          correlationId: entry.correlationId,
+          traceId: entry.traceId,
+          payload: { reason: entry.reason, outcome: entry.outcome },
+          sourceService: 'api-gateway',
+        }).catch(() => undefined);
+      }
     } catch {
       // never fail closed on audit transport errors during deny path logging
     }

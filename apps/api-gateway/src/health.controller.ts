@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import type { Response } from 'express';
 import axios from 'axios';
 import { Public } from './auth/public.decorator';
+import { getSecurityMetrics, securityMetricsPrometheus } from '@opsedge360/shared-security';
 
 const GATEWAY_VERSION = process.env.SERVICE_VERSION ?? '1.0.0';
 
@@ -112,6 +113,11 @@ export class HealthController {
   @ApiOperation({ summary: 'Prometheus text metrics for the API gateway' })
   metrics(@Res() res: Response) {
     const mem = process.memoryUsage();
+    const security = securityMetricsPrometheus();
+    const counters = getSecurityMetrics();
+    const counterLines = Object.entries(counters)
+      .map(([k, v]) => `${k.replace(/\./g, '_')} ${v}`)
+      .join('\n');
     const body = [
       '# HELP process_resident_memory_bytes Resident memory size in bytes.',
       '# TYPE process_resident_memory_bytes gauge',
@@ -122,6 +128,10 @@ export class HealthController {
       '# HELP service_up Service availability.',
       '# TYPE service_up gauge',
       'service_up{service="api-gateway"} 1',
+      '# HELP opsedge360_security Security counters (Wave 6)',
+      '# TYPE opsedge360_security counter',
+      counterLines,
+      security.trim(),
       '',
     ].join('\n');
     res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');

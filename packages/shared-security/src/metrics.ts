@@ -16,7 +16,9 @@ export type SecurityMetricName =
   | 'security.secrets.created'
   | 'security.secrets.rotated'
   | 'security.secrets.rotate_fail'
-  | 'security.secrets.expiring';
+  | 'security.secrets.expiring'
+  | 'security.obs.alert_created'
+  | 'security.obs.event_ingested';
 
 const counters = new Map<SecurityMetricName, number>();
 

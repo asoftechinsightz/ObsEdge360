@@ -34,6 +34,7 @@ import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.servic
 import { SecretsController } from './secrets/secrets.controller';
 import { SecretsRotationScheduler } from './secrets/secrets-rotation.scheduler';
 import { TrustController } from './trust/trust.controller';
+import { SecurityObservabilityController } from './security-observability/security-observability.controller';
 
 @Module({
   controllers: [
@@ -60,6 +61,7 @@ import { TrustController } from './trust/trust.controller';
     AuditController,
     SecretsController,
     TrustController,
+    SecurityObservabilityController,
   ],
   providers: [
     ProxyService,

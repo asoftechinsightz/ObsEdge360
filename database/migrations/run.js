@@ -178,6 +178,14 @@ async function main() {
     console.log('019_service_identity_trust.sql already applied.');
   }
 
+  const securityEvents = await tableExists(client, 'security_events');
+  if (!securityEvents) {
+    const s20 = path.join(migrationsDir, '020_security_observability.sql');
+    if (fs.existsSync(s20)) await runSqlFile(client, s20);
+  } else {
+    console.log('020_security_observability.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
