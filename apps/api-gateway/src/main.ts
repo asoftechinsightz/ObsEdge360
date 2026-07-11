@@ -44,8 +44,8 @@ async function bootstrap() {
   if (process.env.SWAGGER_ENABLED !== 'false') {
     const config = new DocumentBuilder()
       .setTitle('OpsEdge360 API')
-      .setDescription('Enterprise Digital Operations Intelligence Platform — Release Candidate')
-      .setVersion('1.0.0-rc1')
+      .setDescription('Enterprise Digital Operations Intelligence Platform — General Availability')
+      .setVersion('1.0.0')
       .addBearerAuth()
       .addTag('health')
       .addTag('auth')
@@ -62,6 +62,7 @@ async function bootstrap() {
       .addTag('release-candidate')
       .addTag('enterprise-certification')
       .addTag('deployment-security')
+      .addTag('general-availability')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

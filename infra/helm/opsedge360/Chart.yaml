@@ -1,9 +1,9 @@
 apiVersion: v2
 name: opsedge360
-description: OpsEdge360 Enterprise Observability Platform (Wave 6 production Helm)
+description: OpsEdge360 Enterprise Observability Platform (GA)
 type: application
-version: 1.0.0-wave6
-appVersion: "1.0.0-wave6"
+version: 1.0.0
+appVersion: "1.0.0"
 keywords:
   - observability
   - cmdb

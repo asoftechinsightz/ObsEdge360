@@ -346,6 +346,14 @@ async function main() {
     console.log('040_wave8_release_candidate.sql already applied.');
   }
 
+  const gaReleases = await tableExists(client, 'ga_releases');
+  if (!gaReleases) {
+    const s41 = path.join(migrationsDir, '041_wave9_ga.sql');
+    if (fs.existsSync(s41)) await runSqlFile(client, s41);
+  } else {
+    console.log('041_wave9_ga.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
