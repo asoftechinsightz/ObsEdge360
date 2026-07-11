@@ -9,7 +9,7 @@
 | Wave | WBS | Focus | SDS |
 |------|-----|-------|-----|
 | 1 | 4.1 | LLM Gateway, Grounded RCA, RAG corpus, Copilot NL | [SDS-4.1-LlmRcaAiops.md](./sds/SDS-4.1-LlmRcaAiops.md) — **Closed** (`v0.9.4-wave1`) |
-| 2 | 4.2 | Advanced multi-signal correlation | [SDS-4.2-MultiSignalCorrelation.md](./sds/SDS-4.2-MultiSignalCorrelation.md) — **Shipping** |
+| 2 | 4.2 | Advanced multi-signal correlation | [SDS-4.2-MultiSignalCorrelation.md](./sds/SDS-4.2-MultiSignalCorrelation.md) — **Closed** (`v0.9.4-wave2`) |
 | 3 | 4.3 | Predictive anomaly + capacity forecasting | Planned |
 | 4 | 4.4 | Intelligent remediation (controlled execution) | Planned |
 | 5 | 4.5 | Knowledge graph + conversational depth | Planned |
