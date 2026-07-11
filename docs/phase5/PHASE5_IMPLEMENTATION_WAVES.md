@@ -7,7 +7,7 @@
 
 | Wave | Focus | SDS | Status |
 |------|-------|-----|--------|
-| 1 | Admin Center + packaging foundation + automation/runbook metadata | [SDS-5.1](./sds/SDS-5.1-EnterpriseAdminPackaging.md) | **Implementing** |
+| 1 | Admin Center + packaging foundation + automation/runbook metadata | [SDS-5.1](./sds/SDS-5.1-EnterpriseAdminPackaging.md) | **Closed** (`v1.0.0-wave1`) |
 | 2 | HA foundations (compose scale, Helm templates, failover drills) | SDS-5.2 | Planned |
 | 3 | Platform ops depth (quotas, capacity/storage dashboards, settings policies) | SDS-5.3 | Planned |
 | 4 | Controlled automation depth (workflow engine, emergency stop UX, simulation) | SDS-5.4 | Planned |

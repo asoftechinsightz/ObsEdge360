@@ -85,14 +85,27 @@ print('PASS cluster_honesty')
 PY
 PASS=$((PASS+1))
 
-# Cross-tenant: second org cannot see first org license via overview counts isolation — create other user and ensure overview 200 but separate tenant
+# Cross-tenant isolation: other org admin must not see first tenant's licenses
 SIGN2=$(curl -sk -o /tmp/p5w1_signup2.json -w '%{http_code}' -X POST "$API/auth/signup" \
   -H 'Content-Type: application/json' \
   -d "{\"email\":\"p5w1.other.${SUFFIX}@opsedge360.internal\",\"password\":\"P5W1Val!${SUFFIX}\",\"name\":\"P5W1b\",\"organizationName\":\"P5W1 Other ${SUFFIX}\"}")
 TOKEN2=$(python3 -c "import json;print(json.load(open('/tmp/p5w1_signup2.json')).get('accessToken') or '')")
-# other user is operator (no admin in email) — should be forbidden
-XT=$(curl -sk -o /dev/null -w '%{http_code}' "$API/admin/overview" -H "Authorization: Bearer $TOKEN2")
-if [ "$XT" = "403" ] || [ "$XT" = "401" ]; then echo "PASS non_admin_forbidden ($XT)"; PASS=$((PASS+1)); else echo "FAIL non_admin_forbidden got=$XT"; FAIL=$((FAIL+1)); fi
+curl -sk -o /tmp/p5w1_ov_a.json "$API/admin/overview" -H "Authorization: Bearer $TOKEN"
+curl -sk -o /tmp/p5w1_lic_a.json "$API/admin/licenses" -H "Authorization: Bearer $TOKEN"
+curl -sk -o /tmp/p5w1_ov_b.json "$API/admin/overview" -H "Authorization: Bearer $TOKEN2"
+curl -sk -o /tmp/p5w1_lic_b.json "$API/admin/licenses" -H "Authorization: Bearer $TOKEN2"
+python3 - <<'PY'
+import json
+a=json.load(open('/tmp/p5w1_ov_a.json'))
+b=json.load(open('/tmp/p5w1_ov_b.json'))
+la=json.load(open('/tmp/p5w1_lic_a.json')).get('licenses') or []
+lb=json.load(open('/tmp/p5w1_lic_b.json')).get('licenses') or []
+assert a['tenant']['id'] != b['tenant']['id'], (a['tenant'], b['tenant'])
+assert len(la) >= 1, la
+assert len(lb) == 0, lb
+print('PASS cross_tenant_admin_isolation')
+PY
+PASS=$((PASS+1))
 
 echo "=== RESULT pass=$PASS fail=$FAIL ==="
 [ "$FAIL" -eq 0 ] || exit 1
