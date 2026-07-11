@@ -13,7 +13,7 @@
 | 4 | Controlled automation depth (workflow engine, emergency stop UX, simulation) | [SDS-5.4](./sds/SDS-5.4-ControlledAutomationWorkflow.md) | **Closed** (`v1.0.0-wave4`) |
 | 5 | Integrations (ITSM, notifications delivery, identity LDAP) | [SDS-5.5](./sds/SDS-5.5-EnterpriseIntegrationsIdentity.md) | **Closed** (`v1.0.0-wave5`) |
 | 6 | Enterprise deployment & security hardening (air-gap, Helm, DR cert, System Security UI) | [SDS-5.6](./sds/SDS-5.6-EnterpriseDeploymentSecurity.md) | **Closed** (`v1.0.0-wave6`) |
-| 7 | Enterprise certification & production validation (benchmarks, load, HA/chaos, soak, reports) | [SDS-5.7](./sds/SDS-5.7-EnterpriseCertification.md) | **In progress** (`feature/wave7-enterprise-certification`) |
+| 7 | Enterprise certification & production validation (benchmarks, load, HA/chaos, soak, reports) | [SDS-5.7](./sds/SDS-5.7-EnterpriseCertification.md) | **Closed** (`v1.0.0-wave7`) |
 | 8 | Deployment packages (SaaS/Hybrid/On-Prem offline/air-gap tooling) | SDS-5.8 | Planned |
 | 9 | GA exit matrix (HA/backup/restore/upgrade/chaos + docs freeze) | SDS-5.9 | Planned |
 

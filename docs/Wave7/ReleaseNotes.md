@@ -18,3 +18,12 @@
 - 24h soak requires `CERT_SOAK_SECONDS=86400` (validation runs a sustained soak window with the same engine)
 - Disk-full / packet-loss injections are attested via controlled recreate drills; destructive host fills are operator-gated
 - No GA claim (`gaClaim: false`)
+
+## Production evidence
+
+| Field | Value |
+|-------|-------|
+| Tip SHA | `bc3ceeb95` |
+| Validation | `P5_WAVE7_VALIDATION_OK` (pass=31 fail=0) |
+| Tag | `v1.0.0-wave7` |
+| Migration | `039_wave7_certification.sql` |
