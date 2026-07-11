@@ -115,6 +115,55 @@ export class OpsIntelligenceController {
     return res.status(result.status).json(result.data);
   }
 
+  @Post('predictive/scan')
+  @ApiOperation({ summary: 'EWMA + leading predictive anomaly scan' })
+  async predictiveScan(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/predictive/scan', {
+      method: 'POST',
+      body: body ?? {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('capacity/forecast')
+  @ApiOperation({ summary: 'Generate 7-day capacity forecasts with confidence bands' })
+  async capacityForecast(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/capacity/forecast', {
+      method: 'POST',
+      body: body ?? {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('capacity/runs')
+  @ApiOperation({ summary: 'List capacity forecast runs' })
+  async capacityRuns(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/capacity/runs', {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('capacity/forecasts')
+  @ApiOperation({ summary: 'List capacity forecasts' })
+  async capacityForecasts(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/capacity/forecasts', {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('predictions')
+  @ApiOperation({ summary: 'List incident / capacity breach predictions' })
+  async predictions(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/predictions', {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
   @Post('remediation/request')
   @ApiOperation({ summary: 'Request remediation (Wave 5 dry-run path)' })
   async requestRemediation(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {

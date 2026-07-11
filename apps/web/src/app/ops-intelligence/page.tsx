@@ -40,6 +40,8 @@ export default function OpsIntelligencePage() {
   const [signals, setSignals] = useState<Array<Record<string, unknown>>>([]);
   const [rca, setRca] = useState<RcaSession | null>(null);
   const [approvals, setApprovals] = useState<Array<Record<string, unknown>>>([]);
+  const [capacityForecasts, setCapacityForecasts] = useState<Array<Record<string, unknown>>>([]);
+  const [predictions, setPredictions] = useState<Array<Record<string, unknown>>>([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Incident | null>(null);
@@ -47,16 +49,20 @@ export default function OpsIntelligencePage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [h, inc, sig, appr] = await Promise.all([
+      const [h, inc, sig, appr, cap, pred] = await Promise.all([
         apiClient<Health>('/ops-intelligence/health'),
         apiClient<{ incidents: Incident[] }>('/ops-intelligence/incidents'),
         apiClient<{ signals: Array<Record<string, unknown>> }>('/ops-intelligence/signals'),
         apiClient<{ approvals: Array<Record<string, unknown>> }>('/ops-intelligence/remediation/approvals'),
+        apiClient<{ forecasts: Array<Record<string, unknown>> }>('/ops-intelligence/capacity/forecasts'),
+        apiClient<{ predictions: Array<Record<string, unknown>> }>('/ops-intelligence/predictions'),
       ]);
       setHealth(h);
       setIncidents(inc.incidents ?? []);
       setSignals(sig.signals ?? []);
       setApprovals(appr.approvals ?? []);
+      setCapacityForecasts(cap.forecasts ?? []);
+      setPredictions(pred.predictions ?? []);
     } catch (err) {
       setMessage((err as Error).message);
     } finally {
@@ -96,14 +102,48 @@ export default function OpsIntelligencePage() {
     }
   }
 
+  async function predictiveScan() {
+    setMessage('Running predictive anomaly scan…');
+    try {
+      const r = await apiClient<{ anomaliesCreated: number; modelVersion: string }>(
+        '/ops-intelligence/predictive/scan',
+        { method: 'POST', body: JSON.stringify({ lookbackHours: 6, horizonHours: 24 }) },
+      );
+      setMessage(`Predictive scan (${r.modelVersion}): ${r.anomaliesCreated} anomalies`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
   async function generateForecasts() {
-    setMessage('Generating forecasts…');
+    setMessage('Generating trend forecasts…');
     try {
       const r = await apiClient<{ generated: number }>('/ops-intelligence/forecasts/generate', {
         method: 'POST',
         body: JSON.stringify({ horizonHours: 24 }),
       });
-      setMessage(`Generated ${r.generated} forecast(s)`);
+      setMessage(`Generated ${r.generated} trend forecast(s)`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function capacityForecast() {
+    setMessage('Generating capacity forecasts…');
+    try {
+      const r = await apiClient<{
+        generated: number;
+        breachesPredicted: number;
+        modelVersion: string;
+      }>('/ops-intelligence/capacity/forecast', {
+        method: 'POST',
+        body: JSON.stringify({ horizonHours: 168, lookbackHours: 24 }),
+      });
+      setMessage(
+        `Capacity (${r.modelVersion}): ${r.generated} forecasts, ${r.breachesPredicted} breach ETA(s)`,
+      );
       await load();
     } catch (err) {
       setMessage((err as Error).message);
@@ -165,7 +205,7 @@ export default function OpsIntelligencePage() {
               <Brain className="h-6 w-6 text-violet-400" /> Operations Intelligence
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Evidence-based correlation, RCA, anomaly scan, forecasts, and dry-run remediation.
+              Correlation, RCA, EWMA predictive anomalies, 7-day capacity forecasts, and dry-run remediation.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -175,8 +215,14 @@ export default function OpsIntelligencePage() {
             <button type="button" onClick={() => void scanAnomalies()} className="rounded-md bg-amber-600/80 px-3 py-1.5 text-sm text-white hover:bg-amber-500">
               Scan anomalies
             </button>
+            <button type="button" onClick={() => void predictiveScan()} className="rounded-md bg-orange-600/80 px-3 py-1.5 text-sm text-white hover:bg-orange-500">
+              Predictive scan
+            </button>
             <button type="button" onClick={() => void generateForecasts()} className="rounded-md bg-emerald-600/80 px-3 py-1.5 text-sm text-white hover:bg-emerald-500">
-              Forecasts
+              Trend forecasts
+            </button>
+            <button type="button" onClick={() => void capacityForecast()} className="rounded-md bg-teal-600/80 px-3 py-1.5 text-sm text-white hover:bg-teal-500">
+              Capacity 7d
             </button>
             <button type="button" onClick={() => void runRca()} className="rounded-md bg-sky-600/80 px-3 py-1.5 text-sm text-white hover:bg-sky-500">
               Run RCA
@@ -270,6 +316,33 @@ export default function OpsIntelligencePage() {
                     <span className="text-slate-500">{String(s.signal_type)}</span> · {String(s.title)}
                   </li>
                 ))}
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+              <h2 className="text-sm font-medium text-slate-200 mb-2">Capacity forecasts</h2>
+              <ul className="space-y-1 max-h-36 overflow-y-auto text-xs text-slate-400">
+                {capacityForecasts.slice(0, 8).map((f) => (
+                  <li key={String(f.id)} className="truncate">
+                    {String(f.metric_name)}
+                    {f.breach_eta ? ` · breach ${String(f.breach_eta).slice(0, 16)}` : ''}
+                    {' · '}
+                    {String(f.model_version ?? '')}
+                  </li>
+                ))}
+                {capacityForecasts.length === 0 && <li>None yet — run Capacity 7d</li>}
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+              <h2 className="text-sm font-medium text-slate-200 mb-2">Breach predictions</h2>
+              <ul className="space-y-1 max-h-32 overflow-y-auto text-xs text-slate-400">
+                {predictions.slice(0, 8).map((p) => (
+                  <li key={String(p.id)} className="truncate">
+                    {String(p.incident_type)} · {String(p.probability_pct)}%
+                  </li>
+                ))}
+                {predictions.length === 0 && <li>None active</li>}
               </ul>
             </div>
 

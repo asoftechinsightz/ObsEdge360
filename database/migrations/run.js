@@ -258,6 +258,14 @@ async function main() {
     console.log('029_aiops_multisignal_correlation.sql already applied.');
   }
 
+  const capacityRuns = await tableExists(client, 'capacity_forecast_runs');
+  if (!capacityRuns) {
+    const s30 = path.join(migrationsDir, '030_predictive_anomaly_capacity.sql');
+    if (fs.existsSync(s30)) await runSqlFile(client, s30);
+  } else {
+    console.log('030_predictive_anomaly_capacity.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

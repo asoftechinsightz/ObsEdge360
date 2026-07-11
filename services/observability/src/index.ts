@@ -10,6 +10,7 @@ import * as opsDashboards from './ops-dashboards.service';
 import * as llmGateway from './llm-gateway.service';
 import * as aiops from './aiops.service';
 import * as correlation from './correlation-engine.service';
+import * as predictive from './predictive-forecast.service';
 
 const app = express();
 
@@ -1036,6 +1037,73 @@ app.get('/ops-intelligence/forecasts', async (req, res) => {
     const tenantId = await resolveTenant(req);
     const forecasts = await opsIntel.listForecasts(tenantId, req.query.limit ? Number(req.query.limit) : 50);
     res.json({ forecasts, count: forecasts.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/predictive/scan', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await predictive.scanPredictiveAnomalies(tenantId, {
+      lookbackHours: Number(req.body?.lookbackHours ?? 6),
+      horizonHours: Number(req.body?.horizonHours ?? 24),
+      sigmaThreshold: Number(req.body?.sigmaThreshold ?? 2.5),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/capacity/forecast', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await predictive.generateCapacityForecasts(tenantId, {
+      horizonHours: Number(req.body?.horizonHours ?? 168),
+      lookbackHours: Number(req.body?.lookbackHours ?? 24),
+      capacityOnly: req.body?.capacityOnly !== false,
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/capacity/runs', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const runs = await predictive.listCapacityRuns(
+      tenantId,
+      req.query.limit ? Number(req.query.limit) : 20,
+    );
+    res.json({ runs, count: runs.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/capacity/forecasts', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const forecasts = await predictive.listCapacityForecasts(
+      tenantId,
+      req.query.limit ? Number(req.query.limit) : 50,
+    );
+    res.json({ forecasts, count: forecasts.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/predictions', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const predictions = await predictive.listIncidentPredictions(
+      tenantId,
+      req.query.limit ? Number(req.query.limit) : 50,
+    );
+    res.json({ predictions, count: predictions.length });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

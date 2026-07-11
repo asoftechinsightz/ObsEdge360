@@ -1,7 +1,7 @@
 import { query, queryOne } from '@opsedge360/shared-db';
 import * as opsIntel from './ops-intelligence.service';
 
-export type SignalType = 'metric' | 'log' | 'trace' | 'alert' | 'anomaly' | 'change';
+export type SignalType = 'metric' | 'log' | 'trace' | 'alert' | 'anomaly' | 'change' | 'forecast';
 
 export interface CollectedSignal {
   signalType: SignalType;
@@ -256,6 +256,38 @@ export async function collectSignals(
     /* */
   }
 
+  // Capacity / predictive forecasts with breach ETA
+  try {
+    const forecasts = await query<Record<string, unknown>>(
+      `SELECT id, metric_name, forecast_type, breach_eta, capacity_threshold, model_version, generated_at
+       FROM predictive_forecasts
+       WHERE tenant_id = $1
+         AND generated_at > NOW() - ($2 * INTERVAL '1 minute')
+         AND (breach_eta IS NOT NULL OR forecast_type = 'capacity')
+       ORDER BY generated_at DESC LIMIT 40`,
+      [tenantId, w],
+    );
+    for (const f of forecasts) {
+      signals.push({
+        signalType: 'forecast',
+        sourceId: String(f.id),
+        title: `Forecast ${f.forecast_type}: ${f.metric_name}${f.breach_eta ? ' (breach ETA)' : ''}`,
+        severity: f.breach_eta ? 'high' : 'info',
+        serviceName: f.metric_name ? String(f.metric_name).split('_')[0] : null,
+        weight: f.breach_eta ? 1.25 : 0.8,
+        occurredAt: asIso(f.generated_at),
+        metadata: {
+          metric: f.metric_name,
+          breachEta: f.breach_eta,
+          threshold: f.capacity_threshold,
+          model: f.model_version,
+        },
+      });
+    }
+  } catch {
+    /* */
+  }
+
   const counts = {
     metric: signals.filter((s) => s.signalType === 'metric').length,
     log: signals.filter((s) => s.signalType === 'log').length,
@@ -263,6 +295,7 @@ export async function collectSignals(
     alert: signals.filter((s) => s.signalType === 'alert').length,
     anomaly: signals.filter((s) => s.signalType === 'anomaly').length,
     change: signals.filter((s) => s.signalType === 'change').length,
+    forecast: signals.filter((s) => s.signalType === 'forecast').length,
     total: signals.length,
   };
 
