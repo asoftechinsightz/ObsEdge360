@@ -274,6 +274,14 @@ async function main() {
     console.log('031_controlled_remediation.sql already applied.');
   }
 
+  const kgEntities = await tableExists(client, 'kg_entities');
+  if (!kgEntities) {
+    const s32 = path.join(migrationsDir, '032_knowledge_graph_conversations.sql');
+    if (fs.existsSync(s32)) await runSqlFile(client, s32);
+  } else {
+    console.log('032_knowledge_graph_conversations.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

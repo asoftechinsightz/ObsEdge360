@@ -12,7 +12,7 @@
 | 2 | 4.2 | Advanced multi-signal correlation | [SDS-4.2-MultiSignalCorrelation.md](./sds/SDS-4.2-MultiSignalCorrelation.md) — **Closed** (`v0.9.4-wave2`) |
 | 3 | 4.3 | Predictive anomaly + capacity forecasting | [SDS-4.3-PredictiveCapacity.md](./sds/SDS-4.3-PredictiveCapacity.md) — **Closed** (`v0.9.4-wave3`) |
 | 4 | 4.4 | Intelligent remediation (controlled execution) | [SDS-4.4-ControlledRemediation.md](./sds/SDS-4.4-ControlledRemediation.md) — **Closed** (`v0.9.4-wave4`) |
-| 5 | 4.5 | Knowledge graph + conversational depth | Planned |
+| 5 | 4.5 | Knowledge graph + conversational depth | [SDS-4.5-KnowledgeGraphConversational.md](./sds/SDS-4.5-KnowledgeGraphConversational.md) — **Implementing** |
 
 ## Engineering rules (binding)
 

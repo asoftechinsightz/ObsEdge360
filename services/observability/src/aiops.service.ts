@@ -1,6 +1,7 @@
 import { query, queryOne } from '@opsedge360/shared-db';
 import * as llm from './llm-gateway.service';
 import * as opsIntel from './ops-intelligence.service';
+import * as kg from './knowledge-graph.service';
 
 function chunkText(content: string, size = 1200): string[] {
   const chunks: string[] = [];
@@ -137,7 +138,28 @@ export async function assembleKnowledgeContext(
     }
   }
 
-  const citations = opts.question ? await retrieve(tenantId, opts.question, 5) : [];
+  const ragCitations = opts.question ? await retrieve(tenantId, opts.question, 5) : [];
+  const graphCites = opts.question
+    ? await kg.graphCitations(tenantId, opts.question, 8).catch(() => [])
+    : [];
+  const graphNeighborhood = opts.question
+    ? await kg.getNeighborhood(tenantId, { q: opts.question, depth: 2, limit: 25 }).catch(() => null)
+    : null;
+
+  const citations = [
+    ...graphCites.map((c) => ({
+      chunkId: c.chunkId,
+      documentId: c.documentId,
+      title: c.title,
+      content: c.content,
+      rank: c.rank,
+      sourceType: c.sourceType,
+    })),
+    ...ragCitations.map((c) => ({
+      ...c,
+      sourceType: 'rag',
+    })),
+  ];
 
   return {
     health,
@@ -146,6 +168,7 @@ export async function assembleKnowledgeContext(
     signals,
     incident,
     blast,
+    graphNeighborhood,
     citations,
     assembledAt: new Date().toISOString(),
   };
@@ -193,12 +216,24 @@ export async function runGroundedRca(
         anomalies: context.anomalies,
         blast: context.blast,
         incident: context.incident,
+        graph: context.graphNeighborhood
+          ? {
+              root: context.graphNeighborhood.root,
+              nodeCount: context.graphNeighborhood.nodes?.length ?? 0,
+              edgeCount: context.graphNeighborhood.edges?.length ?? 0,
+            }
+          : null,
       },
       null,
       2,
     ),
     citations: JSON.stringify(
-      context.citations.map((c) => ({ title: c.title, excerpt: c.content.slice(0, 400), rank: c.rank })),
+      context.citations.map((c) => ({
+        title: c.title,
+        excerpt: c.content.slice(0, 400),
+        rank: c.rank,
+        sourceType: (c as { sourceType?: string }).sourceType ?? 'rag',
+      })),
       null,
       2,
     ),
@@ -298,42 +333,83 @@ export async function listLlmRca(tenantId: string, limit = 20) {
   );
 }
 
-export async function copilotAnswer(tenantId: string, question: string) {
+export async function copilotAnswer(
+  tenantId: string,
+  question: string,
+  opts: { sessionId?: string; createdBy?: string } = {},
+) {
+  let sessionId = opts.sessionId;
+  if (!sessionId) {
+    const created = await kg.createConversation(tenantId, {
+      title: question.slice(0, 120),
+      createdBy: opts.createdBy,
+    });
+    sessionId = String(created.id);
+  }
+
+  const prior = await kg.recentConversationContext(tenantId, sessionId, 6).catch(() => []);
   const context = await assembleKnowledgeContext(tenantId, { question });
   const prompt = await llm.getActivePrompt('copilot', tenantId);
   const system =
     (prompt?.system_prompt as string) ||
-    'You are OpsEdge360 operations Copilot. Use only provided context.';
+    'You are OpsEdge360 operations Copilot. Use only provided context. Prefer knowledge-graph and RAG citations. Do not invent CIs or topology.';
   const userTemplate =
     (prompt?.user_template as string) ||
-    'User question: {{question}}\n\nPlatform context:\n{{context}}\n\nRAG:\n{{citations}}';
+    'User question: {{question}}\n\nPrior turns:\n{{history}}\n\nPlatform context:\n{{context}}\n\nCitations:\n{{citations}}';
   const user = llm.renderTemplate(userTemplate, {
     question,
+    history: prior.map((m) => `${m.role}: ${m.content.slice(0, 400)}`).join('\n') || '(none)',
     context: JSON.stringify(
       {
         health: context.health,
         openIncidents: context.incidents.slice(0, 5),
         anomalies: context.anomalies.slice(0, 5),
         blast: context.blast,
+        graphRoot: context.graphNeighborhood?.root ?? null,
+        graphNodes: (context.graphNeighborhood?.nodes ?? []).slice(0, 10),
       },
       null,
       2,
     ),
     citations: JSON.stringify(
-      context.citations.map((c) => ({ title: c.title, excerpt: c.content.slice(0, 300) })),
+      context.citations.map((c) => ({
+        title: c.title,
+        excerpt: c.content.slice(0, 300),
+        sourceType: (c as { sourceType?: string }).sourceType ?? 'rag',
+      })),
     ),
   });
   const completion = await llm.completeChat(tenantId, 'copilot', [
     { role: 'system', content: system },
     { role: 'user', content: user },
   ]);
+
+  await kg.appendMessage(tenantId, sessionId, {
+    role: 'user',
+    content: question,
+  }).catch(() => undefined);
+  await kg.appendMessage(tenantId, sessionId, {
+    role: 'assistant',
+    content: completion.content,
+    citations: context.citations,
+    model: completion.model,
+    provider: completion.provider,
+    mode: completion.mode,
+  }).catch(() => undefined);
+
+  const graphCitationCount = context.citations.filter(
+    (c) => (c as { sourceType?: string }).sourceType === 'knowledge_graph',
+  ).length;
+
   return {
     reply: completion.content,
     model: completion.model,
     provider: completion.provider,
     mode: completion.mode,
     citations: context.citations,
-    sources: ['ops-intelligence', 'rag', 'llm-gateway'],
+    sessionId,
+    graphCitationCount,
+    sources: ['ops-intelligence', 'knowledge-graph', 'rag', 'llm-gateway'],
   };
 }
 

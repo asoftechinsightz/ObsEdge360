@@ -88,11 +88,69 @@ export class AiController {
   }
 
   @Post('copilot')
-  @ApiOperation({ summary: 'Conversational Copilot (grounded NL)' })
+  @ApiOperation({ summary: 'Conversational Copilot (graph-grounded NL, multi-turn)' })
   async copilot(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
     const result = await this.proxy.observability('/ai/copilot', {
       method: 'POST',
       body: body ?? {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('graph/sync')
+  @ApiOperation({ summary: 'Sync tenant ops knowledge graph from CMDB + evidence' })
+  async graphSync(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ai/graph/sync', {
+      method: 'POST',
+      body: {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('graph/stats')
+  @ApiOperation({ summary: 'Knowledge graph entity/edge counts' })
+  async graphStats(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ai/graph/stats', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('graph/neighborhood')
+  @ApiOperation({ summary: 'Knowledge graph neighborhood walk' })
+  @ApiQuery({ name: 'q', required: false })
+  @ApiQuery({ name: 'entityId', required: false })
+  async graphNeighborhood(
+    @CurrentUser() user: JwtPayload,
+    @Query('q') q: string | undefined,
+    @Query('entityId') entityId: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability('/ai/graph/neighborhood', {
+      tenantId: user.tenantId,
+      query: {
+        ...(q ? { q } : {}),
+        ...(entityId ? { entityId } : {}),
+      },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('conversations')
+  @ApiOperation({ summary: 'List Copilot conversation sessions' })
+  async conversations(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ai/conversations', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('conversations/:id')
+  @ApiOperation({ summary: 'Get Copilot conversation with messages' })
+  async conversation(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability(`/ai/conversations/${id}`, {
       tenantId: user.tenantId,
     });
     return res.status(result.status).json(result.data);

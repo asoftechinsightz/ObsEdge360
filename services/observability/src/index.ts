@@ -12,6 +12,7 @@ import * as aiops from './aiops.service';
 import * as correlation from './correlation-engine.service';
 import * as predictive from './predictive-forecast.service';
 import * as remControl from './remediation-control.service';
+import * as kg from './knowledge-graph.service';
 
 const app = express();
 
@@ -1496,8 +1497,68 @@ app.post('/ai/copilot', async (req, res) => {
     const tenantId = await resolveTenant(req);
     const question = String(req.body?.question ?? req.body?.messages?.slice?.(-1)?.[0]?.content ?? '');
     if (!question.trim()) return res.status(400).json({ error: 'question required' });
-    const answer = await aiops.copilotAnswer(tenantId, question);
+    const answer = await aiops.copilotAnswer(tenantId, question, {
+      sessionId: req.body?.sessionId,
+      createdBy: (req.headers['x-user-email'] as string) ?? req.body?.createdBy,
+    });
     res.json(answer);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/graph/sync', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await kg.syncKnowledgeGraph(tenantId);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/graph/stats', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const stats = await kg.graphStats(tenantId);
+    const latest = await kg.latestSync(tenantId);
+    res.json({ ...stats, latestSync: latest });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/graph/neighborhood', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await kg.getNeighborhood(tenantId, {
+      entityId: req.query.entityId as string | undefined,
+      q: req.query.q as string | undefined,
+      depth: req.query.depth ? Number(req.query.depth) : 2,
+      limit: req.query.limit ? Number(req.query.limit) : 40,
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/conversations', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const sessions = await kg.listConversations(tenantId);
+    res.json({ sessions, count: sessions.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/conversations/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const session = await kg.getConversation(tenantId, req.params.id);
+    if (!session) return res.status(404).json({ error: 'Conversation not found' });
+    res.json(session);
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }

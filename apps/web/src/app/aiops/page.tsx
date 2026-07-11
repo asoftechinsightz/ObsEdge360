@@ -55,6 +55,13 @@ export default function AiOpsPage() {
   const [snapshot, setSnapshot] = useState<SignalSnapshot | null>(null);
   const [docs, setDocs] = useState<Array<Record<string, unknown>>>([]);
   const [message, setMessage] = useState('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [graphStats, setGraphStats] = useState<{ entities: number; edges: number } | null>(null);
+  const [neighborhood, setNeighborhood] = useState<{
+    root?: { label?: string; entityType?: string } | null;
+    nodes?: Array<{ id: string; label: string; entityType: string }>;
+    edges?: Array<{ edgeType: string }>;
+  } | null>(null);
   const [ragTitle, setRagTitle] = useState('NOC runbook');
   const [ragContent, setRagContent] = useState(
     'If API latency spikes, check database connections, recent deployments, and blast radius of the primary database CI.',
@@ -62,16 +69,18 @@ export default function AiOpsPage() {
 
   const load = useCallback(async () => {
     try {
-      const [h, c, d, snap] = await Promise.all([
+      const [h, c, d, snap, gs] = await Promise.all([
         apiClient<AiHealth>('/ai/health'),
         apiClient<{ events: CorrelationRow[] }>('/ai/correlations'),
         apiClient<{ documents: Array<Record<string, unknown>> }>('/ai/rag/documents'),
         apiClient<{ snapshot: SignalSnapshot | null }>('/ai/signals/snapshot'),
+        apiClient<{ entities: number; edges: number }>('/ai/graph/stats'),
       ]);
       setHealth(h);
       setCorrelations(c.events ?? []);
       setDocs(d.documents ?? []);
       setSnapshot(snap.snapshot ?? null);
+      setGraphStats({ entities: gs.entities ?? 0, edges: gs.edges ?? 0 });
     } catch (err) {
       setMessage((err as Error).message);
     }
@@ -84,12 +93,48 @@ export default function AiOpsPage() {
   async function askCopilot() {
     setMessage('Asking Copilot…');
     try {
-      const r = await apiClient<{ reply: string; model: string; mode: string }>('/ai/copilot', {
+      const r = await apiClient<{
+        reply: string;
+        model: string;
+        mode: string;
+        sessionId?: string;
+        graphCitationCount?: number;
+      }>('/ai/copilot', {
         method: 'POST',
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, sessionId }),
       });
       setReply(r.reply);
-      setMessage(`Copilot · ${r.model} (${r.mode})`);
+      if (r.sessionId) setSessionId(r.sessionId);
+      setMessage(
+        `Copilot · ${r.model} (${r.mode}) · KG cites ${r.graphCitationCount ?? 0}${r.sessionId ? ` · session ${r.sessionId.slice(0, 8)}` : ''}`,
+      );
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function syncGraph() {
+    setMessage('Syncing knowledge graph…');
+    try {
+      const r = await apiClient<{ entitiesUpserted: number; edgesUpserted: number }>('/ai/graph/sync', {
+        method: 'POST',
+        body: '{}',
+      });
+      setMessage(`KG sync · ${r.entitiesUpserted} entities · ${r.edgesUpserted} edges`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function loadNeighborhood() {
+    try {
+      const n = await apiClient<{
+        root?: { label?: string; entityType?: string } | null;
+        nodes?: Array<{ id: string; label: string; entityType: string }>;
+        edges?: Array<{ edgeType: string }>;
+      }>(`/ai/graph/neighborhood?q=${encodeURIComponent(question)}`);
+      setNeighborhood(n);
     } catch (err) {
       setMessage((err as Error).message);
     }
@@ -177,7 +222,7 @@ export default function AiOpsPage() {
               <BrainCircuit className="h-6 w-6 text-fuchsia-400" /> AIOps / LLM RCA
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Grounded Copilot and RCA · RAG · advanced multi-signal correlation (metrics/logs/traces/alerts/changes).
+              Graph-grounded Copilot · RAG · multi-signal correlation · knowledge graph neighborhood.
             </p>
           </div>
           <button type="button" onClick={() => void load()} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300">
@@ -185,7 +230,7 @@ export default function AiOpsPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
           <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
             <div className="text-xs text-slate-500">Provider</div>
             <div className="text-sm text-slate-100">{health?.provider ?? '—'}</div>
@@ -199,8 +244,12 @@ export default function AiOpsPage() {
             <div className="text-sm text-slate-100">{health?.configured ? 'configured' : 'fallback mode'}</div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-            <div className="text-xs text-slate-500">Fallback</div>
-            <div className="text-sm text-slate-100">{health?.fallback ?? '—'}</div>
+            <div className="text-xs text-slate-500">KG entities</div>
+            <div className="text-sm text-slate-100">{graphStats?.entities ?? '—'}</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+            <div className="text-xs text-slate-500">KG edges</div>
+            <div className="text-sm text-slate-100">{graphStats?.edges ?? '—'}</div>
           </div>
         </div>
 
@@ -243,7 +292,30 @@ export default function AiOpsPage() {
               <button type="button" onClick={() => void correlate()} className="inline-flex items-center gap-1 rounded-md bg-sky-700/80 px-3 py-1.5 text-sm text-white">
                 <GitMerge className="h-4 w-4" /> Correlate
               </button>
+              <button type="button" onClick={() => void syncGraph()} className="rounded-md bg-indigo-700/80 px-3 py-1.5 text-sm text-white">
+                Sync KG
+              </button>
+              <button type="button" onClick={() => void loadNeighborhood()} className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-200">
+                Neighborhood
+              </button>
             </div>
+            {neighborhood && (
+              <div className="rounded-md border border-slate-800 bg-slate-900/70 p-3 text-xs text-slate-400 space-y-1">
+                <div className="text-slate-200">
+                  KG root: {neighborhood.root?.label ?? 'none'} ({neighborhood.root?.entityType ?? '—'})
+                </div>
+                <div>
+                  nodes {(neighborhood.nodes ?? []).length} · edges {(neighborhood.edges ?? []).length}
+                </div>
+                <ul className="max-h-28 overflow-auto">
+                  {(neighborhood.nodes ?? []).slice(0, 12).map((n) => (
+                    <li key={n.id} className="truncate">
+                      {n.entityType} · {n.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {reply && (
               <pre className="whitespace-pre-wrap rounded-md border border-slate-800 bg-slate-900/80 p-3 text-xs text-slate-300 max-h-80 overflow-auto">
                 {reply}
