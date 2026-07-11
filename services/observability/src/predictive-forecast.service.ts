@@ -3,6 +3,11 @@ import { query, queryOne } from '@opsedge360/shared-db';
 const MODEL_EWMA = 'ewma-v1';
 const MODEL_CAPACITY = 'capacity-v1';
 
+function clampSigma(v: number): number {
+  if (!Number.isFinite(v)) return 0;
+  return Math.min(99.99, Math.max(-99.99, Math.round(v * 100) / 100));
+}
+
 interface SeriesPoint {
   t: string;
   v: number;
@@ -183,7 +188,7 @@ export async function scanPredictiveAnomalies(
             s.name,
             ewmaLast,
             last,
-            Math.round(sigma * 100) / 100,
+            clampSigma(sigma),
             severity,
             MODEL_EWMA,
             JSON.stringify({ method: 'ewma', lookbackHours }),
@@ -228,7 +233,7 @@ export async function scanPredictiveAnomalies(
             s.name,
             ewmaLast,
             last,
-            Math.round(((threshold - last) / Math.max(rmse, 1e-6)) * 100) / 100,
+            clampSigma((threshold - last) / Math.max(rmse, 1e-6)),
             severity,
             MODEL_EWMA,
             expectedAt,
@@ -389,7 +394,7 @@ export async function generateCapacityForecasts(
           s.name,
           last,
           threshold,
-          Math.round(((threshold - last) / Math.max(rmse, 1e-6)) * 100) / 100,
+          clampSigma((threshold - last) / Math.max(rmse, 1e-6)),
           breachHour <= 12 ? 'critical' : breachHour <= 48 ? 'high' : 'warning',
           MODEL_CAPACITY,
           breachEta,
