@@ -1,18 +1,22 @@
-# Wave 6 EAB Closure Pack — Security Observability
+# Wave 6 — EAB Closure
 
 **Document ID:** OE360-WAVE6-EAB-001  
-**Status:** Ready for EAB closure review  
 **Date:** 2026-07-11  
+**Status:** ✅ **CLOSED**
 
-## Decision requested
+## Decision
 
-**APPROVED – CLOSED** for Wave 6 (Security Observability), pending EAB formal sign-off.
+| Item | Decision |
+|------|----------|
+| Wave 6 Security Observability | ✅ **APPROVED – CLOSED** |
+| Architecture / SDS-2.6 | ✅ Approved |
+| Production validation | ✅ 14/14 · feature SHA `4b921d6` · tag `v0.9.2-wave6` |
+| Wave 7 | 🟢 **Approved to begin** — Enterprise Service Identity Mesh (mTLS / SPIFFE) |
 
 ## Evidence
 
 | Item | Result |
 |------|--------|
-| Architecture / SDS-2.6 | Implemented |
 | Production deploy | ✅ `4b921d6` |
 | Validation | ✅ **WAVE6_VALIDATION_OK** (14/14) |
 | Migration 020 | ✅ |
@@ -21,25 +25,9 @@
 | Completion | [WAVE6_COMPLETION.md](./WAVE6_COMPLETION.md) |
 | Release notes | [RELEASE_NOTES_v0.9.2-wave6.md](./RELEASE_NOTES_v0.9.2-wave6.md) |
 
-## Delivered capabilities
-
-- Centralized security event ingestion (`security_events`)
-- AuthZ deny / cross-tenant → security event hooks
-- Detection rules + alert generation
-- Security dashboard KPIs
-- Prometheus security counters on `/metrics`
-- Multi-tenant isolation on event search
-- Migration **020**
-
-## Program status (proposed after closure)
+## Program status
 
 | Phase / Wave | Status |
 |--------------|--------|
-| Phase 1 | ✅ Complete |
-| Waves 1–5 | ✅ Closed |
-| Wave 6 | ✅ Closed (pending EAB) |
-| Wave 7 | 🟢 Ready for EAB start approval (mTLS / SPIFFE) |
-
-## Recommended Wave 7 theme
-
-mTLS Mesh · Certificate Rotation · SPIFFE/SPIRE · Workload Identity
+| Phase 1 · Waves 1–6 | ✅ Closed |
+| Wave 7 mTLS / SPIFFE | 🟢 Approved to start |

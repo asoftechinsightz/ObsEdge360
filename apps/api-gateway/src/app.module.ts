@@ -34,7 +34,9 @@ import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.servic
 import { SecretsController } from './secrets/secrets.controller';
 import { SecretsRotationScheduler } from './secrets/secrets-rotation.scheduler';
 import { TrustController } from './trust/trust.controller';
+import { TrustMeshController } from './trust/trust-mesh.controller';
 import { SecurityObservabilityController } from './security-observability/security-observability.controller';
+import { MeshBootstrapService } from './trust/mesh-bootstrap.service';
 
 @Module({
   controllers: [
@@ -61,6 +63,7 @@ import { SecurityObservabilityController } from './security-observability/securi
     AuditController,
     SecretsController,
     TrustController,
+    TrustMeshController,
     SecurityObservabilityController,
   ],
   providers: [
@@ -71,6 +74,7 @@ import { SecurityObservabilityController } from './security-observability/securi
     CopilotService,
     AuditEvidenceWriterService,
     SecretsRotationScheduler,
+    MeshBootstrapService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

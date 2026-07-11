@@ -1,13 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import axios, { type AxiosRequestConfig } from 'axios';
+import https from 'https';
 import { resolveTenantStrict } from '@opsedge360/shared-db';
-import { mintServiceJwt, serviceAuthEnabled } from '@opsedge360/shared-security';
+import { mintServiceJwt, serviceAuthEnabled, mtlsEnabled, loadMtlsFiles } from '@opsedge360/shared-security';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Injectable()
 export class ProxyService {
-  private readonly cmdbUrl = process.env.CMDB_URL ?? 'http://localhost:4002';
   private readonly discoveryUrl = process.env.DISCOVERY_URL ?? 'http://localhost:4001';
   private readonly observabilityUrl = process.env.OBSERVABILITY_URL ?? 'http://localhost:4003';
   private readonly complianceUrl = process.env.COMPLIANCE_URL ?? 'http://localhost:4004';
@@ -19,6 +19,28 @@ export class ProxyService {
   private readonly quantumUrl = process.env.QUANTUM_URL ?? 'http://localhost:4009';
   private readonly governanceUrl = process.env.GOVERNANCE_URL ?? 'http://localhost:4010';
   private cachedServiceToken: { token: string; expEpoch: number } | null = null;
+  private mtlsAgent: https.Agent | null = null;
+
+  private get cmdbUrl(): string {
+    if (mtlsEnabled() && this.getMtlsAgent() && process.env.CMDB_MTLS_URL) {
+      return process.env.CMDB_MTLS_URL;
+    }
+    return process.env.CMDB_URL ?? 'http://localhost:4002';
+  }
+
+  private getMtlsAgent(): https.Agent | undefined {
+    if (!mtlsEnabled()) return undefined;
+    if (this.mtlsAgent) return this.mtlsAgent;
+    const files = loadMtlsFiles(process.env.MESH_GATEWAY_IDENTITY_NAME ?? 'api-gateway');
+    if (!files.cert || !files.key || !files.ca) return undefined;
+    this.mtlsAgent = new https.Agent({
+      cert: files.cert,
+      key: files.key,
+      ca: files.ca,
+      rejectUnauthorized: process.env.MTLS_REJECT_UNAUTHORIZED !== 'false',
+    });
+    return this.mtlsAgent;
+  }
 
   private serviceAuthHeaders(): Record<string, string> {
     if (!serviceAuthEnabled()) return {};
@@ -69,6 +91,7 @@ export class ProxyService {
     } = {},
   ) {
     const tenantUuid = await this.resolveTenantHeader(options.tenantId);
+    const httpsAgent = baseUrl.startsWith('https://') ? this.getMtlsAgent() : undefined;
     const config: AxiosRequestConfig = {
       method: (options.method ?? 'GET') as AxiosRequestConfig['method'],
       url: `${baseUrl}${path}`,
@@ -83,6 +106,7 @@ export class ProxyService {
       responseType: options.responseType ?? 'json',
       validateStatus: () => true,
       timeout: Number(process.env.PROXY_TIMEOUT_MS ?? 5000),
+      ...(httpsAgent ? { httpsAgent } : {}),
     };
     const res = await axios(config);
     return { status: res.status, data: res.data };

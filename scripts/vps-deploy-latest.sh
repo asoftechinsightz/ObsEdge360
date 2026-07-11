@@ -23,6 +23,11 @@ if ! grep -q '^SECRETS_MASTER_KEY=' .env; then
 fi
 grep -q '^SERVICE_AUTH_ENABLED=' .env || echo 'SERVICE_AUTH_ENABLED=true' >> .env
 grep -q '^SERVICE_AUTH_REQUIRED=' .env || echo 'SERVICE_AUTH_REQUIRED=true' >> .env
+grep -q '^MTLS_ENABLED=' .env || echo 'MTLS_ENABLED=true' >> .env
+grep -q '^MTLS_REQUIRED=' .env || echo 'MTLS_REQUIRED=false' >> .env
+grep -q '^MESH_AUTO_BOOTSTRAP=' .env || echo 'MESH_AUTO_BOOTSTRAP=true' >> .env
+grep -q '^SPIFFE_TRUST_DOMAIN=' .env || echo 'SPIFFE_TRUST_DOMAIN=opsedge360.local' >> .env
+grep -q '^CMDB_MTLS_URL=' .env || echo 'CMDB_MTLS_URL=https://cmdb:4443' >> .env
 if ! grep -q '^SERVICE_JWT_SECRET=' .env; then
   # Prefer dedicated secret; fall back to JWT_SECRET value if present
   if grep -q '^JWT_SECRET=' .env; then
@@ -45,9 +50,13 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core -
 echo "=== MIGRATE (016+) ==="
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod run --rm migrate
 
-echo "=== RECREATE APP SERVICES ==="
+echo "=== RECREATE APP SERVICES (gateway first for mesh bootstrap) ==="
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod up -d --no-deps --force-recreate api-gateway
+sleep 15
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod up -d --no-deps --force-recreate \
-  discovery cmdb observability compliance transactions security api-gateway web nginx
+  discovery cmdb observability compliance transactions security web nginx
+# recreate gateway again so mTLS agent picks up materialized SVIDs after cmdb is up
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod up -d --no-deps --force-recreate api-gateway
 sleep 20
 
 echo "=== SMOKE ==="

@@ -1,6 +1,14 @@
 import express from 'express';
+import https from 'https';
 import { resolveTenantId } from '@opsedge360/shared-db';
-import { serviceAuthRequired, verifyServiceJwt } from '@opsedge360/shared-security';
+import {
+  serviceAuthRequired,
+  verifyServiceJwt,
+  mtlsEnabled,
+  mtlsRequired,
+  loadMtlsFiles,
+  verifySpiffePeerPem,
+} from '@opsedge360/shared-security';
 import * as repo from './cmdb.repository';
 import { startKafkaConsumer, getEventBus, ingestDiscoveredAsset } from './kafka-consumer';
 import { getImpactFromGraph } from './graph-sync';
@@ -25,13 +33,51 @@ mountOpsEndpoints(app, {
   },
 });
 
-/** Wave 5: require gateway service JWT when SERVICE_AUTH_REQUIRED=true */
+function peerAuthorized(req: express.Request): { ok: boolean; spiffeId?: string } {
+  const socket = req.socket as import('tls').TLSSocket;
+  if (!socket || typeof socket.getPeerCertificate !== 'function') {
+    return { ok: false };
+  }
+  if (!socket.authorized && mtlsRequired()) {
+    return { ok: false };
+  }
+  const peer = socket.getPeerCertificate(true);
+  if (!peer || !peer.raw) return { ok: false };
+  const files = loadMtlsFiles(process.env.MESH_CMDB_IDENTITY_NAME ?? 'cmdb');
+  if (!files.ca) return { ok: false };
+  const peerPem = `-----BEGIN CERTIFICATE-----\n${Buffer.from(peer.raw).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----\n`;
+  const verified = verifySpiffePeerPem(peerPem, files.ca.toString('utf8'));
+  return { ok: verified.ok, spiffeId: verified.spiffeId };
+}
+
+/** Wave 5+7: mTLS peer OR gateway service JWT when SERVICE_AUTH_REQUIRED=true */
 app.use((req, res, next) => {
   const path = req.path || '';
   if (['/health', '/ready', '/live', '/metrics', '/version'].includes(path)) {
     next();
     return;
   }
+  if (!serviceAuthRequired() && !mtlsRequired()) {
+    next();
+    return;
+  }
+
+  if (mtlsEnabled()) {
+    const peer = peerAuthorized(req);
+    if (peer.ok) {
+      (req as express.Request & { serviceIdentity?: unknown }).serviceIdentity = {
+        kind: 'mtls',
+        spiffeId: peer.spiffeId,
+      };
+      next();
+      return;
+    }
+    if (mtlsRequired() && (req.socket as import('tls').TLSSocket)?.encrypted) {
+      res.status(401).json({ error: 'mTLS client certificate required', code: 'MTLS_REQUIRED' });
+      return;
+    }
+  }
+
   if (!serviceAuthRequired()) {
     next();
     return;
@@ -318,6 +364,7 @@ app.post('/internal/ingest', tenantMiddleware, async (req, res) => {
 });
 
 const port = Number(process.env.CMDB_PORT ?? 4002);
+const mtlsPort = Number(process.env.CMDB_MTLS_PORT ?? 4443);
 
 async function bootstrap() {
   try {
@@ -327,6 +374,26 @@ async function bootstrap() {
   }
 
   app.listen(port, () => console.log(`CMDB service on :${port}`));
+
+  if (mtlsEnabled()) {
+    const files = loadMtlsFiles(process.env.MESH_CMDB_IDENTITY_NAME ?? 'cmdb');
+    if (files.cert && files.key && files.ca) {
+      https
+        .createServer(
+          {
+            key: files.key,
+            cert: files.cert,
+            ca: files.ca,
+            requestCert: true,
+            rejectUnauthorized: false,
+          },
+          app,
+        )
+        .listen(mtlsPort, () => console.log(`CMDB mTLS on :${mtlsPort}`));
+    } else {
+      console.warn('[cmdb] MTLS_ENABLED but SVID files missing — HTTPS listener skipped');
+    }
+  }
 }
 
 bootstrap();

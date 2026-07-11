@@ -18,7 +18,11 @@ export type SecurityMetricName =
   | 'security.secrets.rotate_fail'
   | 'security.secrets.expiring'
   | 'security.obs.alert_created'
-  | 'security.obs.event_ingested';
+  | 'security.obs.event_ingested'
+  | 'security.mesh.ca_bootstrap'
+  | 'security.mesh.svid_issue'
+  | 'security.mesh.svid_rotate'
+  | 'security.mesh.svid_revoke';
 
 const counters = new Map<SecurityMetricName, number>();
 

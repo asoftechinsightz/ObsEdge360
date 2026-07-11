@@ -82,7 +82,9 @@ export class TrustController {
       serviceAuthEnabled: process.env.SERVICE_AUTH_ENABLED === 'true',
       serviceAuthRequired: process.env.SERVICE_AUTH_REQUIRED === 'true',
       activeIdentities: Number(identities?.c ?? 0),
-      mtls: 'metadata-only (full mesh deferred)',
+      mtlsEnabled: process.env.MTLS_ENABLED === 'true',
+      mtlsRequired: process.env.MTLS_REQUIRED === 'true',
+      mtls: process.env.MTLS_ENABLED === 'true' ? 'spiffe-svid-mtls' : 'jwt-primary (mesh optional)',
     };
   }
 

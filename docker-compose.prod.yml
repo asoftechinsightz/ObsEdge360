@@ -71,8 +71,16 @@ services:
     environment:
       <<: *service-env
       CMDB_PORT: 4002
+      CMDB_MTLS_PORT: 4443
       SERVICE_AUTH_REQUIRED: ${SERVICE_AUTH_REQUIRED:-true}
       SERVICE_JWT_SECRET: ${SERVICE_JWT_SECRET}
+      MTLS_ENABLED: ${MTLS_ENABLED:-true}
+      MTLS_REQUIRED: ${MTLS_REQUIRED:-false}
+      SPIFFE_TRUST_DOMAIN: ${SPIFFE_TRUST_DOMAIN:-opsedge360.local}
+      SVID_DIR: /var/lib/opsedge360/svids
+      SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:-}
+    volumes:
+      - opsedge360-svids:/var/lib/opsedge360/svids:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4002/health || exit 1"]
       interval: 30s
@@ -192,6 +200,13 @@ services:
       SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:-}
       SERVICE_AUTH_ENABLED: ${SERVICE_AUTH_ENABLED:-true}
       SERVICE_JWT_SECRET: ${SERVICE_JWT_SECRET}
+      MTLS_ENABLED: ${MTLS_ENABLED:-true}
+      MTLS_REQUIRED: ${MTLS_REQUIRED:-false}
+      MESH_AUTO_BOOTSTRAP: ${MESH_AUTO_BOOTSTRAP:-true}
+      SPIFFE_TRUST_DOMAIN: ${SPIFFE_TRUST_DOMAIN:-opsedge360.local}
+      SVID_DIR: /var/lib/opsedge360/svids
+      SVID_TTL_SECONDS: ${SVID_TTL_SECONDS:-86400}
+      CMDB_MTLS_URL: ${CMDB_MTLS_URL:-https://cmdb:4443}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://observability360.asoftechinsightz.com}
       POSTGRES_HOST: postgres
@@ -210,6 +225,8 @@ services:
       SECURITY_URL: http://security:4006
       DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-saas}
       PERFORMANCE_PROFILE: ${PERFORMANCE_PROFILE:-standard}
+    volumes:
+      - opsedge360-svids:/var/lib/opsedge360/svids
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4000/api/v1/health || exit 1"]
       interval: 30s
@@ -254,3 +271,6 @@ services:
       - web
       - api-gateway
     profiles: ["prod"]
+
+volumes:
+  opsedge360-svids:
