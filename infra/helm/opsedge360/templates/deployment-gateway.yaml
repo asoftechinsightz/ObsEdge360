@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-api-gateway
+  labels:
+    app: opsedge360-api-gateway
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: opsedge360-api-gateway
+  template:
+    metadata:
+      labels:
+        app: opsedge360-api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: {{ .Values.image.gateway }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.gatewayPort }}
+          env:
+            - name: DEPLOYMENT_MODE
+              value: {{ .Values.env.DEPLOYMENT_MODE | quote }}
+            - name: PERFORMANCE_PROFILE
+              value: {{ .Values.env.PERFORMANCE_PROFILE | quote }}
+          readinessProbe:
+            httpGet:
+              path: /api/v1/ready
+              port: {{ .Values.service.gatewayPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10

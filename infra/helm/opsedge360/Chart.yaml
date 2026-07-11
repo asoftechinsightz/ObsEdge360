@@ -1,0 +1,11 @@
+apiVersion: v2
+name: opsedge360
+description: OpsEdge360 Enterprise Observability Platform (Wave 1 single-replica Helm baseline)
+type: application
+version: 1.0.0-wave1
+appVersion: "1.0.0-wave1"
+keywords:
+  - observability
+  - cmdb
+  - ai
+  - enterprise

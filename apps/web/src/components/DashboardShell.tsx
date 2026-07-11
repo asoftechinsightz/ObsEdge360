@@ -36,6 +36,7 @@ const CORE_NAV = [
   { href: '/analytics', icon: TrendingUp, label: 'Predictive Analytics' },
   { href: '/quantum', icon: Atom, label: 'Quantum Ready' },
   { href: '/governance', icon: Globe, label: 'Governance / HA-DR' },
+  { href: '/admin', icon: Building2, label: 'Enterprise Admin' },
   { href: '/agents', icon: Bot, label: 'AI Agents' },
   { href: '/settings/sso', icon: KeyRound, label: 'SSO settings' },
 ];

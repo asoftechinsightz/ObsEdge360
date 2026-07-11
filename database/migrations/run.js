@@ -282,6 +282,14 @@ async function main() {
     console.log('032_knowledge_graph_conversations.sql already applied.');
   }
 
+  const platformLicenses = await tableExists(client, 'platform_licenses');
+  if (!platformLicenses) {
+    const s33 = path.join(migrationsDir, '033_enterprise_ga.sql');
+    if (fs.existsSync(s33)) await runSqlFile(client, s33);
+  } else {
+    console.log('033_enterprise_ga.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

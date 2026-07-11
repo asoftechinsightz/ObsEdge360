@@ -1,0 +1,15 @@
+replicaCount: 1
+image:
+  gateway: opsedge360-api-gateway:latest
+  web: opsedge360-web:latest
+  pullPolicy: IfNotPresent
+service:
+  gatewayPort: 4000
+  webPort: 3000
+ingress:
+  enabled: false
+  host: observability360.example.com
+env:
+  DEPLOYMENT_MODE: onprem
+  PERFORMANCE_PROFILE: standard
+note: Wave 1 chart is single-replica; HA values arrive in Wave 2.

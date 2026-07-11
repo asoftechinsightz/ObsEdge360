@@ -41,6 +41,8 @@ import { UaController } from './ua/ua.controller';
 import { OpsIntelligenceController } from './ops-intelligence.controller';
 import { DashboardsController } from './dashboards.controller';
 import { AiController } from './ai.controller';
+import { AdminController } from './admin/admin.controller';
+import { AdminService } from './admin/admin.service';
 
 @Module({
   controllers: [
@@ -73,6 +75,7 @@ import { AiController } from './ai.controller';
     OpsIntelligenceController,
     DashboardsController,
     AiController,
+    AdminController,
   ],
   providers: [
     ProxyService,
@@ -83,6 +86,7 @@ import { AiController } from './ai.controller';
     AuditEvidenceWriterService,
     SecretsRotationScheduler,
     MeshBootstrapService,
+    AdminService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },
