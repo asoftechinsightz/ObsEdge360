@@ -7,6 +7,7 @@ import {
 import * as jwt from 'jsonwebtoken';
 import { createHash, randomBytes } from 'crypto';
 import { query, queryOne } from '@opsedge360/shared-db';
+import { incSecurityMetric } from '@opsedge360/shared-security';
 import { hashPassword, verifyPassword, slugifyOrg } from './password.util';
 
 export interface JwtPayload {
@@ -187,7 +188,11 @@ export class AuthService {
     let payload: JwtPayload;
     try {
       payload = this.verifyToken(token);
-    } catch {
+    } catch (err) {
+      const name = (err as { name?: string })?.name;
+      if (name === 'TokenExpiredError') incSecurityMetric('security.auth.expired_token');
+      else incSecurityMetric('security.auth.invalid_token');
+      incSecurityMetric('security.auth.refresh_failure');
       throw new UnauthorizedException('Invalid or expired token');
     }
     const next: JwtPayload = {
@@ -198,6 +203,7 @@ export class AuthService {
       name: payload.name,
     };
     const accessToken = jwt.sign(next, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
+    incSecurityMetric('security.auth.refresh_success');
     return { accessToken, user: next, expiresIn: this.expiresIn };
   }
 

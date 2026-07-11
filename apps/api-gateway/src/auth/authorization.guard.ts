@@ -4,24 +4,41 @@ import {
   ExecutionContext,
   ForbiddenException,
   UnauthorizedException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { resolveTenantStrict, type TenantRow } from '@opsedge360/shared-db';
 import {
   authorize,
   buildAuthContext,
   inferPermission,
   loadTenantPolicies,
   writeAuditLog,
+  incSecurityMetric,
   type AuthContext,
 } from '@opsedge360/shared-security';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { REQUIRE_PERMISSION_KEY, SKIP_AUTHZ_KEY } from './require-permission.decorator';
 import type { JwtPayload } from './auth.service';
 
+export interface TenantContext {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 function authzEnforceEnabled(): boolean {
   if (process.env.AUTHZ_ENFORCE === 'false') return false;
   if (process.env.AUTH_REQUIRED === 'false') return false;
   return true;
+}
+
+function tenantResolveLegacy(): boolean {
+  return process.env.TENANT_RESOLVE === 'legacy';
+}
+
+function headerMatchesTenant(header: string, tenant: TenantRow, jwtTenant: string): boolean {
+  return header === tenant.slug || header === tenant.id || header === jwtTenant;
 }
 
 @Injectable()
@@ -44,19 +61,50 @@ export class AuthorizationGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtPayload | undefined;
     if (!user?.sub || !user.tenantId) {
+      incSecurityMetric('security.auth.invalid_token');
       throw new UnauthorizedException('Authentication required');
     }
 
-    // Tenant binder: never trust client tenant without matching token
+    let tenant: TenantRow | null = null;
+    try {
+      tenant = await resolveTenantStrict(user.tenantId);
+    } catch (err) {
+      if (tenantResolveLegacy()) {
+        tenant = { id: user.tenantId, slug: user.tenantId, name: user.tenantId };
+      } else if ((err as Error)?.message?.includes('Unknown tenant')) {
+        incSecurityMetric('security.auth.denied');
+        throw new ForbiddenException({
+          statusCode: 403,
+          code: 'TENANT_UNKNOWN',
+          message: 'Unknown tenant in authenticated identity',
+        });
+      } else {
+        throw new ServiceUnavailableException('Tenant resolution unavailable');
+      }
+    }
+
+    const tenantContext: TenantContext = {
+      id: tenant!.id,
+      slug: tenant!.slug,
+      name: tenant!.name,
+    };
+    request.tenantContext = tenantContext;
+
     const headerTenant = (request.headers['x-tenant-id'] as string | undefined)?.trim();
-    if (headerTenant && headerTenant !== user.tenantId) {
+    if (headerTenant && !headerMatchesTenant(headerTenant, tenant!, user.tenantId)) {
+      incSecurityMetric('security.auth.cross_tenant_attempt');
       await this.safeAudit({
-        tenantId: user.tenantId,
+        tenantId: tenantContext.id,
         actorId: user.sub,
         action: 'authz.deny',
         resourceType: 'tenant',
         ipAddress: request.ip,
-        metadata: { reason: 'tenant_spoof', headerTenant },
+        metadata: {
+          reason: 'tenant_spoof',
+          headerTenant,
+          decision: 'deny',
+          policy: 'tenant-isolation-v1',
+        },
       });
       throw new ForbiddenException({
         statusCode: 403,
@@ -68,6 +116,7 @@ export class AuthorizationGuard implements CanActivate {
     const ctx: AuthContext = await buildAuthContext({
       userId: user.sub,
       tenantSlug: user.tenantId,
+      tenantId: tenantContext.id,
       legacyRole: user.role,
     });
     request.authContext = ctx;
@@ -82,29 +131,33 @@ export class AuthorizationGuard implements CanActivate {
 
     let policies: import('@opsedge360/shared-security').AbacPolicyRow[] = [];
     try {
-      // Policies keyed by tenant UUID in DB — resolve via slug lookup is Wave 2;
-      // for Wave 1 load by attempting slug-as-id only if UUID-shaped, else skip ABAC rows.
-      if (/^[0-9a-f-]{36}$/i.test(user.tenantId)) {
-        policies = await loadTenantPolicies(user.tenantId);
+      if (/^[0-9a-f-]{36}$/i.test(tenantContext.id)) {
+        policies = await loadTenantPolicies(tenantContext.id);
       }
     } catch {
       policies = [];
     }
 
     const decision = authorize(ctx, required, policies, {
-      tenantId: user.tenantId,
+      tenantId: tenantContext.id,
       role: user.role,
       path: pathOnly,
     });
 
     if (!decision.allowed) {
+      incSecurityMetric('security.auth.denied');
       await this.safeAudit({
-        tenantId: user.tenantId,
+        tenantId: tenantContext.id,
         actorId: user.sub,
         action: 'authz.deny',
         resourceType: required.split(':')[0],
         ipAddress: request.ip,
-        metadata: { permission: required, reason: decision.reason },
+        metadata: {
+          permission: required,
+          reason: decision.reason,
+          decision: 'deny',
+          policy: 'rbac-abac-v1',
+        },
       });
       throw new ForbiddenException({
         statusCode: 403,
@@ -114,6 +167,7 @@ export class AuthorizationGuard implements CanActivate {
       });
     }
 
+    incSecurityMetric('security.auth.success');
     return true;
   }
 

@@ -4,7 +4,9 @@ import type { ExecutiveKpis } from '@opsedge360/shared-types';
 import { ProxyService } from './proxy.service';
 import { CacheService } from './cache/cache.service';
 import { CurrentUser } from './auth/current-user.decorator';
+import { CurrentTenant } from './auth/current-tenant.decorator';
 import type { JwtPayload } from './auth/auth.service';
+import type { TenantContext } from './auth/authorization.guard';
 
 @ApiTags('executive')
 @ApiBearerAuth()
@@ -14,8 +16,12 @@ export class ExecutiveController {
 
   @Get('kpis')
   @ApiOperation({ summary: 'Executive dashboard KPIs' })
-  async getKpis(@CurrentUser() user: JwtPayload): Promise<ExecutiveKpis> {
-    return this.cache.getOrSet(user.tenantId, 'executive', 'kpis', async () => {
+  async getKpis(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant?: TenantContext,
+  ): Promise<ExecutiveKpis> {
+    const cacheTenant = tenant?.id ?? user.tenantId;
+    return this.cache.getOrSet(cacheTenant, 'executive', 'kpis', async () => {
       const [statsRes, complianceRes] = await Promise.all([
         this.proxy.cmdb('/stats', { tenantId: user.tenantId }),
         this.proxy.compliance('/score', { tenantId: user.tenantId }),

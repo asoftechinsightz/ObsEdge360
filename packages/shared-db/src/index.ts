@@ -48,6 +48,10 @@ export interface TenantRow {
   slug: string;
 }
 
+/**
+ * Legacy resolver: unknown keys fall back to slug `default`.
+ * Prefer resolveTenantStrict for security-sensitive paths (Wave 2).
+ */
 export async function resolveTenantId(slugOrId?: string): Promise<string> {
   const key = slugOrId ?? process.env.TENANT_ID ?? 'default';
 
@@ -57,11 +61,31 @@ export async function resolveTenantId(slugOrId?: string): Promise<string> {
   );
   if (bySlug) return bySlug.id;
 
+  if (process.env.TENANT_STRICT === 'true') {
+    throw new Error(`Unknown tenant: ${key}`);
+  }
+
   const fallback = await queryOne<TenantRow>(
     "SELECT id, name, slug FROM tenants WHERE slug = 'default' LIMIT 1",
   );
   if (!fallback) throw new Error('No tenant found. Run database migrations and seeds.');
   return fallback.id;
+}
+
+/** Fail closed: no silent fallback to default when a key is provided. */
+export async function resolveTenantStrict(slugOrId: string): Promise<TenantRow> {
+  const key = slugOrId.trim();
+  if (!key) throw new Error('Tenant key required');
+  const row = await queryOne<TenantRow>(
+    'SELECT id, name, slug FROM tenants WHERE slug = $1 OR id::text = $1 LIMIT 1',
+    [key],
+  );
+  if (!row) throw new Error(`Unknown tenant: ${key}`);
+  return row;
+}
+
+export async function getTenantById(id: string): Promise<TenantRow | null> {
+  return queryOne<TenantRow>('SELECT id, name, slug FROM tenants WHERE id = $1 LIMIT 1', [id]);
 }
 
 export async function closePool(): Promise<void> {

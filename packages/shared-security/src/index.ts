@@ -1,6 +1,12 @@
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { query, queryOne } from '@opsedge360/shared-db';
 import { createLogger } from '@opsedge360/shared-logger';
+import { toAuditLogRow, type AuditEvent } from './audit-event';
+import { incSecurityMetric } from './metrics';
+
+export * from './permissions';
+export * from './metrics';
+export * from './audit-event';
 
 const log = createLogger('shared-security');
 
@@ -148,6 +154,8 @@ export function authorize(
 export async function buildAuthContext(input: {
   userId: string;
   tenantSlug: string;
+  /** Canonical tenant UUID when resolved (Wave 2). */
+  tenantId?: string;
   legacyRole?: string;
 }): Promise<AuthContext> {
   let roles: RoleRow[] = [];
@@ -162,7 +170,7 @@ export async function buildAuthContext(input: {
   const permissions = dbPerms.length > 0 ? dbPerms : legacyPerms;
   return {
     userId: input.userId,
-    tenantId: input.tenantSlug,
+    tenantId: input.tenantId ?? input.tenantSlug,
     roles: roleNames.length ? roleNames : [input.legacyRole ?? 'viewer'],
     permissions,
   };
@@ -267,21 +275,31 @@ export async function writeAuditLog(entry: {
   ipAddress?: string;
   metadata?: Record<string, unknown>;
 }): Promise<void> {
-  await query(
-    `INSERT INTO audit_logs
-      (tenant_id, actor_id, actor_type, action, resource_type, resource_id, correlation_id, ip_address, metadata)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-    [
-      entry.tenantId,
-      entry.actorId ?? null,
-      entry.actorType ?? 'user',
-      entry.action,
-      entry.resourceType ?? null,
-      entry.resourceId ?? null,
-      entry.correlationId ?? null,
-      entry.ipAddress ?? null,
-      JSON.stringify(entry.metadata ?? {}),
-    ],
-  );
-  log.info('Audit event recorded', { action: entry.action, resourceType: entry.resourceType });
+  try {
+    await query(
+      `INSERT INTO audit_logs
+        (tenant_id, actor_id, actor_type, action, resource_type, resource_id, correlation_id, ip_address, metadata)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [
+        entry.tenantId,
+        entry.actorId ?? null,
+        entry.actorType ?? 'user',
+        entry.action,
+        entry.resourceType ?? null,
+        entry.resourceId ?? null,
+        entry.correlationId ?? null,
+        entry.ipAddress ?? null,
+        JSON.stringify(entry.metadata ?? {}),
+      ],
+    );
+    log.info('Audit event recorded', { action: entry.action, resourceType: entry.resourceType });
+  } catch (err) {
+    incSecurityMetric('security.audit.write_fail');
+    throw err;
+  }
+}
+
+export async function writeStandardAudit(event: AuditEvent): Promise<void> {
+  const row = toAuditLogRow(event);
+  await writeAuditLog(row);
 }

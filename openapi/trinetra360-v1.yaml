@@ -419,6 +419,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  parameters:
+    XTenantId:
+      name: X-Tenant-ID
+      in: header
+      required: false
+      description: >
+        Optional client tenant hint. Must match the authenticated JWT tenant
+        (slug or UUID). Gateway resolves and forwards the canonical tenant UUID
+        to downstream services. Mismatch returns 403 TENANT_MISMATCH.
+      schema:
+        type: string
+        example: default
 
   schemas:
     HealthResponse:
