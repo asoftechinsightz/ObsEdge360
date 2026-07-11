@@ -42,6 +42,15 @@ function affinityKey(s: CollectedSignal): string {
   return `type:${s.signalType}`;
 }
 
+/** Normalize DB/driver dates to ISO timestamptz strings Postgres accepts. */
+function asIso(v: unknown): string {
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === 'number' && Number.isFinite(v)) return new Date(v).toISOString();
+  const d = new Date(String(v ?? ''));
+  if (!Number.isNaN(d.getTime())) return d.toISOString();
+  return new Date().toISOString();
+}
+
 /**
  * Collect multi-signal window: metrics, logs, traces, alerts, anomalies, changes.
  */
@@ -70,7 +79,7 @@ export async function collectSignals(
         severity: String(a.severity ?? 'warning'),
         serviceName: String(labels.service ?? labels.job ?? labels.service_name ?? '') || null,
         weight: 1.2,
-        occurredAt: String(a.fired_at),
+        occurredAt: asIso(a.fired_at),
         metadata: { labels },
       });
     }
@@ -95,7 +104,7 @@ export async function collectSignals(
         severity: String(a.severity ?? 'warning'),
         serviceName: a.metric_name ? String(a.metric_name).split('_')[0] : null,
         weight: 1.4,
-        occurredAt: String(a.detected_at),
+        occurredAt: asIso(a.detected_at),
         metadata: { ciId: a.ci_id, sigma: a.deviation_sigma, metric: a.metric_name },
       });
     }
@@ -123,7 +132,7 @@ export async function collectSignals(
         severity: Number(m.max_v) > 90 ? 'warning' : 'info',
         serviceName: String(m.name).includes('_') ? String(m.name).split('_')[0] : null,
         weight: 0.6,
-        occurredAt: String(m.last_at),
+        occurredAt: asIso(m.last_at),
         metadata: { samples: Number(m.cnt), max: Number(m.max_v) },
       });
     }
@@ -155,7 +164,7 @@ export async function collectSignals(
         severity: bad >= 20 ? 'critical' : bad >= 5 ? 'high' : 'warning',
         serviceName: String(l.service_name),
         weight: 1.1,
-        occurredAt: String(l.last_at),
+        occurredAt: asIso(l.last_at),
         metadata: { total: Number(l.cnt), bad },
       });
     }
@@ -190,7 +199,7 @@ export async function collectSignals(
         severity: errors >= 10 ? 'critical' : errors > 0 || avgMs > 2000 ? 'high' : 'warning',
         serviceName: String(t.service_name),
         weight: 1.3,
-        occurredAt: String(t.last_at),
+        occurredAt: asIso(t.last_at),
         metadata: { spans: Number(t.cnt), errors, avgMs },
       });
     }
@@ -215,7 +224,7 @@ export async function collectSignals(
         severity: 'info',
         serviceName: null,
         weight: 1.0,
-        occurredAt: String(c.created_at),
+        occurredAt: asIso(c.created_at),
         metadata: { ciId: c.ci_id, changeType: c.change_type },
       });
     }
@@ -239,7 +248,7 @@ export async function collectSignals(
         severity: String(d.severity ?? 'warning'),
         serviceName: null,
         weight: 1.15,
-        occurredAt: String(d.detected_at),
+        occurredAt: asIso(d.detected_at),
         metadata: { ciId: d.ci_id, driftType: d.drift_type },
       });
     }
