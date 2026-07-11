@@ -71,6 +71,8 @@ services:
     environment:
       <<: *service-env
       CMDB_PORT: 4002
+      SERVICE_AUTH_REQUIRED: ${SERVICE_AUTH_REQUIRED:-true}
+      SERVICE_JWT_SECRET: ${SERVICE_JWT_SECRET}
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4002/health || exit 1"]
       interval: 30s
@@ -188,6 +190,8 @@ services:
       AUDIT_L2_QUEUE: ${AUDIT_L2_QUEUE:-true}
       SECRETS_PROVIDER: ${SECRETS_PROVIDER:-local}
       SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:-}
+      SERVICE_AUTH_ENABLED: ${SERVICE_AUTH_ENABLED:-true}
+      SERVICE_JWT_SECRET: ${SERVICE_JWT_SECRET}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://observability360.asoftechinsightz.com}
       POSTGRES_HOST: postgres

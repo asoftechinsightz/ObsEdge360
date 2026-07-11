@@ -170,6 +170,14 @@ async function main() {
     console.log('018_secrets_store.sql already applied.');
   }
 
+  const serviceIdentities = await tableExists(client, 'service_identities');
+  if (!serviceIdentities) {
+    const s19 = path.join(migrationsDir, '019_service_identity_trust.sql');
+    if (fs.existsSync(s19)) await runSqlFile(client, s19);
+  } else {
+    console.log('019_service_identity_trust.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

@@ -21,6 +21,17 @@ if ! grep -q '^SECRETS_MASTER_KEY=' .env; then
   echo "SECRETS_MASTER_KEY=$KEY" >> .env
   echo "SECRETS_PROVIDER=local" >> .env
 fi
+grep -q '^SERVICE_AUTH_ENABLED=' .env || echo 'SERVICE_AUTH_ENABLED=true' >> .env
+grep -q '^SERVICE_AUTH_REQUIRED=' .env || echo 'SERVICE_AUTH_REQUIRED=true' >> .env
+if ! grep -q '^SERVICE_JWT_SECRET=' .env; then
+  # Prefer dedicated secret; fall back to JWT_SECRET value if present
+  if grep -q '^JWT_SECRET=' .env; then
+    JWTV=$(grep '^JWT_SECRET=' .env | head -1 | cut -d= -f2-)
+    echo "SERVICE_JWT_SECRET=$JWTV" >> .env
+  else
+    echo "SERVICE_JWT_SECRET=$(openssl rand -base64 32 | tr -d '\n')" >> .env
+  fi
+fi
 git log -1 --oneline
 git branch --show-current
 

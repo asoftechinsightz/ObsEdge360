@@ -140,5 +140,6 @@ Client-supplied tenant headers are **never** trusted without JWT match.
 | Item | Status |
 |------|--------|
 | Security Baseline v1.0 | ✅ Accepted |
-| Wave 2 | ✅ Closed |
-| SDS-2.3 | 🟡 In review — coding blocked |
+| Waves 1–4 | ✅ Closed |
+| Wave 5 Identity & Trust | 🟢 In progress |
+| Wave 6 Security Observability | Planned (was former Wave 5) |

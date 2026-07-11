@@ -1,5 +1,6 @@
 import express from 'express';
 import { resolveTenantId } from '@opsedge360/shared-db';
+import { serviceAuthRequired, verifyServiceJwt } from '@opsedge360/shared-security';
 import * as repo from './cmdb.repository';
 import { startKafkaConsumer, getEventBus, ingestDiscoveredAsset } from './kafka-consumer';
 import { getImpactFromGraph } from './graph-sync';
@@ -22,6 +23,33 @@ mountOpsEndpoints(app, {
       return false;
     }
   },
+});
+
+/** Wave 5: require gateway service JWT when SERVICE_AUTH_REQUIRED=true */
+app.use((req, res, next) => {
+  const path = req.path || '';
+  if (['/health', '/ready', '/live', '/metrics', '/version'].includes(path)) {
+    next();
+    return;
+  }
+  if (!serviceAuthRequired()) {
+    next();
+    return;
+  }
+  const header =
+    (req.headers['x-service-authorization'] as string | undefined) ||
+    (req.headers.authorization as string | undefined);
+  if (!header?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Service authentication required', code: 'SERVICE_AUTH_REQUIRED' });
+    return;
+  }
+  try {
+    const claims = verifyServiceJwt(header.slice(7));
+    (req as express.Request & { serviceIdentity?: unknown }).serviceIdentity = claims;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid service token', code: 'SERVICE_AUTH_INVALID' });
+  }
 });
 
 function paramId(req: express.Request, name = 'id'): string {

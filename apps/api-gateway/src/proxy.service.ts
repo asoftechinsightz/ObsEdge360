@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import axios, { type AxiosRequestConfig } from 'axios';
 import { resolveTenantStrict } from '@opsedge360/shared-db';
+import { mintServiceJwt, serviceAuthEnabled } from '@opsedge360/shared-security';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,6 +18,24 @@ export class ProxyService {
   private readonly analyticsUrl = process.env.ANALYTICS_URL ?? 'http://localhost:4008';
   private readonly quantumUrl = process.env.QUANTUM_URL ?? 'http://localhost:4009';
   private readonly governanceUrl = process.env.GOVERNANCE_URL ?? 'http://localhost:4010';
+  private cachedServiceToken: { token: string; expEpoch: number } | null = null;
+
+  private serviceAuthHeaders(): Record<string, string> {
+    if (!serviceAuthEnabled()) return {};
+    const now = Math.floor(Date.now() / 1000);
+    if (this.cachedServiceToken && this.cachedServiceToken.expEpoch > now + 60) {
+      return { 'X-Service-Authorization': `Bearer ${this.cachedServiceToken.token}` };
+    }
+    const minted = mintServiceJwt({
+      identityId: process.env.GATEWAY_SERVICE_IDENTITY_ID ?? '00000000-0000-4000-8000-000000000001',
+      tenantId: process.env.GATEWAY_SERVICE_TENANT_ID ?? 'platform',
+      kind: 'service',
+      scopes: ['*'],
+      ttlSeconds: Number(process.env.SERVICE_JWT_TTL_SECONDS ?? 600),
+    });
+    this.cachedServiceToken = { token: minted.token, expEpoch: now + minted.expiresIn };
+    return { 'X-Service-Authorization': `Bearer ${this.cachedServiceToken.token}` };
+  }
 
   /** Resolve slug or UUID to canonical tenant UUID for downstream X-Tenant-ID. */
   async resolveTenantHeader(tenantId?: string): Promise<string | undefined> {
@@ -56,6 +75,7 @@ export class ProxyService {
       headers: {
         'Content-Type': 'application/json',
         ...(tenantUuid ? { 'X-Tenant-ID': tenantUuid } : {}),
+        ...this.serviceAuthHeaders(),
         ...(options.headers ?? {}),
       },
       params: options.query,

@@ -33,6 +33,7 @@ import { AuditController } from './audit/audit.controller';
 import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.service';
 import { SecretsController } from './secrets/secrets.controller';
 import { SecretsRotationScheduler } from './secrets/secrets-rotation.scheduler';
+import { TrustController } from './trust/trust.controller';
 
 @Module({
   controllers: [
@@ -58,6 +59,7 @@ import { SecretsRotationScheduler } from './secrets/secrets-rotation.scheduler';
     PlatformController,
     AuditController,
     SecretsController,
+    TrustController,
   ],
   providers: [
     ProxyService,

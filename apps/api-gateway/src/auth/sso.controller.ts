@@ -73,6 +73,17 @@ export class SsoController {
   constructor(private sso: SsoService) {}
 
   @Public()
+  @Get('health')
+  @ApiOperation({ summary: 'SSO subsystem health' })
+  ssoHealth() {
+    return {
+      ok: true,
+      globalOidcConfigured: this.sso.globalOidcConfigured(),
+      protocols: ['oidc', 'saml'],
+    };
+  }
+
+  @Public()
   @Get('providers')
   @ApiOperation({ summary: 'List enabled SSO providers for an organization' })
   async publicProviders(@Query('tenant') tenant: string) {

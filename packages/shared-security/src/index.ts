@@ -16,6 +16,7 @@ export * from './metrics';
 export * from './audit-event';
 export * from './secrets-provider';
 export * from './secrets-crypto';
+export * from './service-jwt';
 
 const log = createLogger('shared-security');
 

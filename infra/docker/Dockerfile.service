@@ -17,11 +17,13 @@ RUN npm install \
     --workspace=${SERVICE_PKG} \
     --workspace=@opsedge360/shared-db \
     --workspace=@opsedge360/shared-types \
+    --workspace=@opsedge360/shared-security \
+    --workspace=@opsedge360/shared-logger \
     --workspace=@opsedge360/event-bus \
     --workspace=@opsedge360/platform-config \
     --workspace=@opsedge360/cache
 
-RUN npm run build -w @opsedge360/platform-config -w @opsedge360/cache -w @opsedge360/shared-types -w @opsedge360/shared-db -w @opsedge360/event-bus
+RUN npm run build -w @opsedge360/platform-config -w @opsedge360/cache -w @opsedge360/shared-types -w @opsedge360/shared-db -w @opsedge360/shared-logger -w @opsedge360/shared-security -w @opsedge360/event-bus
 RUN npm run build -w ${SERVICE_PKG}
 
 FROM node:20-alpine
