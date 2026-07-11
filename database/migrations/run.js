@@ -202,8 +202,8 @@ async function main() {
     console.log('022_telemetry_platform.sql already applied.');
   }
 
-  const agentsTable = await tableExists(client, 'agents');
-  if (!agentsTable) {
+  const uaAgentsTable = await tableExists(client, 'agents');
+  if (!uaAgentsTable) {
     const s23 = path.join(migrationsDir, '023_universal_agent.sql');
     if (fs.existsSync(s23)) await runSqlFile(client, s23);
   } else {
