@@ -15,6 +15,7 @@ const LINKS = [
   { href: '/admin/password-policies', label: 'Password Policies' },
   { href: '/admin/system/security', label: 'System Security' },
   { href: '/admin/system/certification', label: 'Certification Center' },
+  { href: '/admin/system/release-candidate', label: 'Release Candidate' },
   { href: '/admin/ops-health', label: 'Operational Health' },
   { href: '/admin/deployment', label: 'Deployment Center' },
   { href: '/admin/backup-certification', label: 'Backup Certification' },

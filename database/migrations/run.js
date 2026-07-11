@@ -338,6 +338,14 @@ async function main() {
     console.log('039_wave7_certification.sql already applied.');
   }
 
+  const rcProfiles = await tableExists(client, 'release_candidate_profiles');
+  if (!rcProfiles) {
+    const s40 = path.join(migrationsDir, '040_wave8_release_candidate.sql');
+    if (fs.existsSync(s40)) await runSqlFile(client, s40);
+  } else {
+    console.log('040_wave8_release_candidate.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

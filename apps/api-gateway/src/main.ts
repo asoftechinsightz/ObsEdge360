@@ -44,8 +44,8 @@ async function bootstrap() {
   if (process.env.SWAGGER_ENABLED !== 'false') {
     const config = new DocumentBuilder()
       .setTitle('OpsEdge360 API')
-      .setDescription('Standalone enterprise observability platform')
-      .setVersion('1.0.0')
+      .setDescription('Enterprise Digital Operations Intelligence Platform — Release Candidate')
+      .setVersion('1.0.0-rc1')
       .addBearerAuth()
       .addTag('health')
       .addTag('auth')
@@ -59,10 +59,21 @@ async function bootstrap() {
       .addTag('transactions')
       .addTag('security')
       .addTag('copilot')
+      .addTag('release-candidate')
+      .addTag('enterprise-certification')
+      .addTag('deployment-security')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
+    // Explicit JSON export for packaging / offline OpenAPI freeze
+    const http = app.getHttpAdapter().getInstance();
+    http.get('/api/docs-json', (_req: Request, res: Response) => {
+      res.json(document);
+    });
+    http.get('/api/v1/openapi.json', (_req: Request, res: Response) => {
+      res.json(document);
+    });
   }
 
   if (isProd && process.env.AUTH_REQUIRED === 'false') {
