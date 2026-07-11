@@ -3,8 +3,9 @@
 **Document ID:** OE360-SDS-5.4  
 **Wave:** Phase 5 / Wave 4  
 **Release track:** `v1.0.0-wave4`  
-**Status:** ✅ APPROVED FOR IMPLEMENTATION  
-**Depends on:** Wave 3 closed (`v1.0.0-wave3`)
+**Status:** ✅ CLOSED (`v1.0.0-wave4`)  
+**Depends on:** Wave 3 closed (`v1.0.0-wave3`)  
+**Feature tip SHA:** `85b9e8fc` · **Validation:** `P5_WAVE4_VALIDATION_OK` (22/22)
 
 ## Objectives
 

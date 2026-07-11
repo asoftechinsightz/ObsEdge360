@@ -5,4 +5,6 @@
 3. Recreate api-gateway (+ web)
 4. Validate: `bash scripts/vps-p5-wave4-validate.sh` → `P5_WAVE4_VALIDATION_OK`
 
-Do not claim GA. No fully autonomous production execution.
+**Production:** applied 2026-07-11 · tip `85b9e8fc` · validation 22/22 green.
+
+Do not claim GA.
