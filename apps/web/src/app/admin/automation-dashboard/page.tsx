@@ -28,7 +28,7 @@ export default function AutomationDashboardPage() {
           ['Pending approvals', counts.pendingApprovals],
         ].map(([k, v]) => (
           <div key={String(k)} className="rounded-xl border border-slate-700 bg-surface-elevated px-4 py-3">
-            <div className="text-xs text-slate-400">{k}</div>
+            <div className="text-xs text-slate-400">{String(k)}</div>
             <div className="text-lg font-medium text-slate-100">{String(v ?? '—')}</div>
           </div>
         ))}
