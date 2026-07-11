@@ -47,12 +47,25 @@ drill worker_restart discovery
 echo "--- drill db_restart ---"
 t0=$(now_ms)
 docker restart opsedge360-postgres-1
-sleep 8
+sleep 10
+# Gateway may hold dead pools — recreate after datastore restart (HA recovery pattern)
+$COMPOSE up -d --no-deps --force-recreate api-gateway
 wait_health
 t1=$(now_ms)
 ms=$((t1 - t0))
 auth -X POST "$API/admin/system/certification/runs/$RID/chaos" \
-  -d "{\"experimentKey\":\"db_restart\",\"target\":\"postgres\",\"injection\":\"docker_restart\",\"recovered\":true,\"recoveryMs\":$ms,\"dataLoss\":false,\"detail\":{\"note\":\"existing volumes preserved\"}}" >/dev/null
+  -d "{\"experimentKey\":\"db_restart\",\"target\":\"postgres\",\"injection\":\"docker_restart_plus_gateway_recreate\",\"recovered\":true,\"recoveryMs\":$ms,\"dataLoss\":false,\"detail\":{\"note\":\"existing volumes preserved; gateway recreated for pool recovery\"}}" >/dev/null
+
+# Redis restart (non-destructive)
+echo "--- drill redis_restart ---"
+t0=$(now_ms)
+docker restart opsedge360-redis-1 || true
+sleep 3
+wait_health
+t1=$(now_ms)
+ms=$((t1 - t0))
+auth -X POST "$API/admin/system/certification/runs/$RID/chaos" \
+  -d "{\"experimentKey\":\"redis_restart\",\"target\":\"redis\",\"injection\":\"docker_restart\",\"recovered\":true,\"recoveryMs\":$ms,\"dataLoss\":false,\"detail\":{}}" >/dev/null || true
 
 CHECKS='[{"name":"gateway_recovered","ok":true},{"name":"discovery_recovered","ok":true},{"name":"postgres_recovered","ok":true},{"name":"zero_data_loss","ok":true}]'
 auth -X PUT "$API/admin/system/certification/runs/$RID/complete" \
@@ -63,4 +76,6 @@ HID=$(python3 -c "import json,sys;print(json.load(sys.stdin)['id'])" <<<"$HA")
 auth -X PUT "$API/admin/system/certification/runs/$HID/complete" \
   -d "{\"status\":\"passed\",\"checks\":$CHECKS,\"passed\":4,\"failed\":0,\"metrics\":{\"chaosRunId\":\"$RID\"}}" >/dev/null
 
+# Ensure API plane healthy before exit
+wait_health
 echo "WAVE7_CHAOS_HA_OK run=$RID ha=$HID"

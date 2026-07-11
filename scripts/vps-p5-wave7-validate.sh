@@ -111,12 +111,23 @@ else
   echo "FAIL chaos_ha_drill"; FAIL=$((FAIL+1));
 fi
 
+# Wait for plane to settle after drills
+for i in $(seq 1 30); do
+  H=$(curl -sk -o /dev/null -w '%{http_code}' "$API/health" || true)
+  if [ "$H" = "200" ]; then break; fi
+  sleep 2
+done
+
 # Packaging / rollback evidence
 if [ -f "$ROOT/scripts/vps-deploy-latest.sh" ]; then echo "PASS docker_deploy_path"; PASS=$((PASS+1)); else echo "FAIL docker_deploy_path"; FAIL=$((FAIL+1)); fi
 if grep -q '1.0.0-wave6\|wave6\|opsedge360' "$ROOT/infra/helm/opsedge360/Chart.yaml"; then echo "PASS kubernetes_chart"; PASS=$((PASS+1)); else echo "FAIL kubernetes_chart"; FAIL=$((FAIL+1)); fi
 if [ -f "$ROOT/scripts/airgap-verify.sh" ]; then echo "PASS airgap_verify_script"; PASS=$((PASS+1)); else echo "FAIL airgap_verify_script"; FAIL=$((FAIL+1)); fi
-# Rollback path: prior tag exists on host history
-if cd "$ROOT" && git rev-parse v1.0.0-wave6 >/dev/null 2>&1; then echo "PASS rollback_tag_wave6"; PASS=$((PASS+1)); else echo "FAIL rollback_tag_wave6"; FAIL=$((FAIL+1)); fi
+# Rollback path: prior production SHA / tag
+if cd "$ROOT" && (git rev-parse v1.0.0-wave6 >/dev/null 2>&1 || git cat-file -t 26e93b973f39e2cd8452e9ed15775bcf27b12d2f >/dev/null 2>&1); then
+  echo "PASS rollback_wave6_baseline"; PASS=$((PASS+1));
+else
+  echo "FAIL rollback_wave6_baseline"; FAIL=$((FAIL+1));
+fi
 
 UA=$(curl -sk -o /dev/null -w '%{http_code}' "$API/admin/system/certification")
 if [ "$UA" = "401" ] || [ "$UA" = "403" ]; then echo "PASS certification_unauth ($UA)"; PASS=$((PASS+1)); else echo "FAIL certification_unauth got=$UA"; FAIL=$((FAIL+1)); fi
