@@ -37,6 +37,7 @@ import { TrustController } from './trust/trust.controller';
 import { TrustMeshController } from './trust/trust-mesh.controller';
 import { SecurityObservabilityController } from './security-observability/security-observability.controller';
 import { MeshBootstrapService } from './trust/mesh-bootstrap.service';
+import { UaController } from './ua/ua.controller';
 
 @Module({
   controllers: [
@@ -65,6 +66,7 @@ import { MeshBootstrapService } from './trust/mesh-bootstrap.service';
     TrustController,
     TrustMeshController,
     SecurityObservabilityController,
+    UaController,
   ],
   providers: [
     ProxyService,

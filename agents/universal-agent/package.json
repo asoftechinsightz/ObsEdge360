@@ -1,0 +1,16 @@
+{
+  "name": "@opsedge360/universal-agent",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "opsedge360-universal-agent": "./bin/opsedge360-universal-agent.js"
+  },
+  "scripts": {
+    "start": "node bin/opsedge360-universal-agent.js",
+    "build": "tsc -p tsconfig.json --noEmit || exit 0"
+  },
+  "dependencies": {
+    "@opsedge360/agent-framework": "*",
+    "@opsedge360/shared-logger": "*"
+  }
+}

@@ -8,7 +8,7 @@
 | Wave | WBS | Focus | SDS |
 |------|-----|-------|-----|
 | 1 | 3.1 | Telemetry Platform | [SDS-3.1-TelemetryPlatform.md](./sds/SDS-3.1-TelemetryPlatform.md) — **Closed** (`v0.9.3-wave1`) |
-| 2 | 3.2 | Universal Agent | Planned (awaiting EAB Wave 1 closure → start approval) |
+| 2 | 3.2 | Universal Agent | [SDS-3.2-UniversalAgent.md](./sds/SDS-3.2-UniversalAgent.md) — **Implementing** |
 | 3 | 3.3 | Discovery & CMDB Depth | Planned |
 | 4 | 3.4 | Topology | Planned |
 | 5 | 3.5 | Operations Intelligence | Planned |

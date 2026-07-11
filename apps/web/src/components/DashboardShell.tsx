@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Network, Database, GitBranch, Activity,
   Shield, CheckCircle, Bot, Search, Bell, User, Radio, Leaf, Factory,
-  TrendingUp, Atom, Globe, LogOut, Radar, Waypoints, Building2, KeyRound,
+  TrendingUp, Atom, Globe, LogOut, Radar, Waypoints, Building2, KeyRound, Server,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { AUTH_COOKIE, logout } from '@/lib/auth';
@@ -19,6 +19,7 @@ const CORE_NAV = [
   { href: '/cmdb', icon: Database, label: 'CMDB' },
   { href: '/transactions', icon: GitBranch, label: 'Transactions' },
   { href: '/observability', icon: Activity, label: 'Observability' },
+  { href: '/fleet', icon: Server, label: 'Universal Agents' },
   { href: '/apm', icon: Waypoints, label: 'APM' },
   { href: '/network', icon: Radio, label: 'Network' },
   { href: '/ot', icon: Factory, label: 'OT / Industrial' },
