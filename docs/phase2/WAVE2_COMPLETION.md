@@ -3,7 +3,7 @@
 **Wave:** 2  
 **Release:** `v0.9.2`  
 **SDS:** [SDS-2.2-TenantIsolation.md](./sds/SDS-2.2-TenantIsolation.md)  
-**Status:** COMPLETE — pending EAB Wave Review  
+**Status:** ✅ COMPLETE — **DEPLOYED & VALIDATED** (`v0.9.2-wave2`)  
 
 ## Delivered
 

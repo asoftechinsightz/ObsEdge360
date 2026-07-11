@@ -3,7 +3,7 @@
 **Document ID:** OE360-SDS-2.2  
 **Wave:** 2 — Tenant Security  
 **Release:** `v0.9.2`  
-**Status:** IMPLEMENTED — pending EAB Wave Review  
+**Status:** DEPLOYED — `v0.9.2-wave2`  
 **ADRs:** 009, 010, 011, 013  
 
 ---
