@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import axios, { type AxiosRequestConfig } from 'axios';
-import https from 'https';
+import * as https from 'https';
 import { resolveTenantStrict } from '@opsedge360/shared-db';
 import { mintServiceJwt, serviceAuthEnabled, mtlsEnabled, loadMtlsFiles } from '@opsedge360/shared-security';
 
@@ -38,6 +38,15 @@ export class ProxyService {
       key: files.key,
       ca: files.ca,
       rejectUnauthorized: process.env.MTLS_REJECT_UNAUTHORIZED !== 'false',
+      checkServerIdentity: (_host, cert) => {
+        const san = (cert as { subjectaltname?: string }).subjectaltname ?? '';
+        const match = san.match(/URI:(spiffe:\/\/[^,\s]+)/i) ?? san.match(/(spiffe:\/\/[^,\s]+)/i);
+        const domain = process.env.SPIFFE_TRUST_DOMAIN ?? 'opsedge360.local';
+        if (!match?.[1]?.startsWith(`spiffe://${domain}/`)) {
+          return new Error(`spiffe_san_mismatch:${san || 'empty'}`);
+        }
+        return undefined;
+      },
     });
     return this.mtlsAgent;
   }

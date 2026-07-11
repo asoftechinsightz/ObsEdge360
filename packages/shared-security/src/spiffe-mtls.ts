@@ -595,6 +595,14 @@ export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeI
           ca: caPem,
           rejectUnauthorized: true,
           servername: 'localhost',
+          checkServerIdentity: (_host, cert) => {
+            const san = (cert as { subjectaltname?: string }).subjectaltname ?? '';
+            const match = san.match(/URI:(spiffe:\/\/[^,\s]+)/i) ?? san.match(/(spiffe:\/\/[^,\s]+)/i);
+            if (!match?.[1]?.startsWith(`spiffe://${spiffeTrustDomain()}/`)) {
+              return new Error(`spiffe_san_mismatch:${san || 'empty'}`);
+            }
+            return undefined;
+          },
         },
         () => {
           sock.write('GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n');
