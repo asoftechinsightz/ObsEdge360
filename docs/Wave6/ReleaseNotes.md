@@ -27,3 +27,12 @@
 - Auto secret rotation disabled unless `SECRETS_AUTO_ROTATE=true`
 - PITR requires site WAL archiving beyond attestation APIs
 - Air-gap full install needs local images present before packaging
+
+## Production evidence
+
+| Field | Value |
+|-------|-------|
+| Tip SHA | `26e93b97` |
+| Validation | `P5_WAVE6_VALIDATION_OK` (pass=31 fail=0) |
+| Tag | `v1.0.0-wave6` |
+| Migration | `038_wave6_enterprise_deployment.sql` |
