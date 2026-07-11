@@ -14,6 +14,8 @@ ENVBAK=$(ls -1t /root/opsedge360.env.pre-deploy-* | head -1)
 cp -a "$ENVBAK" .env
 # ensure authz on in production unless explicitly disabled
 grep -q '^AUTHZ_ENFORCE=' .env || echo 'AUTHZ_ENFORCE=true' >> .env
+grep -q '^AUDIT_L2_QUEUE=' .env || echo 'AUDIT_L2_QUEUE=true' >> .env
+grep -q '^AUDIT_EMIT=' .env || echo 'AUDIT_EMIT=true' >> .env
 git log -1 --oneline
 git branch --show-current
 

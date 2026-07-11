@@ -184,6 +184,8 @@ services:
       AUTH_REQUIRED: ${AUTH_REQUIRED:-true}
       AUTHZ_ENFORCE: ${AUTHZ_ENFORCE:-true}
       TENANT_RESOLVE: ${TENANT_RESOLVE:-strict}
+      AUDIT_EMIT: ${AUDIT_EMIT:-true}
+      AUDIT_L2_QUEUE: ${AUDIT_L2_QUEUE:-true}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://observability360.asoftechinsightz.com}
       POSTGRES_HOST: postgres
