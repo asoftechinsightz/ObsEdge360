@@ -7,6 +7,8 @@ import * as pipeline from './telemetry-pipeline.service';
 import * as telemetryPlatform from './telemetry-platform.service';
 import * as opsIntel from './ops-intelligence.service';
 import * as opsDashboards from './ops-dashboards.service';
+import * as llmGateway from './llm-gateway.service';
+import * as aiops from './aiops.service';
 
 const app = express();
 
@@ -1251,6 +1253,136 @@ app.post('/dashboards/:id/shares', async (req, res) => {
     res.status(201).json(share);
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+/** Phase 4 Wave 1 — LLM Gateway / RAG / Grounded RCA / AIOps */
+app.get('/ai/health', async (req, res) => {
+  try {
+    await resolveTenant(req);
+    res.json({ status: 'healthy', service: 'llm-gateway', ...llmGateway.llmGatewayStatus() });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/chat', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const messages = Array.isArray(req.body?.messages) ? req.body.messages : null;
+    if (!messages?.length) return res.status(400).json({ error: 'messages required' });
+    const result = await llmGateway.completeChat(tenantId, req.body?.purpose ?? 'chat', messages, {
+      model: req.body?.model,
+      temperature: req.body?.temperature,
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/rag/documents', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const doc = await aiops.ingestDocument(tenantId, {
+      title: req.body?.title,
+      content: req.body?.content,
+      sourceType: req.body?.sourceType,
+      sourceRef: req.body?.sourceRef,
+      metadata: req.body?.metadata,
+    });
+    res.status(201).json(doc);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/rag/documents', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const documents = await aiops.listDocuments(tenantId, req.query.limit ? Number(req.query.limit) : 50);
+    res.json({ documents, count: documents.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/rag/retrieve', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const q = String(req.query.q ?? '');
+    const chunks = await aiops.retrieve(tenantId, q, req.query.limit ? Number(req.query.limit) : 5);
+    res.json({ chunks, count: chunks.length, q });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/rca', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const session = await aiops.runGroundedRca(tenantId, {
+      question: req.body?.question,
+      incidentId: req.body?.incidentId,
+      ciId: req.body?.ciId,
+      createdBy: (req.headers['x-user-email'] as string) ?? undefined,
+    });
+    res.status(201).json(session);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/rca', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const sessions = await aiops.listLlmRca(tenantId);
+    res.json({ sessions, count: sessions.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/rca/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const session = await aiops.getLlmRca(tenantId, req.params.id);
+    if (!session) return res.status(404).json({ error: 'RCA session not found' });
+    res.json(session);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/copilot', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const question = String(req.body?.question ?? req.body?.messages?.slice?.(-1)?.[0]?.content ?? '');
+    if (!question.trim()) return res.status(400).json({ error: 'question required' });
+    const answer = await aiops.copilotAnswer(tenantId, question);
+    res.json(answer);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/correlate', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await aiops.correlateAdvanced(tenantId);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/correlations', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const events = await aiops.listCorrelations(tenantId);
+    res.json({ events, count: events.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
   }
 });
 

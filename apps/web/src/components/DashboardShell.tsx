@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Network, Database, GitBranch, Activity,
   Shield, CheckCircle, Bot, Search, Bell, User, Radio, Leaf, Factory,
   TrendingUp, Atom, Globe, LogOut, Radar, Waypoints, Building2, KeyRound, Server,
+  BrainCircuit,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { AUTH_COOKIE, logout } from '@/lib/auth';
@@ -20,6 +21,7 @@ const CORE_NAV = [
   { href: '/topology', icon: Waypoints, label: 'Topology' },
   { href: '/ops-intelligence', icon: Bot, label: 'Ops Intelligence' },
   { href: '/dashboards', icon: LayoutDashboard, label: 'Ops Dashboards' },
+  { href: '/aiops', icon: BrainCircuit, label: 'AIOps / LLM RCA' },
   { href: '/cmdb', icon: Database, label: 'CMDB' },
   { href: '/cmdb/drift', icon: Database, label: 'CMDB Drift' },
   { href: '/transactions', icon: GitBranch, label: 'Transactions' },

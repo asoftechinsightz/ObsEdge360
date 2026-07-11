@@ -40,6 +40,7 @@ import { MeshBootstrapService } from './trust/mesh-bootstrap.service';
 import { UaController } from './ua/ua.controller';
 import { OpsIntelligenceController } from './ops-intelligence.controller';
 import { DashboardsController } from './dashboards.controller';
+import { AiController } from './ai.controller';
 
 @Module({
   controllers: [
@@ -71,6 +72,7 @@ import { DashboardsController } from './dashboards.controller';
     UaController,
     OpsIntelligenceController,
     DashboardsController,
+    AiController,
   ],
   providers: [
     ProxyService,

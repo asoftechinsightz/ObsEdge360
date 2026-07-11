@@ -242,6 +242,14 @@ async function main() {
     console.log('027_ops_dashboards.sql already applied.');
   }
 
+  const llmUsage = await tableExists(client, 'llm_usage_events');
+  if (!llmUsage) {
+    const s28 = path.join(migrationsDir, '028_llm_aiops_foundation.sql');
+    if (fs.existsSync(s28)) await runSqlFile(client, s28);
+  } else {
+    console.log('028_llm_aiops_foundation.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

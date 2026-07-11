@@ -1,7 +1,8 @@
 # ADR-021: AI Copilot Architecture
 
-**Status:** Proposed  
+**Status:** Accepted (Phase 4 Wave 1 scope)  
 **Date:** 2026-07-10  
+**Accepted:** 2026-07-11 — EAB after Phase 3 closure; Wave 1 implements grounded Copilot + RCA via LLM Gateway.  
 **Deciders:** Product Owner, Chief Architect, Security Architect  
 **Phase:** 4  
 **Depends on:** ADR-009, ADR-013, ADR-022, ADR-023  
@@ -20,7 +21,7 @@ Current “AI agents” are largely rule-based stubs. Enterprise Copilot must be
 4. All Copilot sessions auditable (ADR-013); prompts/responses retained per policy.  
 5. Tenant isolation enforced; no cross-tenant context in prompts.  
 6. Provider access only through LLM Gateway (ADR-022).  
-7. No Phase 4 production code until ADR Accepted + Phase 4 plan approved.
+7. Phase 4 Wave 1 production code authorized after this ADR Accepted + Phase 4 plan approved.
 
 ## Alternatives considered
 

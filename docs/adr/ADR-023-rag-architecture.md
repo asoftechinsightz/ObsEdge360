@@ -1,7 +1,8 @@
 # ADR-023: RAG Architecture
 
-**Status:** Proposed  
+**Status:** Accepted (Phase 4 Wave 1 scope)  
 **Date:** 2026-07-10  
+**Accepted:** 2026-07-11 — tenant-scoped corpus with FTS retrieval; embeddings via gateway when configured.  
 **Deciders:** Chief Architect, Security Architect  
 **Phase:** 4  
 **Depends on:** ADR-021, ADR-022, ADR-011  

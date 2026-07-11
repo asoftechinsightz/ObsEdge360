@@ -14,7 +14,8 @@
 | 5 | 3.5 | Operations Intelligence | [SDS-3.5-OperationsIntelligence.md](./sds/SDS-3.5-OperationsIntelligence.md) — **Closed** (`v0.9.3-wave5`) |
 | 6 | 3.6 | Operations Dashboards | [SDS-3.6-OperationsDashboards.md](./sds/SDS-3.6-OperationsDashboards.md) — **Closed** (`v0.9.3-wave6`) |
 
-**EAB (2026-07-11):** Phase 3 theme = Core Observability Platform. Security foundation complete; shift to product-differentiating observability.
+**EAB (2026-07-11):** Phase 3 theme = Core Observability Platform. Security foundation complete; shift to product-differentiating observability.  
+**Phase 3 status:** ✅ Waves 1–6 closed (`v0.9.3-wave6`). **Next program:** Phase 4 AI (`v0.9.4`) — see [PHASE4_IMPLEMENTATION_WAVES.md](../phase4/PHASE4_IMPLEMENTATION_WAVES.md).
 
 ## Engineering rules (binding)
 

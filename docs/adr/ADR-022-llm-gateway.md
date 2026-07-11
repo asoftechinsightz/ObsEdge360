@@ -1,7 +1,8 @@
 # ADR-022: LLM Gateway
 
-**Status:** Proposed  
+**Status:** Accepted (Phase 4 Wave 1 scope)  
 **Date:** 2026-07-10  
+**Accepted:** 2026-07-11 — single egress for chat/complete/embed; OpenAI-compatible + evidence-synthesis fallback.  
 **Deciders:** Chief Architect, Security Architect, SRE Lead  
 **Phase:** 4  
 **Depends on:** ADR-014, ADR-021  

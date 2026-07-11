@@ -26,13 +26,32 @@ export class CopilotService {
     recommendations: Recommendation[];
     agentRun?: unknown;
     sources: string[];
+    model?: string;
+    mode?: string;
   }> {
     const lastUser = [...messages].reverse().find((m) => m.role === 'user');
     const prompt = (lastUser?.content ?? '').toLowerCase();
     const sources: string[] = [];
 
-    // Intent routing
-    if (this.matches(prompt, ['rca', 'root cause', 'why is', 'what caused', 'incident', 'outage', 'latency spike'])) {
+    // Phase 4: prefer grounded AI Copilot / RCA via LLM gateway
+    if (this.matches(prompt, ['rca', 'root cause', 'why is', 'what caused', 'incident', 'outage', 'latency spike', 'blast radius', 'degraded'])) {
+      const grounded = await this.safeJson(
+        this.proxy.observability('/ai/rca', {
+          method: 'POST',
+          tenantId,
+          body: { question: lastUser?.content ?? '' },
+        }),
+      );
+      if (grounded?.summary) {
+        sources.push('llm-rca', 'rag', 'ops-intelligence', 'topology');
+        return {
+          reply: grounded.summary,
+          recommendations: await this.getRecommendations(tenantId),
+          sources,
+          model: grounded.model,
+          mode: grounded.mode,
+        };
+      }
       const rca = await this.runRca(tenantId, { question: lastUser?.content ?? '' });
       sources.push('rca', 'observability', 'cmdb');
       return {
@@ -41,6 +60,27 @@ export class CopilotService {
         agentRun: rca.agentRun,
         sources,
       };
+    }
+
+    // General NL via Phase 4 Copilot
+    if (lastUser?.content) {
+      const ai = await this.safeJson(
+        this.proxy.observability('/ai/copilot', {
+          method: 'POST',
+          tenantId,
+          body: { question: lastUser.content },
+        }),
+      );
+      if (ai?.reply) {
+        sources.push(...(ai.sources ?? ['ai-copilot']));
+        return {
+          reply: ai.reply,
+          recommendations: await this.getRecommendations(tenantId),
+          sources,
+          model: ai.model,
+          mode: ai.mode,
+        };
+      }
     }
 
     if (this.matches(prompt, ['recommend', 'suggestion', 'what should', 'improve', 'optimize', 'next step'])) {

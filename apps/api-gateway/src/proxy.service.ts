@@ -114,7 +114,7 @@ export class ProxyService {
       data: options.body,
       responseType: options.responseType ?? 'json',
       validateStatus: () => true,
-      timeout: Number(process.env.PROXY_TIMEOUT_MS ?? 5000),
+      timeout: Number(process.env.PROXY_TIMEOUT_MS ?? 20000),
       ...(httpsAgent ? { httpsAgent } : {}),
     };
     const res = await axios(config);
