@@ -1,8 +1,8 @@
-# Phase 5 — Implementation Waves
+﻿# Phase 5 â€” Implementation Waves
 
 **Program:** Enterprise GA & Autonomous Operations  
 **Target:** `v1.0.0`  
-**Cadence:** SDS → implement → test → VPS deploy → validate → docs/tag → EAB → next wave  
+**Cadence:** SDS â†’ implement â†’ test â†’ VPS deploy â†’ validate â†’ docs/tag â†’ EAB â†’ next wave  
 **Phase exit:** `P5_GA_VALIDATION_OK` + tag `v1.0.0`
 
 | Wave | Focus | SDS | Status |
@@ -14,13 +14,13 @@
 | 5 | Integrations (ITSM, notifications delivery, identity LDAP) | [SDS-5.5](./sds/SDS-5.5-EnterpriseIntegrationsIdentity.md) | **Closed** (`v1.0.0-wave5`) |
 | 6 | Enterprise deployment & security hardening (air-gap, Helm, DR cert, System Security UI) | [SDS-5.6](./sds/SDS-5.6-EnterpriseDeploymentSecurity.md) | **Closed** (`v1.0.0-wave6`) |
 | 7 | Enterprise certification & production validation (benchmarks, load, HA/chaos, soak, reports) | [SDS-5.7](./sds/SDS-5.7-EnterpriseCertification.md) | **Closed** (`v1.0.0-wave7`) |
-| 8 | Release Candidate (docs freeze, packaging, pilot, OpenAPI, demo) | [SDS-5.8](./sds/SDS-5.8-ReleaseCandidate.md) | **In progress** (`feature/wave8-release-candidate`) |
+| 8 | Release Candidate (docs freeze, packaging, pilot, OpenAPI, demo) | [SDS-5.8](./sds/SDS-5.8-ReleaseCandidate.md) | **Closed** (`v1.0.0-rc1`) |
 | 9 | GA exit matrix (HA/backup/restore/upgrade/chaos + docs freeze) | SDS-5.9 | Planned |
 
 ## Engineering rules
 
-1. Additive APIs only; preserve Phase 1–4 contracts.  
+1. Additive APIs only; preserve Phase 1â€“4 contracts.  
 2. Tenant isolation on all Admin Center data.  
 3. No production remediation without policy + approval.  
-4. Honest status labels (configured ≠ connected until health proves it).  
+4. Honest status labels (configured â‰  connected until health proves it).  
 5. Wave validation required before next wave.

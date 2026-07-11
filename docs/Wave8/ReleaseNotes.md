@@ -24,3 +24,13 @@
 ## Compatibility
 
 Fully backward compatible with Waves 1–7 APIs and schemas.
+
+
+## Production evidence
+
+| Field | Value |
+|-------|-------|
+| Tip SHA | `02fd1755` |
+| Validation | `P5_WAVE8_VALIDATION_OK` (31/31) |
+| Tag | `v1.0.0-rc1` |
+| Migration | `040_wave8_release_candidate.sql` |
