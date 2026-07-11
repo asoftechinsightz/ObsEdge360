@@ -19,6 +19,7 @@ const CORE_NAV = [
   { href: '/twin', icon: Network, label: 'Digital Twin' },
   { href: '/topology', icon: Waypoints, label: 'Topology' },
   { href: '/ops-intelligence', icon: Bot, label: 'Ops Intelligence' },
+  { href: '/dashboards', icon: LayoutDashboard, label: 'Ops Dashboards' },
   { href: '/cmdb', icon: Database, label: 'CMDB' },
   { href: '/cmdb/drift', icon: Database, label: 'CMDB Drift' },
   { href: '/transactions', icon: GitBranch, label: 'Transactions' },

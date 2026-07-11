@@ -6,6 +6,7 @@ import * as apm from './apm.service';
 import * as pipeline from './telemetry-pipeline.service';
 import * as telemetryPlatform from './telemetry-platform.service';
 import * as opsIntel from './ops-intelligence.service';
+import * as opsDashboards from './ops-dashboards.service';
 
 const app = express();
 
@@ -1086,6 +1087,170 @@ app.get('/ops-intelligence/signals', async (req, res) => {
     res.json({ signals, count: signals.length });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+/** Phase 3 Wave 6 — Operations Dashboards */
+app.get('/dashboards/catalog', async (req, res) => {
+  try {
+    await resolveTenant(req);
+    res.json(opsDashboards.listCatalog());
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/dashboards', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const dashboards = await opsDashboards.listDashboards(tenantId);
+    res.json({ dashboards, count: dashboards.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/dashboards', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const dash = await opsDashboards.createDashboard(tenantId, {
+      name: req.body?.name,
+      description: req.body?.description,
+      refreshSeconds: req.body?.refreshSeconds,
+      visibility: req.body?.visibility,
+      isDefault: req.body?.isDefault,
+      seedNoc: req.body?.seedNoc,
+      createdBy: (req.headers['x-user-email'] as string) ?? undefined,
+    });
+    res.status(201).json(dash);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/dashboards/default', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const dash = await opsDashboards.ensureDefaultDashboard(
+      tenantId,
+      (req.headers['x-user-email'] as string) ?? undefined,
+    );
+    res.status(201).json(dash);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/dashboards/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const dash = await opsDashboards.getDashboard(tenantId, req.params.id);
+    if (!dash) return res.status(404).json({ error: 'Dashboard not found' });
+    res.json(dash);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.patch('/dashboards/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const dash = await opsDashboards.updateDashboard(tenantId, req.params.id, req.body ?? {});
+    if (!dash) return res.status(404).json({ error: 'Dashboard not found' });
+    res.json(dash);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.delete('/dashboards/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const ok = await opsDashboards.deleteDashboard(tenantId, req.params.id);
+    if (!ok) return res.status(404).json({ error: 'Dashboard not found' });
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/dashboards/:id/data', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const data = await opsDashboards.resolveDashboardData(tenantId, req.params.id);
+    if (!data) return res.status(404).json({ error: 'Dashboard not found' });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/dashboards/:id/widgets', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const widget = await opsDashboards.addWidget(tenantId, req.params.id, {
+      widgetType: req.body?.widgetType,
+      title: req.body?.title,
+      gridX: req.body?.gridX,
+      gridY: req.body?.gridY,
+      gridW: req.body?.gridW,
+      gridH: req.body?.gridH,
+      dataSource: req.body?.dataSource,
+      options: req.body?.options,
+      sortOrder: req.body?.sortOrder,
+    });
+    res.status(201).json(widget);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.patch('/dashboards/:id/widgets/:widgetId', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const widget = await opsDashboards.updateWidget(tenantId, req.params.id, req.params.widgetId, req.body ?? {});
+    if (!widget) return res.status(404).json({ error: 'Widget not found' });
+    res.json(widget);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.delete('/dashboards/:id/widgets/:widgetId', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const ok = await opsDashboards.deleteWidget(tenantId, req.params.id, req.params.widgetId);
+    if (!ok) return res.status(404).json({ error: 'Widget not found' });
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.put('/dashboards/:id/layout', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const widgets = Array.isArray(req.body?.widgets) ? req.body.widgets : req.body;
+    if (!Array.isArray(widgets)) return res.status(400).json({ error: 'widgets array required' });
+    const dash = await opsDashboards.putLayout(tenantId, req.params.id, widgets);
+    if (!dash) return res.status(404).json({ error: 'Dashboard not found' });
+    res.json(dash);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/dashboards/:id/shares', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const share = await opsDashboards.addShare(tenantId, req.params.id, {
+      principalType: req.body?.principalType,
+      principalId: req.body?.principalId,
+      permission: req.body?.permission,
+    });
+    res.status(201).json(share);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
   }
 });
 

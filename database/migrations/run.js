@@ -234,6 +234,14 @@ async function main() {
     console.log('026_ops_intelligence.sql already applied.');
   }
 
+  const opsDashboards = await tableExists(client, 'ops_dashboards');
+  if (!opsDashboards) {
+    const s27 = path.join(migrationsDir, '027_ops_dashboards.sql');
+    if (fs.existsSync(s27)) await runSqlFile(client, s27);
+  } else {
+    console.log('027_ops_dashboards.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

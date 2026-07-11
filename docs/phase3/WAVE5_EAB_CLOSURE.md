@@ -14,4 +14,4 @@
 | Docs | ✅ |
 | Tag | `v0.9.3-wave5` |
 
-**Wave 6:** 🟢 Authorized — Operations Dashboards
+**Wave 6:** 🟢 Implementing — Operations Dashboards
