@@ -1,4 +1,4 @@
-import { createHash, createPublicKey, X509Certificate } from 'crypto';
+import { createHash, X509Certificate } from 'crypto';
 import {
   BadRequestException,
   ForbiddenException,
@@ -536,7 +536,7 @@ export class Wave6Service {
       fingerprint = cert.fingerprint256?.replace(/:/g, '').toLowerCase() || createHash('sha256').update(cert.raw).digest('hex');
       notBefore = new Date(cert.validFrom);
       notAfter = new Date(cert.validTo);
-      createPublicKey(cert.publicKey);
+      if (!cert.publicKey) throw new Error('Certificate missing public key');
       validationOk = notAfter > new Date();
     } catch (e) {
       throw new BadRequestException(`Invalid certificate PEM: ${(e as Error).message}`);

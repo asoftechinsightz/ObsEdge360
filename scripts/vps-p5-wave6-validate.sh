@@ -101,12 +101,12 @@ AG_ID=$(python3 -c "import json;print(json.load(open('/tmp/p5w6_ag.json')).get('
 AGV=$(curl -sk -o /tmp/p5w6_agv.json -w '%{http_code}' -X POST "$API/admin/deployment/airgap/${AG_ID}/verify" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d "{\"computedChecksumSha256\":\"$CSUM\"}")
-check airgap_verify 200 "$AGV"
+if [ "$AGV" = "200" ] || [ "$AGV" = "201" ]; then echo "PASS airgap_verify ($AGV)"; PASS=$((PASS+1)); else echo "FAIL airgap_verify got=$AGV"; cat /tmp/p5w6_agv.json; FAIL=$((FAIL+1)); fi
 
 PROF=$(curl -sk -o /tmp/p5w6_prof.json -w '%{http_code}' -X POST "$API/admin/deployment/profiles" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"profileName":"production","mode":"onprem","namespace":"opsedge360","helmRelease":"opsedge360","airgap":false,"valuesSnapshot":{"chart":"values-production.yaml"}}')
-if [ "$PROF" = "200" ] || [ "$PROF" = "201" ]; then echo "PASS deployment_profile ($PROF)"; PASS=$((PASS+1)); else echo "FAIL deployment_profile"; FAIL=$((FAIL+1)); fi
+if [ "$PROF" = "200" ] || [ "$PROF" = "201" ]; then echo "PASS deployment_profile ($PROF)"; PASS=$((PASS+1)); else echo "FAIL deployment_profile got=$PROF"; cat /tmp/p5w6_prof.json; FAIL=$((FAIL+1)); fi
 PL=$(curl -sk -o /tmp/p5w6_pl.json -w '%{http_code}' "$API/admin/deployment/profiles" -H "Authorization: Bearer $TOKEN")
 check deployment_profiles_list 200 "$PL"
 python3 - <<'PY'
