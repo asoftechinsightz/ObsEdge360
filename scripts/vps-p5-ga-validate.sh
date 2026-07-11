@@ -118,14 +118,14 @@ if [ "$APPR" = "200" ] || [ "$APPR" = "201" ]; then echo "PASS ga_approve ($APPR
 
 RD=$(curl -sk -o /tmp/p5ga_rd.json -w '%{http_code}' "$API/admin/system/ga/readiness" -H "Authorization: Bearer $TOKEN")
 check ga_readiness 200 "$RD"
-python3 - <<'PY'
-import json
+if python3 - <<'PY'
+import json, sys
 d=json.load(open('/tmp/p5ga_rd.json'))
-assert d.get('gaClaim') is True
-assert d.get('ready') is True
-print('PASS ga_ready')
+ok = d.get('gaClaim') is True and d.get('ready') is True
+print('PASS ga_ready' if ok else f"FAIL ga_ready claim={d.get('gaClaim')} ready={d.get('ready')} regression={d.get('regression')}")
+sys.exit(0 if ok else 1)
 PY
-PASS=$((PASS+1))
+then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 
 UA=$(curl -sk -o /dev/null -w '%{http_code}' "$API/admin/system/ga")
 if [ "$UA" = "401" ] || [ "$UA" = "403" ]; then echo "PASS ga_unauth ($UA)"; PASS=$((PASS+1)); else echo "FAIL ga_unauth got=$UA"; FAIL=$((FAIL+1)); fi

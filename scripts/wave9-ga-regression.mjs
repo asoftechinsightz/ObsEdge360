@@ -138,10 +138,13 @@ async function main() {
   }
 
   {
-    const auto = await req('GET', '/automation');
+    const auto = await req('GET', '/automation/dashboard');
     allOk =
       (await record('automation', [
-        { name: 'automation', ok: auto.status === 200 || auto.status === 401 || auto.status === 403 || auto.status === 503 },
+        {
+          name: 'automation_dashboard',
+          ok: auto.status === 200 || auto.status === 401 || auto.status === 403 || auto.status === 503,
+        },
       ])) && allOk;
   }
 
