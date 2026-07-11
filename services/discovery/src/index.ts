@@ -266,6 +266,109 @@ app.post('/notifications/:id/read', async (req, res) => {
   }
 });
 
+/** Phase 3 Wave 3 — Discovery jobs / runs / results / providers / targets */
+app.get('/providers', async (_req, res) => {
+  try {
+    const jobs = await import('./discovery-jobs.service');
+    res.json(await jobs.listProviders());
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/jobs', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const jobs = await import('./discovery-jobs.service');
+    res.json({ jobs: await jobs.listJobs(tenantId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/jobs', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const jobs = await import('./discovery-jobs.service');
+    const row = await jobs.createJob(tenantId, req.body ?? {});
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/jobs/:id/run', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const jobs = await import('./discovery-jobs.service');
+    const jobId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await jobs.runJob(tenantId, jobId, discovery.publishAssetForJobs);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/run', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const connectorId = req.body?.connectorId as string | undefined;
+    if (!connectorId) return res.status(400).json({ error: 'connectorId required' });
+    const result = await discovery.runScan(tenantId, connectorId);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/runs', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const jobs = await import('./discovery-jobs.service');
+    res.json({
+      runs: await jobs.listRuns(tenantId, {
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+        jobId: req.query.jobId as string | undefined,
+      }),
+    });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/results', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const runId = req.query.runId as string;
+    if (!runId) return res.status(400).json({ error: 'runId required' });
+    const jobs = await import('./discovery-jobs.service');
+    res.json({ results: await jobs.listResults(tenantId, runId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/targets', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const jobs = await import('./discovery-jobs.service');
+    res.json({ targets: await jobs.listTargets(tenantId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/targets', async (req, res) => {
+  try {
+    const tenantId = await tenantIdFrom(req);
+    const jobs = await import('./discovery-jobs.service');
+    const row = await jobs.createTarget(tenantId, req.body ?? {});
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
 const port = Number(process.env.DISCOVERY_PORT ?? 4001);
 
 discovery.initDiscovery().then(() => {

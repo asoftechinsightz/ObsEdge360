@@ -15,6 +15,7 @@ export const SUPPORTED_PROTOCOLS = [
   'ssh', 'snmp', 'kubernetes', 'aws', 'azure', 'gcp', 'static',
   'opc-ua', 'modbus', 'mqtt', 'rest', 'winrm', 'wmi', 'vmware',
   'network', 'dependency', 'business-service',
+  'docker', 'database', 'middleware',
 ] as const;
 
 export type SupportedProtocol = (typeof SUPPORTED_PROTOCOLS)[number];

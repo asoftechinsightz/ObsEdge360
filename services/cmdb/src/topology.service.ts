@@ -29,14 +29,14 @@ export async function buildTopologyGraph(
   topologyType: TopologyType,
 ): Promise<TwinGraph> {
   const typeFilter = topologyType === 'infrastructure'
-    ? ['server', 'vm', 'container', 'pod', 'network_device', 'firewall', 'load_balancer']
+    ? ['server', 'vm', 'container', 'pod', 'network_device', 'firewall', 'load_balancer', 'cluster', 'storage']
     : topologyType === 'cloud'
-      ? ['cloud_resource', 'vm']
+      ? ['cloud_resource', 'vm', 'storage', 'cluster']
       : topologyType === 'network'
-        ? ['network_device', 'firewall', 'router', 'switch']
+        ? ['network_device', 'firewall', 'load_balancer']
         : topologyType === 'business-service'
-          ? ['service', 'application']
-          : ['application', 'api', 'service', 'database'];
+          ? ['service', 'application', 'business_service']
+          : ['application', 'api', 'service', 'database', 'middleware', 'queue', 'cache', 'k8s_object'];
 
   const nodes = await query<{ id: string; name: string; ci_type: string; health_score: number; risk_score: number }>(
     `SELECT id, name, ci_type, health_score, risk_score
@@ -109,6 +109,15 @@ export async function saveTopologySnapshot(
     ],
   );
   if (!row) throw new Error('Failed to save topology snapshot');
+  try {
+    const engine = await import('./relationship-engine');
+    await engine.materializeTopologyGraph(tenantId, topologyType, row.id, graph as unknown as {
+      nodes?: Array<Record<string, unknown>>;
+      edges?: Array<Record<string, unknown>>;
+    });
+  } catch (err) {
+    console.warn('[cmdb] topology materialize skipped:', (err as Error).message);
+  }
   return row;
 }
 

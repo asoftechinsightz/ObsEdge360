@@ -34,6 +34,11 @@ async function handleAssetEvent(topic: string, event: PlatformEvent<AssetPayload
   const p = event.payload;
   console.log(`[cmdb] Processing ${topic}: ${p.name}`);
 
+  const existing = p.externalId
+    ? await repo.getCiByExternalId(event.tenantId, p.externalId)
+    : null;
+  const beforeAttrs = existing?.attributes ?? null;
+
   const ci = await repo.upsertCi(event.tenantId, {
     externalId: p.externalId,
     name: p.name,
@@ -43,6 +48,20 @@ async function handleAssetEvent(topic: string, event: PlatformEvent<AssetPayload
     tags: p.tags,
     status: 'active',
   });
+
+  const engine = await import('./relationship-engine');
+  await engine.recordConfigurationHistory(
+    event.tenantId,
+    ci.id,
+    existing ? 'updated' : 'created',
+    beforeAttrs,
+    ci.attributes,
+    p.sourceConnector ?? 'discovery',
+  );
+  if (existing) {
+    await engine.detectAndRecordDrift(event.tenantId, ci.id, beforeAttrs, ci.attributes);
+  }
+  await engine.inferRelationshipsForCi(event.tenantId, ci.id);
 
   await syncCiToGraph(ci);
 

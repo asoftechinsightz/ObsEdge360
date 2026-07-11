@@ -1,13 +1,15 @@
 export type CiType =
   | 'server' | 'vm' | 'container' | 'pod' | 'database' | 'application'
   | 'service' | 'network_device' | 'firewall' | 'load_balancer'
-  | 'ot_device' | 'cloud_resource' | 'api' | 'queue' | 'cache' | 'user' | 'location' | 'saas_app';
+  | 'ot_device' | 'cloud_resource' | 'api' | 'queue' | 'cache' | 'user' | 'location' | 'saas_app'
+  | 'cluster' | 'storage' | 'middleware' | 'business_service' | 'k8s_object';
 
 export type CiStatus = 'discovered' | 'active' | 'maintenance' | 'decommissioned';
 
 export type RelationshipType =
   | 'depends_on' | 'runs_on' | 'connects_to' | 'owned_by'
-  | 'part_of' | 'secures' | 'monitors' | 'calls';
+  | 'part_of' | 'secures' | 'monitors' | 'calls'
+  | 'hosted_by' | 'member_of' | 'uses';
 
 export interface ConfigurationItem {
   id: string;

@@ -15,8 +15,10 @@ import { CopilotPanel } from '@/components/CopilotPanel';
 const CORE_NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Executive Home' },
   { href: '/discovery', icon: Radar, label: 'Discovery' },
+  { href: '/discovery-ops', icon: Radar, label: 'Discovery Ops' },
   { href: '/twin', icon: Network, label: 'Digital Twin' },
   { href: '/cmdb', icon: Database, label: 'CMDB' },
+  { href: '/cmdb/drift', icon: Database, label: 'CMDB Drift' },
   { href: '/transactions', icon: GitBranch, label: 'Transactions' },
   { href: '/observability', icon: Activity, label: 'Observability' },
   { href: '/fleet', icon: Server, label: 'Universal Agents' },

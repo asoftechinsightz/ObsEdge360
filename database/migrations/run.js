@@ -210,6 +210,14 @@ async function main() {
     console.log('023_universal_agent.sql already applied.');
   }
 
+  const discoveryJobs = await tableExists(client, 'discovery_jobs');
+  if (!discoveryJobs) {
+    const s24 = path.join(migrationsDir, '024_discovery_cmdb_depth.sql');
+    if (fs.existsSync(s24)) await runSqlFile(client, s24);
+  } else {
+    console.log('024_discovery_cmdb_depth.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

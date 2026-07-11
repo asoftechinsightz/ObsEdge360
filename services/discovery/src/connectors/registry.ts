@@ -15,6 +15,9 @@ import { GcpConnector } from './gcp.connector';
 import { NetworkConnector } from './network.connector';
 import { DependencyConnector } from './dependency.connector';
 import { BusinessServiceConnector } from './business-service.connector';
+import { DockerConnector } from './docker.connector';
+import { DatabaseConnector } from './database.connector';
+import { MiddlewareConnector } from './middleware.connector';
 
 const connectors: Record<string, DiscoveryConnector> = {
   static: new StaticConnector(),
@@ -34,6 +37,9 @@ const connectors: Record<string, DiscoveryConnector> = {
   network: new NetworkConnector(),
   dependency: new DependencyConnector(),
   'business-service': new BusinessServiceConnector(),
+  docker: new DockerConnector(),
+  database: new DatabaseConnector(),
+  middleware: new MiddlewareConnector(),
 };
 
 export function getConnector(protocol: string): DiscoveryConnector | null {

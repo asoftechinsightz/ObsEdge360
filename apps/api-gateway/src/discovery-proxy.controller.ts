@@ -195,4 +195,83 @@ export class DiscoveryProxyController {
     const result = await this.proxy.discovery(`/notifications/${id}/read`, { method: 'POST', tenantId: user.tenantId });
     return res.status(result.status).json(result.data);
   }
+
+  @Get('providers')
+  @ApiOperation({ summary: 'List discovery providers/protocols' })
+  async providers(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.discovery('/providers', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('jobs')
+  @ApiOperation({ summary: 'List discovery jobs' })
+  async listJobs(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.discovery('/jobs', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('jobs')
+  @ApiOperation({ summary: 'Create discovery job' })
+  async createJob(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.discovery('/jobs', { method: 'POST', body, tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('jobs/:id/run')
+  @ApiOperation({ summary: 'Execute discovery job' })
+  async runJob(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Res() res: Response) {
+    const result = await this.proxy.discovery(`/jobs/${id}/run`, { method: 'POST', body: {}, tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('run')
+  @ApiOperation({ summary: 'On-demand discovery run for a connector' })
+  async runConnector(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.discovery('/run', { method: 'POST', body, tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('runs')
+  @ApiOperation({ summary: 'List discovery runs' })
+  @ApiQuery({ name: 'jobId', required: false })
+  async listRuns(
+    @CurrentUser() user: JwtPayload,
+    @Query('jobId') jobId: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.discovery('/runs', {
+      tenantId: user.tenantId,
+      query: { ...(jobId ? { jobId } : {}) },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('results')
+  @ApiOperation({ summary: 'List discovery results for a run' })
+  @ApiQuery({ name: 'runId', required: true })
+  async listResults(
+    @CurrentUser() user: JwtPayload,
+    @Query('runId') runId: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.discovery('/results', {
+      tenantId: user.tenantId,
+      query: { runId },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('targets')
+  @ApiOperation({ summary: 'List discovery targets' })
+  async listTargets(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.discovery('/targets', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('targets')
+  @ApiOperation({ summary: 'Create discovery target' })
+  async createTarget(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.discovery('/targets', { method: 'POST', body, tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
 }

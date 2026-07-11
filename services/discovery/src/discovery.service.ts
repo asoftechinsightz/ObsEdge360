@@ -1,7 +1,6 @@
 import { query, queryOne, resolveTenantId } from '@opsedge360/shared-db';
 import { EventBus, TOPICS, createEvent } from '@opsedge360/event-bus';
 import type { DiscoveredAsset } from '@opsedge360/shared-types';
-import { getConnector } from './connectors/registry';
 import type { ConnectorConfig } from './connectors/types';
 import { startScheduleRunner, stopScheduleRunner } from './schedule.service';
 import { markStaleAgentsOffline } from './agent.service';
@@ -74,34 +73,20 @@ export async function deleteConnector(tenantId: string, connectorId: string): Pr
 }
 
 export async function runScan(tenantId: string, connectorId: string) {
-  const connectorRow = await queryOne<ConnectorRow>(
-    'SELECT * FROM discovery_connectors WHERE tenant_id = $1 AND id = $2 AND enabled = true',
-    [tenantId, connectorId],
-  );
-
-  if (!connectorRow) {
-    throw new Error('Connector not found or disabled');
-  }
-
-  const connector = getConnector(connectorRow.protocol);
-  if (!connector) {
-    throw new Error(`Unsupported protocol: ${connectorRow.protocol}`);
-  }
-
-  const scanId = `scan-${Date.now()}`;
-  const assets: DiscoveredAsset[] = [];
-
-  for await (const asset of connector.discover(connectorRow.config)) {
-    assets.push(asset);
-    await publishAsset(tenantId, asset, connectorRow.protocol);
-  }
-
-  await query(
-    'UPDATE discovery_connectors SET last_run_at = NOW() WHERE id = $1',
-    [connectorId],
-  );
-
-  return { scanId, status: 'completed', assetsDiscovered: assets.length, assets };
+  const { executeDiscoveryRun } = await import('./discovery-jobs.service');
+  const result = await executeDiscoveryRun({
+    tenantId,
+    connectorId,
+    runMode: 'full',
+    publishAsset,
+  });
+  return {
+    scanId: result.runId,
+    status: result.status,
+    assetsDiscovered: result.assetsDiscovered,
+    relationshipsInferred: result.relationshipsInferred,
+    assets: result.assets,
+  };
 }
 
 export async function runAllEnabledScans(tenantId: string) {
@@ -146,6 +131,9 @@ async function publishAsset(tenantId: string, asset: DiscoveredAsset, sourceConn
     }),
   );
 }
+
+/** Exported for job engine */
+export const publishAssetForJobs = publishAsset;
 
 export async function ensureDefaultConnectors(tenantId: string): Promise<void> {
   const existing = await queryOne('SELECT id FROM discovery_connectors WHERE tenant_id = $1 LIMIT 1', [tenantId]);

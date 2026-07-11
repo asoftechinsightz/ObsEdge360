@@ -329,6 +329,48 @@ app.get('/stats', tenantMiddleware, async (req, res) => {
   res.json(await repo.getStats(tenantId));
 });
 
+/** Wave 3 aliases / depth APIs */
+app.get('/assets', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const items = await repo.listCis(tenantId, {
+      ciType: req.query.ciType as string | undefined,
+      search: req.query.q as string | undefined,
+      limit: req.query.limit ? Number(req.query.limit) : 100,
+    });
+    res.json({ assets: items, items });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/drift', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const engine = await import('./relationship-engine');
+    res.json({
+      events: await engine.listDrift(tenantId, {
+        openOnly: req.query.open !== 'false',
+        limit: req.query.limit ? Number(req.query.limit) : 50,
+      }),
+    });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/history', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const ciId = req.query.ciId as string;
+    if (!ciId) return res.status(400).json({ error: 'ciId required' });
+    const engine = await import('./relationship-engine');
+    res.json({ history: await engine.listHistory(tenantId, ciId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 app.get('/topology/:type', tenantMiddleware, async (req, res) => {
   try {
     const tenantId = (req as express.Request & { tenantId: string }).tenantId;

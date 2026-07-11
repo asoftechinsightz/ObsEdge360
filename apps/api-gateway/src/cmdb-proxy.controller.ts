@@ -157,4 +157,43 @@ export class CmdbProxyController {
     });
     return res.status(result.status).json(result.data);
   }
+
+  @Get('assets')
+  @ApiOperation({ summary: 'Asset inventory (CI alias)' })
+  @ApiQuery({ name: 'ciType', required: false })
+  @ApiQuery({ name: 'q', required: false })
+  async listAssets(
+    @CurrentUser() user: JwtPayload,
+    @Query('ciType') ciType: string | undefined,
+    @Query('q') q: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb('/assets', {
+      tenantId: user.tenantId,
+      query: { ...(ciType ? { ciType } : {}), ...(q ? { q } : {}) },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('drift')
+  @ApiOperation({ summary: 'Configuration drift events' })
+  async listDrift(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.cmdb('/drift', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('history')
+  @ApiOperation({ summary: 'CI configuration history' })
+  @ApiQuery({ name: 'ciId', required: true })
+  async listHistory(
+    @CurrentUser() user: JwtPayload,
+    @Query('ciId') ciId: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb('/history', {
+      tenantId: user.tenantId,
+      query: { ciId },
+    });
+    return res.status(result.status).json(result.data);
+  }
 }
