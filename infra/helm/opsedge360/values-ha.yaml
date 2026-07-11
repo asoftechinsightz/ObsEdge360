@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 2
 image:
   gateway: opsedge360-api-gateway:latest
   web: opsedge360-web:latest
@@ -7,26 +7,27 @@ service:
   gatewayPort: 4000
   webPort: 3000
 ingress:
-  enabled: false
+  enabled: true
   host: observability360.example.com
-  tls: false
+  tls: true
 env:
   DEPLOYMENT_MODE: onprem
-  PERFORMANCE_PROFILE: standard
-  HA_MODE: standby
-  HA_MULTI_NODE: "false"
+  PERFORMANCE_PROFILE: high
+  HA_MODE: active
+  HA_MULTI_NODE: "true"
+  GATEWAY_REPLICAS: "2"
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 3
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
   targetCPUUtilizationPercentage: 70
 podDisruptionBudget:
-  enabled: false
+  enabled: true
   minAvailable: 1
 affinity:
   podAntiAffinity: preferred
 persistence:
-  enabled: false
+  enabled: true
   size: 20Gi
   storageClass: ""
-note: Default single-replica; use values-ha.yaml for HA.
+note: Wave 2 HA values — multi-replica gateway foundation

@@ -43,6 +43,7 @@ import { DashboardsController } from './dashboards.controller';
 import { AiController } from './ai.controller';
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
+import { HaService } from './admin/ha.service';
 
 @Module({
   controllers: [
@@ -87,6 +88,7 @@ import { AdminService } from './admin/admin.service';
     SecretsRotationScheduler,
     MeshBootstrapService,
     AdminService,
+    HaService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

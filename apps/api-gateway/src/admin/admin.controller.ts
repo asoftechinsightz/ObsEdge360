@@ -7,12 +7,16 @@ import { CurrentTenant } from '../auth/current-tenant.decorator';
 import type { JwtPayload } from '../auth/auth.service';
 import type { TenantContext } from '../auth/authorization.guard';
 import { AdminService } from './admin.service';
+import { HaService } from './ha.service';
 
 @ApiTags('admin')
 @ApiBearerAuth()
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly ha: HaService,
+  ) {}
 
   @Get('overview')
   @RequirePermission(PermissionIds.DASHBOARD_VIEW)
@@ -101,8 +105,94 @@ export class AdminController {
 
   @Get('health/cluster')
   @RequirePermission(PermissionIds.DASHBOARD_VIEW)
-  clusterHealth(@CurrentTenant() tenant: TenantContext | undefined, @CurrentUser() user: JwtPayload) {
-    return this.admin.clusterHealth(tenant?.id, user);
+  clusterHealthLegacy(@CurrentUser() user: JwtPayload) {
+    return this.ha.getCluster(user);
+  }
+
+  @Get('cluster')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  @ApiOperation({ summary: 'Cluster health (HA Wave 2)' })
+  cluster(@CurrentUser() user: JwtPayload) {
+    return this.ha.getCluster(user);
+  }
+
+  @Get('ha')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  @ApiOperation({ summary: 'HA foundation overview' })
+  haOverview(@CurrentUser() user: JwtPayload) {
+    return this.ha.getHaOverview(user);
+  }
+
+  @Post('ha/refresh')
+  @RequirePermission(PermissionIds.WORKFLOW_EXECUTE)
+  haRefresh(@CurrentUser() user: JwtPayload) {
+    return this.ha.refreshProbes(user);
+  }
+
+  @Get('replication')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  replication(@CurrentUser() user: JwtPayload) {
+    return this.ha.getReplication(user);
+  }
+
+  @Get('failover')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  failoverList(@CurrentUser() user: JwtPayload) {
+    return this.ha.listFailover(user);
+  }
+
+  @Post('failover')
+  @RequirePermission(PermissionIds.WORKFLOW_EXECUTE)
+  failoverRecord(
+    @CurrentUser() user: JwtPayload,
+    @Body()
+    body: {
+      component: string;
+      eventType: string;
+      fromNode?: string;
+      toNode?: string;
+      notes?: string;
+      status?: string;
+    },
+  ) {
+    return this.ha.recordFailover(user, body);
+  }
+
+  @Post('backups/verify')
+  @RequirePermission(PermissionIds.WORKFLOW_EXECUTE)
+  backupVerify(
+    @CurrentUser() user: JwtPayload,
+    @Body()
+    body: {
+      backupRunId?: string;
+      artifactPath?: string;
+      integrityOk?: boolean;
+      restoreVerified?: boolean;
+      report?: Record<string, unknown>;
+    },
+  ) {
+    return this.ha.verifyBackup(user, body);
+  }
+
+  @Get('backups/verifications')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  backupVerifications(@CurrentUser() user: JwtPayload) {
+    return this.ha.listBackupVerifications(user);
+  }
+
+  @Post('upgrades/precheck')
+  @RequirePermission(PermissionIds.WORKFLOW_EXECUTE)
+  upgradePrecheck(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { fromVersion?: string; toVersion?: string },
+  ) {
+    return this.ha.runUpgradePrecheck(user, body);
+  }
+
+  @Get('upgrades/checks')
+  @RequirePermission(PermissionIds.DASHBOARD_VIEW)
+  upgradeChecks(@CurrentUser() user: JwtPayload) {
+    return this.ha.listUpgradeChecks(user);
   }
 
   @Get('backups')

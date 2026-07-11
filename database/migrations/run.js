@@ -290,6 +290,14 @@ async function main() {
     console.log('033_enterprise_ga.sql already applied.');
   }
 
+  const haNodes = await tableExists(client, 'ha_cluster_nodes');
+  if (!haNodes) {
+    const s34 = path.join(migrationsDir, '034_high_availability.sql');
+    if (fs.existsSync(s34)) await runSqlFile(client, s34);
+  } else {
+    console.log('034_high_availability.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

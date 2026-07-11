@@ -1,0 +1,31 @@
+# OpsEdge360 HA overlay — optional multi-replica / sentinel / kafka scale
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.ha.yml --profile ha up -d
+#
+# Does not replace prod single-node stack. Enable deliberately.
+
+services:
+  api-gateway:
+    deploy:
+      replicas: ${GATEWAY_REPLICAS:-2}
+    environment:
+      GATEWAY_REPLICAS: ${GATEWAY_REPLICAS:-2}
+      HA_MODE: ${HA_MODE:-active}
+      HA_MULTI_NODE: ${HA_MULTI_NODE:-true}
+
+  redis-sentinel:
+    image: redis:7-alpine
+    profiles: ["ha"]
+    command: >
+      sh -c "redis-sentinel /etc/redis/sentinel.conf"
+    volumes:
+      - ./infra/redis/sentinel.conf:/etc/redis/sentinel.conf:ro
+    ports:
+      - "127.0.0.1:26379:26379"
+
+  # Example second broker (operator must configure KAFKA_BROKERS accordingly)
+  kafka-ha-hint:
+    image: alpine:3.20
+    profiles: ["ha"]
+    command: >
+      sh -c "echo 'Configure KAFKA_BROKERS=kafka:9092,kafka-2:9092,kafka-3:9092 and KAFKA_DEFAULT_REPLICATION_FACTOR=3 for multi-broker durability'; sleep infinity"
