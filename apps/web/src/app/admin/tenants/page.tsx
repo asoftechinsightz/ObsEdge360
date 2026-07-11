@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { AdminShell } from './AdminShell';
+import { AdminShell } from '../AdminShell';
 
 export default function AdminTenantsPage() {
   const [org, setOrg] = useState<{
