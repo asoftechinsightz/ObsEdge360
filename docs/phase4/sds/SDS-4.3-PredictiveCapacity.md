@@ -3,7 +3,7 @@
 **Document ID:** OE360-SDS-4.3  
 **Wave:** Phase 4 / Wave 3  
 **Release:** `v0.9.4`  
-**Status:** ✅ APPROVED FOR IMPLEMENTATION  
+**Status:** ✅ CLOSED (`v0.9.4-wave3`)  
 **Depends on:** Wave 2 closed (`v0.9.4-wave2`)
 
 ## Objectives
