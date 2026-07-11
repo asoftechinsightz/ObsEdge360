@@ -165,7 +165,7 @@ export class OpsIntelligenceController {
   }
 
   @Post('remediation/request')
-  @ApiOperation({ summary: 'Request remediation (Wave 5 dry-run path)' })
+  @ApiOperation({ summary: 'Request remediation (dry_run or live; policy gated)' })
   async requestRemediation(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
     const result = await this.proxy.observability('/ops-intelligence/remediation/request', {
       method: 'POST',
@@ -175,8 +175,17 @@ export class OpsIntelligenceController {
     return res.status(result.status).json(result.data);
   }
 
+  @Get('remediation/catalog')
+  @ApiOperation({ summary: 'Allowlisted remediation action catalog' })
+  async remediationCatalog(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/remediation/catalog', {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
   @Get('remediation/approvals')
-  @ApiOperation({ summary: 'List remediation approvals' })
+  @ApiOperation({ summary: 'List remediation requests / approvals' })
   async listApprovals(@CurrentUser() user: JwtPayload, @Res() res: Response) {
     const result = await this.proxy.observability('/ops-intelligence/remediation/approvals', {
       tenantId: user.tenantId,
@@ -184,8 +193,47 @@ export class OpsIntelligenceController {
     return res.status(result.status).json(result.data);
   }
 
+  @Get('remediation/approvals/:id')
+  @ApiOperation({ summary: 'Get remediation request detail' })
+  async getApproval(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Res() res: Response) {
+    const result = await this.proxy.observability(`/ops-intelligence/remediation/approvals/${id}`, {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('remediation/approvals/:id/approve')
+  @ApiOperation({ summary: 'Human-approve a remediation request' })
+  async approve(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability(
+      `/ops-intelligence/remediation/approvals/${id}/approve`,
+      { method: 'POST', body: body ?? {}, tenantId: user.tenantId },
+    );
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('remediation/approvals/:id/reject')
+  @ApiOperation({ summary: 'Reject a remediation request' })
+  async reject(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability(
+      `/ops-intelligence/remediation/approvals/${id}/reject`,
+      { method: 'POST', body: body ?? {}, tenantId: user.tenantId },
+    );
+    return res.status(result.status).json(result.data);
+  }
+
   @Post('remediation/approvals/:id/execute')
-  @ApiOperation({ summary: 'Execute remediation dry-run' })
+  @ApiOperation({ summary: 'Execute remediation under policy (dry_run or controlled live)' })
   async execute(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
@@ -195,6 +243,15 @@ export class OpsIntelligenceController {
       `/ops-intelligence/remediation/approvals/${id}/execute`,
       { method: 'POST', body: {}, tenantId: user.tenantId },
     );
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('remediation/audit')
+  @ApiOperation({ summary: 'Remediation audit events' })
+  async remediationAudit(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ops-intelligence/remediation/audit', {
+      tenantId: user.tenantId,
+    });
     return res.status(result.status).json(result.data);
   }
 

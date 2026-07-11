@@ -170,26 +170,71 @@ export default function OpsIntelligencePage() {
     }
   }
 
-  async function requestRemediation() {
+  async function requestRemediation(mode: 'dry_run' | 'live' = 'dry_run') {
     if (!selected) {
       setMessage('Select an incident first');
       return;
     }
     try {
-      const req = await apiClient<{ id: string }>('/ops-intelligence/remediation/request', {
+      const riskTier = selected.severity === 'critical' ? 'high' : 'medium';
+      const req = await apiClient<{
+        id: string;
+        requiresApproval?: boolean;
+        status?: string;
+        executionMode?: string;
+      }>('/ops-intelligence/remediation/request', {
         method: 'POST',
         body: JSON.stringify({
           action: `Investigate and stabilize: ${selected.title}`,
+          actionKey: mode === 'live' ? 'restart_service' : 'investigate_stabilize',
           incidentId: selected.id,
-          riskTier: selected.severity === 'critical' ? 'high' : 'medium',
+          riskTier: mode === 'live' ? 'medium' : riskTier,
+          executionMode: mode,
           evidence: 'Requested from Ops Intelligence UI',
         }),
       });
-      await apiClient(`/ops-intelligence/remediation/approvals/${req.id}/execute`, {
+      setMessage(
+        `Remediation requested (${req.executionMode}) · ${req.requiresApproval ? 'awaiting approval' : 'ready'} · ${req.id}`,
+      );
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function approveRemediation(id: string) {
+    try {
+      await apiClient(`/ops-intelligence/remediation/approvals/${id}/approve`, {
         method: 'POST',
         body: '{}',
       });
-      setMessage('Remediation dry-run executed');
+      setMessage(`Approved ${id}`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function rejectRemediation(id: string) {
+    try {
+      await apiClient(`/ops-intelligence/remediation/approvals/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: 'Rejected from Ops Intelligence UI' }),
+      });
+      setMessage(`Rejected ${id}`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function executeRemediation(id: string) {
+    try {
+      const r = await apiClient<{ status: string; executionMode?: string }>(
+        `/ops-intelligence/remediation/approvals/${id}/execute`,
+        { method: 'POST', body: '{}' },
+      );
+      setMessage(`Executed · ${r.status} (${r.executionMode})`);
       await load();
     } catch (err) {
       setMessage((err as Error).message);
@@ -205,7 +250,7 @@ export default function OpsIntelligencePage() {
               <Brain className="h-6 w-6 text-violet-400" /> Operations Intelligence
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Correlation, RCA, EWMA predictive anomalies, 7-day capacity forecasts, and dry-run remediation.
+              Correlation, RCA, predictive anomalies, capacity forecasts, and controlled remediation.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -287,8 +332,11 @@ export default function OpsIntelligencePage() {
                 <button type="button" onClick={() => void runRca(selected)} className="rounded-md bg-sky-700 px-2 py-1 text-xs text-white">
                   RCA this
                 </button>
-                <button type="button" onClick={() => void requestRemediation()} className="rounded-md bg-rose-700/80 px-2 py-1 text-xs text-white">
-                  Dry-run remediate
+                <button type="button" onClick={() => void requestRemediation('dry_run')} className="rounded-md bg-rose-700/80 px-2 py-1 text-xs text-white">
+                  Request dry-run
+                </button>
+                <button type="button" onClick={() => void requestRemediation('live')} className="rounded-md bg-orange-800/80 px-2 py-1 text-xs text-white">
+                  Request live
                 </button>
               </div>
             )}
@@ -348,10 +396,44 @@ export default function OpsIntelligencePage() {
 
             <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
               <h2 className="text-sm font-medium text-slate-200 mb-2">Remediation</h2>
-              <ul className="space-y-1 max-h-32 overflow-y-auto text-xs text-slate-400">
-                {approvals.slice(0, 8).map((a) => (
-                  <li key={String(a.id)} className="truncate">
-                    {String(a.status)} · {String(a.action)}
+              <ul className="space-y-2 max-h-48 overflow-y-auto text-xs text-slate-400">
+                {approvals.slice(0, 10).map((a) => (
+                  <li key={String(a.id)} className="rounded border border-slate-800 p-2 space-y-1">
+                    <div className="truncate text-slate-300">
+                      {String(a.status)} · {String(a.executionMode ?? a.execution_mode ?? '')} ·{' '}
+                      {String(a.riskTier ?? a.risk_tier ?? '')}
+                    </div>
+                    <div className="truncate">{String(a.action)}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {String(a.status) === 'pending' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => void approveRemediation(String(a.id))}
+                            className="rounded bg-emerald-800/80 px-1.5 py-0.5 text-[10px] text-white"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void rejectRemediation(String(a.id))}
+                            className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] text-white"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {(String(a.status) === 'approved' ||
+                        (String(a.status) === 'pending' && a.requiresApproval === false)) && (
+                        <button
+                          type="button"
+                          onClick={() => void executeRemediation(String(a.id))}
+                          className="rounded bg-sky-800/80 px-1.5 py-0.5 text-[10px] text-white"
+                        >
+                          Execute
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
                 {approvals.length === 0 && <li>None pending</li>}

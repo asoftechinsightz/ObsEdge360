@@ -266,6 +266,14 @@ async function main() {
     console.log('030_predictive_anomaly_capacity.sql already applied.');
   }
 
+  const remCatalog = await tableExists(client, 'remediation_action_catalog');
+  if (!remCatalog) {
+    const s31 = path.join(migrationsDir, '031_controlled_remediation.sql');
+    if (fs.existsSync(s31)) await runSqlFile(client, s31);
+  } else {
+    console.log('031_controlled_remediation.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

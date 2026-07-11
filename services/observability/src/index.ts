@@ -11,6 +11,7 @@ import * as llmGateway from './llm-gateway.service';
 import * as aiops from './aiops.service';
 import * as correlation from './correlation-engine.service';
 import * as predictive from './predictive-forecast.service';
+import * as remControl from './remediation-control.service';
 
 const app = express();
 
@@ -1112,13 +1113,14 @@ app.get('/ops-intelligence/predictions', async (req, res) => {
 app.post('/ops-intelligence/remediation/request', async (req, res) => {
   try {
     const tenantId = await resolveTenant(req);
-    const row = await opsIntel.requestRemediation(tenantId, {
+    const row = await remControl.requestRemediation(tenantId, {
       action: req.body?.action,
       incidentId: req.body?.incidentId,
       riskTier: req.body?.riskTier,
       evidence: req.body?.evidence,
       requestedBy: (req.headers['x-user-email'] as string) ?? req.body?.requestedBy,
-      executionMode: 'dry_run',
+      executionMode: req.body?.executionMode,
+      actionKey: req.body?.actionKey,
     });
     res.status(201).json(row);
   } catch (err) {
@@ -1126,20 +1128,72 @@ app.post('/ops-intelligence/remediation/request', async (req, res) => {
   }
 });
 
+app.get('/ops-intelligence/remediation/catalog', async (_req, res) => {
+  try {
+    const catalog = await remControl.listCatalog();
+    res.json({ catalog, count: catalog.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 app.get('/ops-intelligence/remediation/approvals', async (req, res) => {
   try {
     const tenantId = await resolveTenant(req);
-    const approvals = await opsIntel.listRemediation(tenantId, req.query.status as string | undefined);
+    const approvals = await remControl.listRemediation(
+      tenantId,
+      req.query.status as string | undefined,
+    );
     res.json({ approvals, count: approvals.length });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
 });
 
+app.get('/ops-intelligence/remediation/approvals/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const row = await remControl.getRemediation(tenantId, req.params.id);
+    if (!row) return res.status(404).json({ error: 'Remediation request not found' });
+    res.json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/remediation/approvals/:id/approve', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const row = await remControl.approveRemediation(
+      tenantId,
+      req.params.id,
+      (req.headers['x-user-email'] as string) ?? req.body?.approvedBy,
+    );
+    if (!row) return res.status(404).json({ error: 'Remediation request not found' });
+    res.json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ops-intelligence/remediation/approvals/:id/reject', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const row = await remControl.rejectRemediation(tenantId, req.params.id, {
+      rejectedBy: (req.headers['x-user-email'] as string) ?? req.body?.rejectedBy,
+      reason: req.body?.reason,
+    });
+    if (!row) return res.status(404).json({ error: 'Remediation request not found' });
+    res.json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
 app.post('/ops-intelligence/remediation/approvals/:id/execute', async (req, res) => {
   try {
     const tenantId = await resolveTenant(req);
-    const row = await opsIntel.executeRemediationDryRun(
+    const row = await remControl.executeRemediation(
       tenantId,
       req.params.id,
       (req.headers['x-user-email'] as string) ?? undefined,
@@ -1148,6 +1202,20 @@ app.post('/ops-intelligence/remediation/approvals/:id/execute', async (req, res)
     res.json(row);
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ops-intelligence/remediation/audit', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const events = await remControl.listAudit(
+      tenantId,
+      req.query.requestId as string | undefined,
+      req.query.limit ? Number(req.query.limit) : 50,
+    );
+    res.json({ events, count: events.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
   }
 });
 

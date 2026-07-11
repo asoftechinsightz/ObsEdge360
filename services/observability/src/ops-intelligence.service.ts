@@ -1,5 +1,6 @@
 import { query, queryOne } from '@opsedge360/shared-db';
 import { EventBus, TOPICS, createEvent } from '@opsedge360/event-bus';
+import * as remControl from './remediation-control.service';
 
 let bus: EventBus | null = null;
 function getBus() {
@@ -766,62 +767,14 @@ export async function requestRemediation(
     evidence?: string;
     requestedBy?: string;
     executionMode?: string;
+    actionKey?: string;
   },
 ) {
-  if (!opts.action?.trim()) throw new Error('action required');
-  const mode = opts.executionMode === 'live' ? 'dry_run' : (opts.executionMode ?? 'dry_run');
-  // Wave 5: force dry_run only
-  const row = await queryOne<Record<string, unknown>>(
-    `INSERT INTO ops_remediation_requests
-      (tenant_id, incident_id, action, risk_tier, evidence, status, execution_mode, requested_by)
-     VALUES ($1,$2,$3,$4,$5,'pending','dry_run',$6)
-     RETURNING *`,
-    [
-      tenantId,
-      opts.incidentId ?? null,
-      opts.action,
-      opts.riskTier ?? 'medium',
-      opts.evidence ?? null,
-      opts.requestedBy ?? null,
-    ],
-  );
-  await emitSignal(tenantId, 'remediation_requested', 'info', opts.action.slice(0, 200), {
-    requestId: row!.id,
-    mode,
-  }, String(row!.id));
-  return mapRemediation(row!);
-}
-
-function mapRemediation(row: Record<string, unknown>) {
-  return {
-    id: row.id,
-    incidentId: row.incident_id,
-    action: row.action,
-    riskTier: row.risk_tier,
-    evidence: row.evidence,
-    status: row.status,
-    executionMode: row.execution_mode,
-    executionResult: row.execution_result,
-    requestedBy: row.requested_by,
-    resolvedBy: row.resolved_by,
-    requestedAt: row.requested_at,
-    resolvedAt: row.resolved_at,
-  };
+  return remControl.requestRemediation(tenantId, opts);
 }
 
 export async function listRemediation(tenantId: string, status?: string) {
-  const rows = status
-    ? await query(
-        `SELECT * FROM ops_remediation_requests WHERE tenant_id = $1 AND status = $2
-         ORDER BY requested_at DESC LIMIT 100`,
-        [tenantId, status],
-      )
-    : await query(
-        `SELECT * FROM ops_remediation_requests WHERE tenant_id = $1
-         ORDER BY requested_at DESC LIMIT 100`,
-        [tenantId],
-      );
-  return rows.map((r) => mapRemediation(r as Record<string, unknown>));
+  return remControl.listRemediation(tenantId, status);
 }
 
 export async function executeRemediationDryRun(
@@ -829,36 +782,7 @@ export async function executeRemediationDryRun(
   id: string,
   resolvedBy?: string,
 ) {
-  const row = await queryOne<Record<string, unknown>>(
-    `SELECT * FROM ops_remediation_requests WHERE tenant_id = $1 AND id = $2`,
-    [tenantId, id],
-  );
-  if (!row) return null;
-  if (row.status !== 'pending') throw new Error(`Request status is ${row.status}`);
-
-  const result = {
-    executionMode: 'dry_run',
-    simulated: true,
-    message: 'Dry-run only — no production mutation performed (Wave 5)',
-    action: row.action,
-    evaluatedAt: new Date().toISOString(),
-    wouldAffect: row.incident_id ? { incidentId: row.incident_id } : {},
-  };
-
-  const updated = await queryOne<Record<string, unknown>>(
-    `UPDATE ops_remediation_requests
-     SET status = 'executed_dry_run', execution_result = $3, resolved_by = $4, resolved_at = NOW()
-     WHERE tenant_id = $1 AND id = $2
-     RETURNING *`,
-    [tenantId, id, JSON.stringify(result), resolvedBy ?? null],
-  );
-
-  await emitSignal(tenantId, 'remediation_dry_run', 'info', String(row.action).slice(0, 200), {
-    requestId: id,
-    result,
-  }, id);
-
-  return mapRemediation(updated!);
+  return remControl.executeRemediation(tenantId, id, resolvedBy);
 }
 
 export async function listSignals(tenantId: string, limit = 50) {
