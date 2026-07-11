@@ -9,6 +9,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IsInt, IsOptional, IsString, Min, MinLength } from 'class-validator';
 import {
   createSecretsProvider,
   countExpiringSecrets,
@@ -25,14 +26,31 @@ import type { JwtPayload } from '../auth/auth.service';
 import type { TenantContext } from '../auth/authorization.guard';
 
 class CreateSecretDto {
+  @IsString()
+  @MinLength(1)
   name!: string;
+
+  @IsString()
+  @MinLength(1)
   value!: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
   expiresAt?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   rotateAfterDays?: number;
 }
 
 class RotateSecretDto {
+  @IsString()
+  @MinLength(1)
   value!: string;
 }
 
