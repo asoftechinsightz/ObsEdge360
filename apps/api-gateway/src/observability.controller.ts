@@ -371,4 +371,96 @@ export class ObservabilityController {
     });
     return res.status(result.status).json(result.data);
   }
+
+  @Get('telemetry/health')
+  @ApiOperation({ summary: 'Telemetry platform health KPIs' })
+  async telemetryHealth(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/health', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('telemetry/collectors')
+  @ApiOperation({ summary: 'List OTel collectors' })
+  async listCollectors(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/collectors', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('telemetry/collectors')
+  @ApiOperation({ summary: 'Register OTel collector' })
+  async registerCollector(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/collectors', {
+      method: 'POST',
+      body,
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('telemetry/collectors/:id/heartbeat')
+  @ApiOperation({ summary: 'Collector heartbeat' })
+  async collectorHeartbeat(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability(`/telemetry/collectors/${encodeURIComponent(id)}/heartbeat`, {
+      method: 'POST',
+      body,
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('telemetry/stats')
+  @ApiOperation({ summary: 'Telemetry ingest stats' })
+  @ApiQuery({ name: 'hours', required: false })
+  async telemetryStats(
+    @CurrentUser() user: JwtPayload,
+    @Query('hours') hours: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability('/telemetry/stats', {
+      tenantId: user.tenantId,
+      query: { ...(hours && { hours }) },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('telemetry/quality')
+  @ApiOperation({ summary: 'Telemetry quality events' })
+  async telemetryQuality(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/quality', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('telemetry/retention')
+  @ApiOperation({ summary: 'List telemetry retention policies' })
+  async listRetention(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/retention', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('telemetry/retention')
+  @ApiOperation({ summary: 'Upsert telemetry retention policy' })
+  async upsertRetention(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/retention', {
+      method: 'POST',
+      body,
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('telemetry/retention/apply')
+  @ApiOperation({ summary: 'Apply telemetry retention (delete aged rows)' })
+  async applyRetention(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/telemetry/retention/apply', {
+      method: 'POST',
+      body: {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
 }

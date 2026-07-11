@@ -31,10 +31,6 @@
 7. No hard-coded roles/permissions in business logic — use catalog + DB.  
 8. All authorization decisions flow through the centralized policy engine (`shared-security` + gateway guards).  
 
-## Looking ahead (roadmap recommendation)
+## Looking ahead
 
-EAB may reorder preview releases so AI leads observability:
-
-- v0.9.3 AI & Agentic AI Foundation  
-- v0.9.4 Advanced Observability & SRE  
-- … (see `RELEASE_NAMING.md` for formal freeze updates via EAB)  
+Phase 2 closed. Phase 3 Core Observability Platform (`v0.9.3`) approved — see [../phase3/PHASE3_IMPLEMENTATION_WAVES.md](../phase3/PHASE3_IMPLEMENTATION_WAVES.md).

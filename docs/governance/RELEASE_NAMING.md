@@ -21,8 +21,8 @@
 | Version | Name | Status |
 |---------|------|--------|
 | **v0.9.1** | Enterprise Foundation / Production Hardening | ✅ Current (Phase 1) |
-| **v0.9.2** | Enterprise Security & Compliance Foundation | In progress — Wave 2 deployed (`v0.9.2-wave2`) |
-| **v0.9.3** | Enterprise Observability Platform | Planned |
+| **v0.9.2** | Enterprise Security & Compliance Foundation | ✅ Complete (`v0.9.2-wave7`) |
+| **v0.9.3** | Enterprise Observability Platform | 🟢 In progress — Wave 1 Telemetry |
 | **v0.9.4** | AI & Agentic AI Foundation | Planned |
 | **v0.9.5** | Dashboard Studio & Workflow Automation | Planned |
 | **v0.9.6** | Industry & Country Solution Packs | Planned |

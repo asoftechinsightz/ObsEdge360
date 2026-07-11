@@ -194,6 +194,14 @@ async function main() {
     console.log('021_service_identity_mesh.sql already applied.');
   }
 
+  const telemetryCollectors = await tableExists(client, 'telemetry_collectors');
+  if (!telemetryCollectors) {
+    const s22 = path.join(migrationsDir, '022_telemetry_platform.sql');
+    if (fs.existsSync(s22)) await runSqlFile(client, s22);
+  } else {
+    console.log('022_telemetry_platform.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

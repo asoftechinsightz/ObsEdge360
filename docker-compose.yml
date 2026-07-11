@@ -128,6 +128,20 @@ services:
       - "16686:16686"
       - "4318:4318"
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    profiles: ["otel", "full"]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    environment:
+      OPSEDGE_OTLP_ENDPOINT: ${OPSEDGE_OTLP_ENDPOINT:-http://observability:4003}
+      OPSEDGE_TENANT_ID: ${OPSEDGE_TENANT_ID:-default}
+    volumes:
+      - ./infra/otel/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "14318:4318"
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   mongo_data:

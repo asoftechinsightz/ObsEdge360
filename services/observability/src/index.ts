@@ -4,6 +4,7 @@ import { EventBus, TOPICS, createEvent } from '@opsedge360/event-bus';
 import * as monitoring from './monitoring.service';
 import * as apm from './apm.service';
 import * as pipeline from './telemetry-pipeline.service';
+import * as telemetryPlatform from './telemetry-platform.service';
 
 const app = express();
 
@@ -105,8 +106,15 @@ app.post('/v1/metrics', async (req, res) => {
     if (!rateLimitOk(tenantId)) {
       return res.status(429).json({ error: 'OTLP rate limit exceeded' });
     }
+    const bytesIn = Number(req.headers['content-length'] ?? 0);
+    const gate = await telemetryPlatform.gateOtlpIngest(tenantId, 'metrics', req.body, bytesIn);
+    if (!gate.allow) {
+      return res.status(400).json({ error: 'Telemetry quality gate rejected payload', code: 'TELEMETRY_QUALITY', reason: gate.reason });
+    }
     const metrics = apm.extractMetrics(req.body);
     if (metrics.length === 0) {
+      await telemetryPlatform.recordQualityEvent(tenantId, 'metrics', 'no_metrics_extracted');
+      await telemetryPlatform.recordIngestStats(tenantId, 'metrics', 0, 1, bytesIn);
       return res.status(400).json({ error: 'No metrics found in payload' });
     }
 
@@ -134,8 +142,15 @@ app.post('/v1/logs', async (req, res) => {
     if (!rateLimitOk(tenantId)) {
       return res.status(429).json({ error: 'OTLP rate limit exceeded' });
     }
+    const bytesIn = Number(req.headers['content-length'] ?? 0);
+    const gate = await telemetryPlatform.gateOtlpIngest(tenantId, 'logs', req.body, bytesIn);
+    if (!gate.allow) {
+      return res.status(400).json({ error: 'Telemetry quality gate rejected payload', code: 'TELEMETRY_QUALITY', reason: gate.reason });
+    }
     const logs = apm.extractLogs(req.body);
     if (logs.length === 0) {
+      await telemetryPlatform.recordQualityEvent(tenantId, 'logs', 'no_logs_extracted');
+      await telemetryPlatform.recordIngestStats(tenantId, 'logs', 0, 1, bytesIn);
       return res.status(400).json({ error: 'No logs found in payload' });
     }
 
@@ -163,8 +178,15 @@ app.post('/v1/traces', async (req, res) => {
     if (!rateLimitOk(tenantId)) {
       return res.status(429).json({ error: 'OTLP rate limit exceeded' });
     }
+    const bytesIn = Number(req.headers['content-length'] ?? 0);
+    const gate = await telemetryPlatform.gateOtlpIngest(tenantId, 'traces', req.body, bytesIn);
+    if (!gate.allow) {
+      return res.status(400).json({ error: 'Telemetry quality gate rejected payload', code: 'TELEMETRY_QUALITY', reason: gate.reason });
+    }
     const spans = apm.extractSpans(req.body);
     if (spans.length === 0) {
+      await telemetryPlatform.recordQualityEvent(tenantId, 'traces', 'no_spans_extracted');
+      await telemetryPlatform.recordIngestStats(tenantId, 'traces', 0, 1, bytesIn);
       return res.status(400).json({ error: 'No spans found in payload' });
     }
 
@@ -182,6 +204,99 @@ app.post('/v1/traces', async (req, res) => {
     res.json({ partialSuccess: {}, spansReceived: persisted });
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+/** Phase 3 Wave 1 — Telemetry platform control plane */
+app.get('/telemetry/health', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    res.json(await telemetryPlatform.telemetryHealth(tenantId));
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/telemetry/collectors', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    res.json({ collectors: await telemetryPlatform.listCollectors(tenantId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/telemetry/collectors', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const row = await telemetryPlatform.registerCollector(tenantId, req.body ?? {});
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/telemetry/collectors/:id/heartbeat', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const row = await telemetryPlatform.heartbeatCollector(tenantId, id, req.body?.version);
+    res.json(row);
+  } catch (err) {
+    res.status(404).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/telemetry/stats', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const hours = Number(req.query.hours ?? 24);
+    res.json({ stats: await telemetryPlatform.listIngestStats(tenantId, hours) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/telemetry/quality', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const limit = Number(req.query.limit ?? 50);
+    res.json({ events: await telemetryPlatform.listQualityEvents(tenantId, limit) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/telemetry/retention', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    res.json({ policies: await telemetryPlatform.listRetentionPolicies(tenantId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/telemetry/retention', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const signal = String(req.body?.signal ?? 'logs');
+    const days = Number(req.body?.retentionDays ?? 14);
+    const enabled = req.body?.enabled !== false;
+    const scope = req.body?.scope === 'global' ? null : tenantId;
+    const row = await telemetryPlatform.upsertRetentionPolicy(scope, signal, days, enabled);
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/telemetry/retention/apply', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const deleted = await telemetryPlatform.applyRetention(tenantId);
+    res.json({ ok: true, deleted });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
   }
 });
 

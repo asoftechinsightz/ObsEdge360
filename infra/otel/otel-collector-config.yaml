@@ -1,0 +1,49 @@
+# OpsEdge360 — OpenTelemetry Collector reference config (Phase 3 Wave 1)
+# Exports OTLP HTTP/JSON to the observability service (gateway or direct).
+#
+# Usage:
+#   otelcol-contrib --config=infra/otel/otel-collector-config.yaml
+# Or docker compose profile `otel`.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: 400
+
+exporters:
+  otlphttp/opsedge:
+    endpoint: ${env:OPSEDGE_OTLP_ENDPOINT}
+    tls:
+      insecure: true
+    headers:
+      X-Tenant-ID: ${env:OPSEDGE_TENANT_ID}
+    # Maps to observability service /v1/{metrics,logs,traces} via gateway otlp proxies when using API URL
+
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/opsedge, logging]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/opsedge, logging]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/opsedge, logging]
