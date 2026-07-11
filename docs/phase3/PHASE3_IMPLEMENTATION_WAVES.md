@@ -10,7 +10,7 @@
 | 1 | 3.1 | Telemetry Platform | [SDS-3.1-TelemetryPlatform.md](./sds/SDS-3.1-TelemetryPlatform.md) — **Closed** (`v0.9.3-wave1`) |
 | 2 | 3.2 | Universal Agent | [SDS-3.2-UniversalAgent.md](./sds/SDS-3.2-UniversalAgent.md) — **Closed** (`v0.9.3-wave2`) |
 | 3 | 3.3 | Discovery & CMDB Depth | [SDS-3.3-DiscoveryCmdbDepth.md](./sds/SDS-3.3-DiscoveryCmdbDepth.md) — **Closed** (`v0.9.3-wave3`) |
-| 4 | 3.4 | Topology | Planned — next after Wave 3 EAB |
+| 4 | 3.4 | Topology | [SDS-3.4-Topology.md](./sds/SDS-3.4-Topology.md) — **Implementing** |
 | 5 | 3.5 | Operations Intelligence | Planned |
 | 6 | 3.6 | Operations Dashboards | Planned |
 

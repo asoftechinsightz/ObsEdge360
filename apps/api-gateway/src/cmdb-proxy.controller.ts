@@ -125,11 +125,59 @@ export class CmdbProxyController {
     return res.status(result.status).json(result.data);
   }
 
+  @Post('topology/sync-traces')
+  @ApiOperation({ summary: 'Sync trace-derived service dependencies into CMDB topology' })
+  async syncTraces(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.cmdb('/topology/sync-traces', {
+      method: 'POST',
+      body: body ?? {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('topology/dependencies')
+  @ApiOperation({ summary: 'List inferred topology dependencies (trace/discovery)' })
+  @ApiQuery({ name: 'origin', required: false })
+  async listDependencies(
+    @CurrentUser() user: JwtPayload,
+    @Query('origin') origin: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb('/topology/dependencies', {
+      tenantId: user.tenantId,
+      query: { ...(origin ? { origin } : {}) },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('topology/layers')
+  @ApiOperation({ summary: 'Topology layer catalog with node counts' })
+  async listLayers(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.cmdb('/topology/layers', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('topology/events')
+  @ApiOperation({ summary: 'Poll live topology events cursor' })
+  @ApiQuery({ name: 'afterId', required: false })
+  async listTopologyEvents(
+    @CurrentUser() user: JwtPayload,
+    @Query('afterId') afterId: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb('/topology/events', {
+      tenantId: user.tenantId,
+      query: { ...(afterId ? { afterId } : {}) },
+    });
+    return res.status(result.status).json(result.data);
+  }
+
   @Get('topology/:type')
   @ApiOperation({
     summary: 'Get versioned topology snapshot',
     description:
-      'Returns latest topology for type: application | infrastructure | cloud | network | business-service. Proxies CMDB topology engine.',
+      'Returns latest topology for type: application | infrastructure | cloud | network | business-service | kubernetes | service. Proxies CMDB topology engine.',
   })
   async getTopology(
     @CurrentUser() user: JwtPayload,
@@ -153,6 +201,22 @@ export class CmdbProxyController {
   ) {
     const result = await this.proxy.cmdb(`/topology/${encodeURIComponent(type)}/refresh`, {
       method: 'POST',
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('topology/:type/layout')
+  @ApiOperation({ summary: 'Compute and persist topology layout positions' })
+  async layoutTopology(
+    @CurrentUser() user: JwtPayload,
+    @Param('type') type: string,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.cmdb(`/topology/${encodeURIComponent(type)}/layout`, {
+      method: 'POST',
+      body: body ?? {},
       tenantId: user.tenantId,
     });
     return res.status(result.status).json(result.data);

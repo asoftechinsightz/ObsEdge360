@@ -345,7 +345,8 @@ export interface BlastRadiusResult {
   avgHealth: number;
   nodes: ImpactNode[];
   edges: Array<{ source: string; target: string; type: string; strength: string }>;
-  source: 'postgres' | 'neo4j';
+  source: 'postgres' | 'neo4j' | 'cache';
+  layers?: Record<string, number>;
 }
 
 /**
@@ -463,7 +464,7 @@ export async function analyzeBlastRadius(
   const affected = nodes.filter((n) => n.depth > 0);
   const healthSum = affected.reduce((s, n) => s + n.healthScore, 0);
 
-  return {
+  const result: BlastRadiusResult = {
     rootCiId: root.id,
     rootCiName: root.name,
     rootCiType: root.ciType,
@@ -477,6 +478,53 @@ export async function analyzeBlastRadius(
     edges: [...edgeSet.values()],
     source: 'postgres',
   };
+
+  // Layer breakdown for Wave 4 multi-layer blast analysis
+  const layerCounts: Record<string, number> = {};
+  for (const n of affected) {
+    const layer = n.ciType;
+    layerCounts[layer] = (layerCounts[layer] ?? 0) + 1;
+  }
+  result.layers = layerCounts;
+
+  try {
+    await query(
+      `INSERT INTO blast_radius_cache (tenant_id, root_ci_id, direction, depth, result, computed_at, expires_at)
+       VALUES ($1,$2,$3,$4,$5,NOW(),NOW() + INTERVAL '5 minutes')
+       ON CONFLICT (tenant_id, root_ci_id, direction, depth)
+       DO UPDATE SET result = EXCLUDED.result, computed_at = NOW(),
+         expires_at = NOW() + INTERVAL '5 minutes'`,
+      [tenantId, rootCiId, direction, maxDepth, JSON.stringify(result)],
+    );
+  } catch {
+    /* cache optional before migration */
+  }
+
+  return result;
+}
+
+export async function getCachedBlastRadius(
+  tenantId: string,
+  rootCiId: string,
+  opts: { depth?: number; direction?: 'downstream' | 'upstream' | 'both' } = {},
+): Promise<BlastRadiusResult | null> {
+  const maxDepth = Math.min(Math.max(opts.depth ?? 3, 1), 6);
+  const direction = opts.direction ?? 'downstream';
+  try {
+    const row = await queryOne<{ result: BlastRadiusResult }>(
+      `SELECT result FROM blast_radius_cache
+       WHERE tenant_id = $1 AND root_ci_id = $2 AND direction = $3 AND depth = $4
+         AND expires_at > NOW()`,
+      [tenantId, rootCiId, direction, maxDepth],
+    );
+    if (row?.result) {
+      const cached = typeof row.result === 'string' ? JSON.parse(row.result as unknown as string) : row.result;
+      return { ...cached, source: 'cache' };
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 export async function importCis(

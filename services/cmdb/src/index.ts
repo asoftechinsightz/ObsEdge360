@@ -316,6 +316,11 @@ app.get('/twin/blast-radius/:ciId', tenantMiddleware, async (req, res) => {
     const ciId = paramId(req, 'ciId');
     const depth = Number(req.query.depth ?? 3);
     const direction = (req.query.direction as 'downstream' | 'upstream' | 'both') ?? 'downstream';
+    const useCache = req.query.cache !== 'false';
+    if (useCache) {
+      const cached = await repo.getCachedBlastRadius(tenantId, ciId, { depth, direction });
+      if (cached) return res.json(cached);
+    }
     const blast = await repo.analyzeBlastRadius(tenantId, ciId, { depth, direction });
     if (!blast) return res.status(404).json({ error: 'CI not found' });
     res.json(blast);
@@ -371,6 +376,79 @@ app.get('/history', tenantMiddleware, async (req, res) => {
   }
 });
 
+/** Wave 4 static topology routes MUST precede /topology/:type */
+app.post('/topology/sync-traces', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const hours = Number(req.body?.hours ?? req.query.hours ?? 1);
+    const traceDep = await import('./trace-dependency.service');
+    const result = await traceDep.syncTraceDependencies(tenantId, hours);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/topology/dependencies', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const traceDep = await import('./trace-dependency.service');
+    const deps = await traceDep.listInferredDependencies(tenantId, {
+      origin: req.query.origin as string | undefined,
+      limit: req.query.limit ? Number(req.query.limit) : 200,
+    });
+    res.json({ dependencies: deps, count: deps.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/topology/layers', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    res.json({ layers: await topology.listLayerStats(tenantId) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/topology/events', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const events = await import('./topology-events');
+    const list = await events.listTopologyEvents(tenantId, {
+      afterId: req.query.afterId ? Number(req.query.afterId) : 0,
+      limit: req.query.limit ? Number(req.query.limit) : 50,
+    });
+    res.json({ events: list, latestId: list.length ? list[list.length - 1].id : Number(req.query.afterId ?? 0) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/topology/live', tenantMiddleware, async (req, res) => {
+  const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+  res.write(`event: connected\ndata: ${JSON.stringify({ tenantId, at: new Date().toISOString() })}\n\n`);
+
+  const events = await import('./topology-events');
+  const unsub = events.subscribeTopologyLive(tenantId, (ev) => {
+    res.write(`event: topology\ndata: ${JSON.stringify(ev)}\n\n`);
+  });
+
+  const heartbeat = setInterval(() => {
+    res.write(`: heartbeat\n\n`);
+  }, 15000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    unsub();
+  });
+});
+
 app.get('/topology/:type', tenantMiddleware, async (req, res) => {
   try {
     const tenantId = (req as express.Request & { tenantId: string }).tenantId;
@@ -391,6 +469,18 @@ app.post('/topology/:type/refresh', tenantMiddleware, async (req, res) => {
     const tenantId = (req as express.Request & { tenantId: string }).tenantId;
     const type = paramId(req, 'type') as topology.TopologyType;
     const snapshot = await topology.incrementalRefresh(tenantId, type);
+    res.status(201).json(snapshot);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/topology/:type/layout', tenantMiddleware, async (req, res) => {
+  try {
+    const tenantId = (req as express.Request & { tenantId: string }).tenantId;
+    const type = paramId(req, 'type') as topology.TopologyType;
+    const algorithm = (req.body?.algorithm as 'force-directed' | 'layered' | 'circular' | 'grid') ?? 'force-directed';
+    const snapshot = await topology.applyAndPersistLayout(tenantId, type, algorithm);
     res.status(201).json(snapshot);
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });

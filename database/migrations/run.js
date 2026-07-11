@@ -218,6 +218,14 @@ async function main() {
     console.log('024_discovery_cmdb_depth.sql already applied.');
   }
 
+  const inferredDeps = await tableExists(client, 'inferred_dependencies');
+  if (!inferredDeps) {
+    const s25 = path.join(migrationsDir, '025_topology_live.sql');
+    if (fs.existsSync(s25)) await runSqlFile(client, s25);
+  } else {
+    console.log('025_topology_live.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

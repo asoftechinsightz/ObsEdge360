@@ -90,6 +90,18 @@ async function handleAssetEvent(topic: string, event: PlatformEvent<AssetPayload
 
   await cmdbBus.publish(TOPICS.TWIN_UPDATED, createEvent('twin.updated', event.tenantId, { ciId: ci.id }));
 
+  try {
+    const { publishAndBroadcast } = await import('./topology-events');
+    await publishAndBroadcast(event.tenantId, 'discovery_update', null, {
+      ciId: ci.id,
+      name: ci.name,
+      ciType: ci.ciType,
+      changeType: topic === TOPICS.ASSET_DISCOVERED ? 'created' : 'updated',
+    });
+  } catch {
+    /* topology events optional */
+  }
+
   // Trigger discovery AI agent (Phase 2)
   triggerAgent('asset.discovered', event.tenantId, { name: p.name, ciType: p.ciType, aiConfidenceScore: p.aiConfidenceScore }).catch(() => undefined);
 }
