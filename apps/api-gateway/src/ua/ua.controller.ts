@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Headers,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -142,6 +143,7 @@ export class UaController {
   }
 
   @Post('agents/:id/heartbeat')
+  @HttpCode(200)
   @Public()
   @ApiOperation({ summary: 'Agent heartbeat + optional health' })
   async heartbeat(
@@ -167,6 +169,7 @@ export class UaController {
   }
 
   @Post('agents/:id/inventory')
+  @HttpCode(200)
   @Public()
   @ApiOperation({ summary: 'Upload agent inventory' })
   async inventory(
@@ -220,6 +223,7 @@ export class UaController {
   }
 
   @Post('agents/:id/plugins')
+  @HttpCode(200)
   @Public()
   @ApiOperation({ summary: 'Report plugin status' })
   async plugins(
