@@ -14,6 +14,8 @@ import { incSecurityMetric } from './metrics';
 export * from './permissions';
 export * from './metrics';
 export * from './audit-event';
+export * from './secrets-provider';
+export * from './secrets-crypto';
 
 const log = createLogger('shared-security');
 

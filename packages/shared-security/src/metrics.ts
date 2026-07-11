@@ -12,7 +12,11 @@ export type SecurityMetricName =
   | 'security.audit.queue_enqueued'
   | 'security.audit.l2_written'
   | 'security.audit.verify_fail'
-  | 'security.audit.queue_depth';
+  | 'security.audit.queue_depth'
+  | 'security.secrets.created'
+  | 'security.secrets.rotated'
+  | 'security.secrets.rotate_fail'
+  | 'security.secrets.expiring';
 
 const counters = new Map<SecurityMetricName, number>();
 

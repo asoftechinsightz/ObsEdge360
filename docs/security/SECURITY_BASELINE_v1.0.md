@@ -70,10 +70,12 @@ This document is the living reference for platform security posture. Update it w
 
 | Control | Current state |
 |---------|----------------|
-| Runtime secrets | Host `.env` / compose env (JWT, DB password) |
-| Image secrets | Not baked into images |
-| Vault / KMS | Not yet (Wave 4 SDS-2.4) |
-| Agent keys | Phase 1 OC — validate separately |
+| Interface | `SecretsProvider` (`local`, `env`, stubs: vault/aws/azure/gcp/k8s) |
+| Encryption | AES-256-GCM envelope; `SECRETS_MASTER_KEY` |
+| Versioning / rotation / expiry | `secrets` + `secret_versions` (migration 018) |
+| APIs | create, list, metadata, reveal, rotate, disable, revoke, versions, health |
+| Audit | `secrets_key_management` via Wave 3 pipeline |
+| Vault / cloud KMS | Stub adapters — cutover later |
 
 ## 7. Encryption standards
 

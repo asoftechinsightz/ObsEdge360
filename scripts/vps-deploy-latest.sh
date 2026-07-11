@@ -16,6 +16,11 @@ cp -a "$ENVBAK" .env
 grep -q '^AUTHZ_ENFORCE=' .env || echo 'AUTHZ_ENFORCE=true' >> .env
 grep -q '^AUDIT_L2_QUEUE=' .env || echo 'AUDIT_L2_QUEUE=true' >> .env
 grep -q '^AUDIT_EMIT=' .env || echo 'AUDIT_EMIT=true' >> .env
+if ! grep -q '^SECRETS_MASTER_KEY=' .env; then
+  KEY=$(openssl rand -base64 32 | tr -d '\n')
+  echo "SECRETS_MASTER_KEY=$KEY" >> .env
+  echo "SECRETS_PROVIDER=local" >> .env
+fi
 git log -1 --oneline
 git branch --show-current
 

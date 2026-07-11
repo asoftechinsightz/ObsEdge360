@@ -31,6 +31,8 @@ import { CopilotController } from './copilot/copilot.controller';
 import { CopilotService } from './copilot/copilot.service';
 import { AuditController } from './audit/audit.controller';
 import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.service';
+import { SecretsController } from './secrets/secrets.controller';
+import { SecretsRotationScheduler } from './secrets/secrets-rotation.scheduler';
 
 @Module({
   controllers: [
@@ -55,6 +57,7 @@ import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.servic
     GovernanceController,
     PlatformController,
     AuditController,
+    SecretsController,
   ],
   providers: [
     ProxyService,
@@ -63,6 +66,7 @@ import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.servic
     SsoService,
     CopilotService,
     AuditEvidenceWriterService,
+    SecretsRotationScheduler,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

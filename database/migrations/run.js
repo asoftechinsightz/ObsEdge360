@@ -162,6 +162,14 @@ async function main() {
     console.log('017_audit_dual_layer.sql already applied.');
   }
 
+  const secretsTable = await tableExists(client, 'secrets');
+  if (!secretsTable) {
+    const s18 = path.join(migrationsDir, '018_secrets_store.sql');
+    if (fs.existsSync(s18)) await runSqlFile(client, s18);
+  } else {
+    console.log('018_secrets_store.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
