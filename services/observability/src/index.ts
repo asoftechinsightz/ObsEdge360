@@ -9,6 +9,7 @@ import * as opsIntel from './ops-intelligence.service';
 import * as opsDashboards from './ops-dashboards.service';
 import * as llmGateway from './llm-gateway.service';
 import * as aiops from './aiops.service';
+import * as correlation from './correlation-engine.service';
 
 const app = express();
 
@@ -1369,8 +1370,20 @@ app.post('/ai/copilot', async (req, res) => {
 app.post('/ai/correlate', async (req, res) => {
   try {
     const tenantId = await resolveTenant(req);
-    const result = await aiops.correlateAdvanced(tenantId);
-    res.status(201).json(result);
+    // Wave 2: advanced multi-signal correlation (backward compatible response shape)
+    const advanced = await correlation.runMultiSignalCorrelation(tenantId, {
+      windowMinutes: Number(req.body?.windowMinutes ?? 30),
+      minSignals: Number(req.body?.minSignals ?? 2),
+    });
+    const top = advanced.clusters[0];
+    res.status(201).json({
+      ...advanced,
+      id: top?.id,
+      created: Boolean(top?.created),
+      title: top?.title ?? 'No multi-signal clusters',
+      severity: top?.severity ?? 'info',
+      signals: advanced.signalCounts,
+    });
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }
@@ -1379,8 +1392,49 @@ app.post('/ai/correlate', async (req, res) => {
 app.get('/ai/correlations', async (req, res) => {
   try {
     const tenantId = await resolveTenant(req);
-    const events = await aiops.listCorrelations(tenantId);
+    const events = await correlation.listDetailedCorrelations(
+      tenantId,
+      req.query.limit ? Number(req.query.limit) : 50,
+    );
     res.json({ events, count: events.length });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/correlations/:id', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const detail = await correlation.getCorrelationDetail(tenantId, req.params.id);
+    if (!detail) return res.status(404).json({ error: 'Correlation not found' });
+    res.json(detail);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/ai/signals/collect', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const result = await correlation.collectSignals(
+      tenantId,
+      Number(req.body?.windowMinutes ?? 30),
+    );
+    res.status(201).json({
+      counts: result.counts,
+      signalCount: result.signals.length,
+      sample: result.signals.slice(0, 20),
+    });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/ai/signals/snapshot', async (req, res) => {
+  try {
+    const tenantId = await resolveTenant(req);
+    const snap = await correlation.latestSignalSnapshot(tenantId);
+    res.json({ snapshot: snap });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

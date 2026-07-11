@@ -99,11 +99,11 @@ export class AiController {
   }
 
   @Post('correlate')
-  @ApiOperation({ summary: 'Advanced multi-signal AIOps correlation' })
-  async correlate(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+  @ApiOperation({ summary: 'Advanced multi-signal AIOps correlation (metrics/logs/traces/alerts/changes)' })
+  async correlate(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
     const result = await this.proxy.observability('/ai/correlate', {
       method: 'POST',
-      body: {},
+      body: body ?? {},
       tenantId: user.tenantId,
     });
     return res.status(result.status).json(result.data);
@@ -113,6 +113,39 @@ export class AiController {
   @ApiOperation({ summary: 'List AIOps correlation events' })
   async correlations(@CurrentUser() user: JwtPayload, @Res() res: Response) {
     const result = await this.proxy.observability('/ai/correlations', { tenantId: user.tenantId });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('correlations/:id')
+  @ApiOperation({ summary: 'Correlation cluster detail with members' })
+  async correlationDetail(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.proxy.observability(`/ai/correlations/${id}`, {
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Post('signals/collect')
+  @ApiOperation({ summary: 'Collect multi-signal snapshot for correlation window' })
+  async collectSignals(@CurrentUser() user: JwtPayload, @Body() body: unknown, @Res() res: Response) {
+    const result = await this.proxy.observability('/ai/signals/collect', {
+      method: 'POST',
+      body: body ?? {},
+      tenantId: user.tenantId,
+    });
+    return res.status(result.status).json(result.data);
+  }
+
+  @Get('signals/snapshot')
+  @ApiOperation({ summary: 'Latest signal collection snapshot' })
+  async signalSnapshot(@CurrentUser() user: JwtPayload, @Res() res: Response) {
+    const result = await this.proxy.observability('/ai/signals/snapshot', {
+      tenantId: user.tenantId,
+    });
     return res.status(result.status).json(result.data);
   }
 }

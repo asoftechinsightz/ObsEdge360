@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { BrainCircuit, RefreshCw, Send, BookOpen, Sparkles } from 'lucide-react';
+import { BrainCircuit, RefreshCw, Send, BookOpen, Sparkles, GitMerge, Activity } from 'lucide-react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 
@@ -12,12 +12,47 @@ interface AiHealth {
   fallback: string;
 }
 
+interface CorrelationRow {
+  id: string;
+  title?: string;
+  severity?: string;
+  score?: number;
+  signal_types?: string[];
+  primary_service?: string | null;
+  summary?: string | null;
+  created_at?: string;
+}
+
+interface CorrelationDetail {
+  id: string;
+  title: string;
+  severity: string;
+  score?: number;
+  signalTypes?: string[];
+  primaryService?: string | null;
+  summary?: string | null;
+  members?: Array<Record<string, unknown>>;
+}
+
+interface SignalSnapshot {
+  metrics_count?: number;
+  logs_count?: number;
+  traces_count?: number;
+  alerts_count?: number;
+  anomalies_count?: number;
+  changes_count?: number;
+  collected_at?: string;
+  window_minutes?: number;
+}
+
 export default function AiOpsPage() {
   const [health, setHealth] = useState<AiHealth | null>(null);
   const [question, setQuestion] = useState('Why is Service A degraded?');
   const [reply, setReply] = useState('');
   const [rca, setRca] = useState<Record<string, unknown> | null>(null);
-  const [correlations, setCorrelations] = useState<Array<Record<string, unknown>>>([]);
+  const [correlations, setCorrelations] = useState<CorrelationRow[]>([]);
+  const [detail, setDetail] = useState<CorrelationDetail | null>(null);
+  const [snapshot, setSnapshot] = useState<SignalSnapshot | null>(null);
   const [docs, setDocs] = useState<Array<Record<string, unknown>>>([]);
   const [message, setMessage] = useState('');
   const [ragTitle, setRagTitle] = useState('NOC runbook');
@@ -27,14 +62,16 @@ export default function AiOpsPage() {
 
   const load = useCallback(async () => {
     try {
-      const [h, c, d] = await Promise.all([
+      const [h, c, d, snap] = await Promise.all([
         apiClient<AiHealth>('/ai/health'),
-        apiClient<{ events: Array<Record<string, unknown>> }>('/ai/correlations'),
+        apiClient<{ events: CorrelationRow[] }>('/ai/correlations'),
         apiClient<{ documents: Array<Record<string, unknown>> }>('/ai/rag/documents'),
+        apiClient<{ snapshot: SignalSnapshot | null }>('/ai/signals/snapshot'),
       ]);
       setHealth(h);
       setCorrelations(c.events ?? []);
       setDocs(d.documents ?? []);
+      setSnapshot(snap.snapshot ?? null);
     } catch (err) {
       setMessage((err as Error).message);
     }
@@ -74,10 +111,45 @@ export default function AiOpsPage() {
   }
 
   async function correlate() {
+    setMessage('Running multi-signal correlation…');
     try {
-      await apiClient('/ai/correlate', { method: 'POST', body: '{}' });
-      setMessage('Correlation completed');
+      const r = await apiClient<{
+        clustersCreated?: number;
+        signalCounts?: Record<string, number>;
+        clusters?: Array<{ id?: string }>;
+      }>('/ai/correlate', {
+        method: 'POST',
+        body: JSON.stringify({ windowMinutes: 30, minSignals: 2 }),
+      });
+      const topId = r.clusters?.[0]?.id;
+      setMessage(
+        `Correlation · ${r.clustersCreated ?? 0} new clusters · signals ${JSON.stringify(r.signalCounts ?? {})}`,
+      );
       await load();
+      if (topId) await openDetail(topId);
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function collectSignals() {
+    setMessage('Collecting signal window…');
+    try {
+      const r = await apiClient<{ counts: Record<string, number>; signalCount: number }>(
+        '/ai/signals/collect',
+        { method: 'POST', body: JSON.stringify({ windowMinutes: 30 }) },
+      );
+      setMessage(`Signals collected · ${r.signalCount} · ${JSON.stringify(r.counts)}`);
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
+  }
+
+  async function openDetail(id: string) {
+    try {
+      const d = await apiClient<CorrelationDetail>(`/ai/correlations/${id}`);
+      setDetail(d);
     } catch (err) {
       setMessage((err as Error).message);
     }
@@ -105,7 +177,7 @@ export default function AiOpsPage() {
               <BrainCircuit className="h-6 w-6 text-fuchsia-400" /> AIOps / LLM RCA
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Grounded Copilot and RCA via LLM Gateway · RAG corpus · multi-signal correlation.
+              Grounded Copilot and RCA · RAG · advanced multi-signal correlation (metrics/logs/traces/alerts/changes).
             </p>
           </div>
           <button type="button" onClick={() => void load()} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300">
@@ -132,6 +204,19 @@ export default function AiOpsPage() {
           </div>
         </div>
 
+        {snapshot && (
+          <div className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs text-slate-400 flex flex-wrap gap-3 items-center">
+            <Activity className="h-3.5 w-3.5 text-sky-400" />
+            <span>Last signal snapshot</span>
+            <span>metrics {snapshot.metrics_count ?? 0}</span>
+            <span>logs {snapshot.logs_count ?? 0}</span>
+            <span>traces {snapshot.traces_count ?? 0}</span>
+            <span>alerts {snapshot.alerts_count ?? 0}</span>
+            <span>anomalies {snapshot.anomalies_count ?? 0}</span>
+            <span>changes {snapshot.changes_count ?? 0}</span>
+          </div>
+        )}
+
         {message && (
           <div className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-300">{message}</div>
         )}
@@ -152,8 +237,11 @@ export default function AiOpsPage() {
               <button type="button" onClick={() => void runRca()} className="inline-flex items-center gap-1 rounded-md bg-violet-600/80 px-3 py-1.5 text-sm text-white">
                 <Sparkles className="h-4 w-4" /> Grounded RCA
               </button>
-              <button type="button" onClick={() => void correlate()} className="rounded-md bg-sky-700/80 px-3 py-1.5 text-sm text-white">
-                Correlate
+              <button type="button" onClick={() => void collectSignals()} className="inline-flex items-center gap-1 rounded-md bg-teal-700/80 px-3 py-1.5 text-sm text-white">
+                <Activity className="h-4 w-4" /> Collect signals
+              </button>
+              <button type="button" onClick={() => void correlate()} className="inline-flex items-center gap-1 rounded-md bg-sky-700/80 px-3 py-1.5 text-sm text-white">
+                <GitMerge className="h-4 w-4" /> Correlate
               </button>
             </div>
             {reply && (
@@ -164,6 +252,31 @@ export default function AiOpsPage() {
             {rca && (
               <div className="text-xs text-slate-500">
                 Session {String(rca.id)} · citations {Array.isArray(rca.citations) ? rca.citations.length : 0}
+              </div>
+            )}
+
+            {detail && (
+              <div className="rounded-md border border-slate-800 bg-slate-900/70 p-3 space-y-2">
+                <div className="text-sm font-medium text-slate-200">{detail.title}</div>
+                <div className="text-xs text-slate-500">
+                  {detail.severity}
+                  {detail.score != null ? ` · score ${Number(detail.score).toFixed(1)}` : ''}
+                  {detail.primaryService ? ` · ${detail.primaryService}` : ''}
+                  {detail.signalTypes?.length ? ` · ${detail.signalTypes.join('+')}` : ''}
+                </div>
+                {detail.summary && <p className="text-xs text-slate-400">{detail.summary}</p>}
+                <ul className="max-h-48 overflow-auto space-y-1 text-xs text-slate-400">
+                  {(detail.members ?? []).slice(0, 40).map((m) => (
+                    <li key={String(m.id ?? `${m.signal_type}-${m.source_id}`)}>
+                      <span className="text-sky-400">{String(m.signal_type)}</span>
+                      {' · '}
+                      {String(m.severity ?? '')}
+                      {' · '}
+                      {String(m.title ?? m.source_id)}
+                    </li>
+                  ))}
+                  {(detail.members?.length ?? 0) === 0 && <li>No members</li>}
+                </ul>
               </div>
             )}
           </div>
@@ -195,11 +308,22 @@ export default function AiOpsPage() {
             </div>
 
             <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-              <h2 className="text-sm font-medium text-slate-200 mb-2">Correlations</h2>
-              <ul className="space-y-1 text-xs text-slate-400 max-h-40 overflow-auto">
-                {correlations.slice(0, 8).map((e) => (
-                  <li key={String(e.id)} className="truncate">
-                    {String(e.severity)} · {String(e.title)}
+              <h2 className="text-sm font-medium text-slate-200 mb-2 flex items-center gap-1.5">
+                <GitMerge className="h-4 w-4" /> Correlations
+              </h2>
+              <ul className="space-y-1.5 text-xs text-slate-400 max-h-56 overflow-auto">
+                {correlations.slice(0, 12).map((e) => (
+                  <li key={String(e.id)}>
+                    <button
+                      type="button"
+                      onClick={() => void openDetail(String(e.id))}
+                      className="w-full text-left truncate hover:text-slate-200"
+                    >
+                      {String(e.severity ?? '')}
+                      {e.score != null ? ` · ${Number(e.score).toFixed(0)}` : ''}
+                      {' · '}
+                      {String(e.title ?? e.id)}
+                    </button>
                   </li>
                 ))}
                 {correlations.length === 0 && <li>None yet</li>}

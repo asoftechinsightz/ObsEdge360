@@ -250,6 +250,14 @@ async function main() {
     console.log('028_llm_aiops_foundation.sql already applied.');
   }
 
+  const corrMembers = await tableExists(client, 'aiops_correlation_members');
+  if (!corrMembers) {
+    const s29 = path.join(migrationsDir, '029_aiops_multisignal_correlation.sql');
+    if (fs.existsSync(s29)) await runSqlFile(client, s29);
+  } else {
+    console.log('029_aiops_multisignal_correlation.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
