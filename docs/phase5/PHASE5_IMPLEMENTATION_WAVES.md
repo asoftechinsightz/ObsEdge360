@@ -11,7 +11,7 @@
 | 2 | HA foundations (compose scale, Helm templates, failover drills) | [SDS-5.2](./sds/SDS-5.2-HighAvailabilityFoundation.md) | **Closed** (`v1.0.0-wave2`) |
 | 3 | Platform ops depth (quotas, capacity/storage dashboards, settings policies) | [SDS-5.3](./sds/SDS-5.3-PlatformOperationsGovernance.md) | **Closed** (`v1.0.0-wave3`) |
 | 4 | Controlled automation depth (workflow engine, emergency stop UX, simulation) | [SDS-5.4](./sds/SDS-5.4-ControlledAutomationWorkflow.md) | **Closed** (`v1.0.0-wave4`) |
-| 5 | Integrations (ITSM, notifications delivery, identity LDAP) | SDS-5.5 | Planned |
+| 5 | Integrations (ITSM, notifications delivery, identity LDAP) | [SDS-5.5](./sds/SDS-5.5-EnterpriseIntegrationsIdentity.md) | **Implementing** |
 | 6 | Security hardening (rotation productization, session/password policies UI) | SDS-5.6 | Planned |
 | 7 | Performance benchmarks + soak | SDS-5.7 | Planned |
 | 8 | Deployment packages (SaaS/Hybrid/On-Prem offline/air-gap tooling) | SDS-5.8 | Planned |

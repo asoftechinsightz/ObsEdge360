@@ -47,6 +47,8 @@ import { HaService } from './admin/ha.service';
 import { GovernanceService } from './admin/governance.service';
 import { AutomationController } from './admin/automation.controller';
 import { AutomationService } from './admin/automation.service';
+import { IntegrationsController } from './admin/integrations.controller';
+import { IntegrationsService } from './admin/integrations.service';
 
 @Module({
   controllers: [
@@ -81,6 +83,7 @@ import { AutomationService } from './admin/automation.service';
     AiController,
     AdminController,
     AutomationController,
+    IntegrationsController,
   ],
   providers: [
     ProxyService,
@@ -95,6 +98,7 @@ import { AutomationService } from './admin/automation.service';
     HaService,
     GovernanceService,
     AutomationService,
+    IntegrationsService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

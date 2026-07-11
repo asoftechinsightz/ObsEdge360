@@ -314,6 +314,14 @@ async function main() {
     console.log('036_controlled_automation.sql already applied.');
   }
 
+  const connectorInstances = await tableExists(client, 'connector_instances');
+  if (!connectorInstances) {
+    const s37 = path.join(migrationsDir, '037_enterprise_integrations.sql');
+    if (fs.existsSync(s37)) await runSqlFile(client, s37);
+  } else {
+    console.log('037_enterprise_integrations.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
