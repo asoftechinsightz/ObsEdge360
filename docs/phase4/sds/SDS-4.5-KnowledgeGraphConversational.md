@@ -3,9 +3,11 @@
 **Document ID:** OE360-SDS-4.5  
 **Wave:** Phase 4 / Wave 5  
 **Release:** `v0.9.4`  
-**Status:** ✅ APPROVED FOR IMPLEMENTATION  
+**Status:** ✅ CLOSED (`v0.9.4-wave5`)  
 **Depends on:** Wave 4 closed (`v0.9.4-wave4`)  
-**ADRs:** ADR-021 · ADR-022 · ADR-023
+**ADRs:** ADR-021 · ADR-022 · ADR-023  
+**Feature SHA:** `b30734fe173448f3484a6a7928c3179b597ab242`  
+**Validation:** `P4_WAVE5_VALIDATION_OK` (18/18)
 
 ## Objectives
 

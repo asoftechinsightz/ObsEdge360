@@ -33,12 +33,14 @@ TENANT_SLUG=$(python3 -c "import json;print(json.load(open('/tmp/p4w5_signup.jso
 TID=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -tAc \
   "SELECT id FROM tenants WHERE slug='${TENANT_SLUG}' LIMIT 1;" | tr -d '[:space:]')
 if [ -n "$TID" ]; then
-  CI1=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -tAc \
+  CI1=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -qtAc \
     "INSERT INTO configuration_items (tenant_id, external_id, name, ci_type, status, health_score)
-     VALUES ('$TID','w5-api-${SUFFIX}','payments-api','service','active',70) RETURNING id;" | tr -d '[:space:]')
-  CI2=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -tAc \
+     VALUES ('$TID','w5-api-${SUFFIX}','payments-api','service','active',70) RETURNING id;" \
+    | grep -Eo '[0-9a-f-]{36}' | head -1)
+  CI2=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -qtAc \
     "INSERT INTO configuration_items (tenant_id, external_id, name, ci_type, status, health_score)
-     VALUES ('$TID','w5-db-${SUFFIX}','payments-db','database','active',65) RETURNING id;" | tr -d '[:space:]')
+     VALUES ('$TID','w5-db-${SUFFIX}','payments-db','database','active',65) RETURNING id;" \
+    | grep -Eo '[0-9a-f-]{36}' | head -1)
   docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -c \
     "INSERT INTO relationships (tenant_id, source_ci_id, target_ci_id, relationship_type, strength)
      VALUES ('$TID','$CI1','$CI2','depends_on','normal');" >/dev/null

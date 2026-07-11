@@ -13,4 +13,4 @@
 | Validation | ✅ 21/21 |
 | Tag | `v0.9.4-wave4` |
 
-**Wave 5:** 🟢 Authorized — Knowledge graph + conversational depth
+**Wave 5:** ✅ Closed — `v0.9.4-wave5` / `P4_WAVE5_VALIDATION_OK`
