@@ -14,4 +14,4 @@
 | Docs | ✅ |
 | Tag | `v0.9.3-wave4` |
 
-**Wave 5:** 🟢 Implementing — Operations Intelligence
+**Wave 5:** ✅ Closed (`v0.9.3-wave5`) — Operations Intelligence
