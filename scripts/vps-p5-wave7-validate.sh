@@ -13,6 +13,13 @@ check() {
 echo "=== Phase 5 Wave 7 validation @ $API ==="
 echo "git: $(cd "$ROOT" && git log -1 --oneline)"
 
+# Wait for API plane (post-deploy / post-drill)
+for i in $(seq 1 40); do
+  H=$(curl -sk -o /dev/null -w '%{http_code}' "$API/health" || true)
+  if [ "$H" = "200" ]; then break; fi
+  sleep 3
+done
+
 check health 200 "$(curl -sk -o /dev/null -w '%{http_code}' "$API/health")"
 
 TAB=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -tAc \
@@ -51,8 +58,9 @@ SUFFIX=$(date +%s)
 SIGN=$(curl -sk -o /tmp/p5w7_signup.json -w '%{http_code}' -X POST "$API/auth/signup" \
   -H 'Content-Type: application/json' \
   -d "{\"email\":\"p5w7.admin.${SUFFIX}@opsedge360.internal\",\"password\":\"P5W7Val!${SUFFIX}Aa\",\"name\":\"P5W7 Admin\",\"organizationName\":\"P5W7 Org ${SUFFIX}\"}")
-if [ "$SIGN" = "201" ] || [ "$SIGN" = "200" ]; then echo "PASS signup ($SIGN)"; PASS=$((PASS+1)); else echo "FAIL signup"; FAIL=$((FAIL+1)); fi
-TOKEN=$(python3 -c "import json;print(json.load(open('/tmp/p5w7_signup.json')).get('accessToken') or '')")
+if [ "$SIGN" = "201" ] || [ "$SIGN" = "200" ]; then echo "PASS signup ($SIGN)"; PASS=$((PASS+1)); else echo "FAIL signup got=$SIGN"; cat /tmp/p5w7_signup.json || true; FAIL=$((FAIL+1)); fi
+TOKEN=$(python3 -c "import json;print(json.load(open('/tmp/p5w7_signup.json')).get('accessToken') or '')" 2>/dev/null || true)
+if [ -z "$TOKEN" ]; then echo "FAIL token_missing"; FAIL=$((FAIL+1)); echo "=== RESULT pass=$PASS fail=$FAIL ==="; exit 1; fi
 
 OV=$(curl -sk -o /tmp/p5w7_ov.json -w '%{http_code}' "$API/admin/system/certification" -H "Authorization: Bearer $TOKEN")
 check certification_overview 200 "$OV"

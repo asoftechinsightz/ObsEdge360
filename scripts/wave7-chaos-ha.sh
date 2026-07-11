@@ -77,5 +77,6 @@ auth -X PUT "$API/admin/system/certification/runs/$HID/complete" \
   -d "{\"status\":\"passed\",\"checks\":$CHECKS,\"passed\":4,\"failed\":0,\"metrics\":{\"chaosRunId\":\"$RID\"}}" >/dev/null
 
 # Ensure API plane healthy before exit
+$COMPOSE up -d --no-deps --force-recreate nginx >/dev/null 2>&1 || true
 wait_health
 echo "WAVE7_CHAOS_HA_OK run=$RID ha=$HID"
