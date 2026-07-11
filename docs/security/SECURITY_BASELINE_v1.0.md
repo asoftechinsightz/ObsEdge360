@@ -49,11 +49,13 @@ This document is the living reference for platform security posture. Update it w
 
 | Control | Current state |
 |---------|----------------|
-| Schema | [AUDIT_EVENT_SCHEMA.md](../phase2/AUDIT_EVENT_SCHEMA.md) |
-| Storage | `audit_logs` (+ JSONB metadata) |
-| Emitters today | AuthZ deny (tenant spoof, permission deny) |
-| Typed helper | `writeStandardAudit` / `AuditEvent` |
-| Wave 3 | Expand coverage (mutations, admin, compliance) |
+| Schema | **v1.1** — [AUDIT_EVENT_SCHEMA.md](../phase2/AUDIT_EVENT_SCHEMA.md) |
+| Layer 1 | `audit_logs` — sync, operational |
+| Queue | `audit_evidence_outbox` — durable async path |
+| Layer 2 | `audit_evidence` + `content_hash` via Evidence Writer |
+| APIs | ingest, search, evidence export, verify, retention, legal hold, health |
+| Emitters today | AuthZ deny (+ ingest API); expand AuthN emitters in Wave 3 harden |
+| Flags | `AUDIT_EMIT`, `AUDIT_L2_QUEUE`, `AUDIT_ALLOW_SAMPLE_RATE`, `AUDIT_FAIL_CLOSED` |
 
 ## 5. Policy engine
 
