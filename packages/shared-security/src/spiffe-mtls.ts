@@ -533,7 +533,7 @@ export async function meshHealthSummary(): Promise<Record<string, unknown>> {
 
 /** In-process mTLS handshake proof (client+server using same CA). */
 export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeId?: string; reason?: string }> {
-  const https = await import('https');
+  const { createServer, request } = await import('https');
   await bootstrapTrustCa();
   const { caCert, caKey, pemCert: caPem } = await caMaterial();
   const serverKeys = generateKeyPair();
@@ -559,7 +559,7 @@ export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeI
   const serverKeyPem = privateKeyToPem(serverKeys.privateKey);
   const clientKeyPem = privateKeyToPem(clientKeys.privateKey);
 
-  const checkServerIdentity = (_host: string, cert: import("tls").PeerCertificate): Error | undefined => {
+  const checkServerIdentity = (_host: string, cert: import('tls').PeerCertificate): Error | undefined => {
     const san = (cert as { subjectaltname?: string }).subjectaltname ?? '';
     const match = san.match(/URI:(spiffe:\/\/[^,\s]+)/i) ?? san.match(/(spiffe:\/\/[^,\s]+)/i);
     if (!match?.[1]?.startsWith(`spiffe://${spiffeTrustDomain()}/`)) {
@@ -569,7 +569,7 @@ export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeI
   };
 
   return new Promise((resolve) => {
-    const server = https.createServer(
+    const server = createServer(
       {
         key: serverKeyPem,
         cert: serverPem,
@@ -580,10 +580,10 @@ export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeI
       (req, res) => {
         const peer = (req.socket as import('tls').TLSSocket).getPeerCertificate(true);
         const peerPem = peer?.raw
-          ? `-----BEGIN CERTIFICATE-----\n${Buffer.from(peer.raw).toString("base64").match(/.{1,64}/g)?.join("\n")}\n-----END CERTIFICATE-----\n`
+          ? `-----BEGIN CERTIFICATE-----\n${Buffer.from(peer.raw).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----\n`
           : clientPem;
         const verified = verifySpiffePeerPem(peerPem, caPem);
-        res.writeHead(verified.ok ? 200 : 401, { "Content-Type": "application/json" });
+        res.writeHead(verified.ok ? 200 : 401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(verified));
       },
     );
@@ -594,7 +594,7 @@ export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeI
         resolve({ ok: false, reason: 'bind_failed' });
         return;
       }
-      const req = https.request(
+      const req = request(
         {
           host: '127.0.0.1',
           port: addr.port,
@@ -632,106 +632,6 @@ export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeI
         resolve({ ok: false, reason: err.message });
       });
       req.end();
-    });
-  });
-}> {
-  const { createServer } = await import('https');
-  const { connect } = await import('tls');
-  await bootstrapTrustCa();
-  const { caCert, caKey, pemCert: caPem } = await caMaterial();
-  const serverKeys = generateKeyPair();
-  const clientKeys = generateKeyPair();
-  const serverSpiffe = buildSpiffeId('probe-server', 'platform');
-  const clientSpiffe = buildSpiffeId('probe-client', 'platform');
-  const serverCert = createSvidCert({
-    caCert,
-    caKey,
-    publicKey: serverKeys.publicKey,
-    spiffeId: serverSpiffe,
-    ttlSeconds: 3600,
-  }).cert;
-  const clientCert = createSvidCert({
-    caCert,
-    caKey,
-    publicKey: clientKeys.publicKey,
-    spiffeId: clientSpiffe,
-    ttlSeconds: 3600,
-  }).cert;
-  const serverPem = certToPem(serverCert);
-  const clientPem = certToPem(clientCert);
-  const serverKeyPem = privateKeyToPem(serverKeys.privateKey);
-  const clientKeyPem = privateKeyToPem(clientKeys.privateKey);
-
-  return new Promise((resolve) => {
-    const server = createServer(
-      {
-        key: serverKeyPem,
-        cert: serverPem,
-        ca: caPem,
-        requestCert: true,
-        rejectUnauthorized: true,
-      },
-      (req, res) => {
-        const peer = (req.socket as import('tls').TLSSocket).getPeerCertificate();
-        const peerPem = peer?.raw
-          ? `-----BEGIN CERTIFICATE-----\n${Buffer.from(peer.raw).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----\n`
-          : clientPem;
-        const verified = verifySpiffePeerPem(peerPem, caPem);
-        res.writeHead(verified.ok ? 200 : 401);
-        res.end(JSON.stringify(verified));
-      },
-    );
-    server.listen(0, '127.0.0.1', () => {
-      const addr = server.address();
-      if (!addr || typeof addr === 'string') {
-        server.close();
-        resolve({ ok: false, reason: 'bind_failed' });
-        return;
-      }
-      const sock = connect(
-        {
-          host: '127.0.0.1',
-          port: addr.port,
-          key: clientKeyPem,
-          cert: clientPem,
-          ca: caPem,
-          rejectUnauthorized: true,
-          servername: 'localhost',
-          checkServerIdentity: (_host, cert) => {
-            const san = (cert as { subjectaltname?: string }).subjectaltname ?? '';
-            const match = san.match(/URI:(spiffe:\/\/[^,\s]+)/i) ?? san.match(/(spiffe:\/\/[^,\s]+)/i);
-            if (!match?.[1]?.startsWith(`spiffe://${spiffeTrustDomain()}/`)) {
-              return new Error(`spiffe_san_mismatch:${san || 'empty'}`);
-            }
-            return undefined;
-          },
-        },
-        () => {
-          sock.write('GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n');
-        },
-      );
-      let body = '';
-      sock.on('data', (d) => {
-        body += d.toString();
-      });
-      sock.on('end', () => {
-        server.close();
-        try {
-          const jsonStart = body.indexOf('{');
-          const parsed = JSON.parse(body.slice(jsonStart)) as { ok: boolean; spiffeId?: string; reason?: string };
-          resolve({
-            ok: Boolean(parsed.ok),
-            clientSpiffeId: parsed.spiffeId,
-            reason: parsed.reason,
-          });
-        } catch {
-          resolve({ ok: false, reason: 'parse_failed' });
-        }
-      });
-      sock.on('error', (err) => {
-        server.close();
-        resolve({ ok: false, reason: err.message });
-      });
     });
   });
 }
