@@ -1,0 +1,13 @@
+{{- if .Values.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  labels:
+    app: opsedge360
+data:
+  DEPLOYMENT_MODE: {{ .Values.env.DEPLOYMENT_MODE | quote }}
+  PERFORMANCE_PROFILE: {{ .Values.env.PERFORMANCE_PROFILE | quote }}
+  HA_MODE: {{ .Values.env.HA_MODE | default "active" | quote }}
+  NAMESPACE: {{ .Release.Namespace | quote }}
+{{- end }}

@@ -1,0 +1,67 @@
+replicaCount: 3
+image:
+  gateway: opsedge360-api-gateway:latest
+  web: opsedge360-web:latest
+  pullPolicy: IfNotPresent
+  # Air-gap: set private registry prefix, e.g. registry.local/opsedge360/...
+  registry: ""
+service:
+  gatewayPort: 4000
+  webPort: 3000
+resources:
+  gateway:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  web:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+ingress:
+  enabled: true
+  className: nginx
+  host: observability360.example.com
+  tls: true
+  tlsSecretName: opsedge360-tls
+env:
+  DEPLOYMENT_MODE: onprem
+  PERFORMANCE_PROFILE: high
+  HA_MODE: active
+  HA_MULTI_NODE: "true"
+  GATEWAY_REPLICAS: "3"
+  AUTHZ_ENFORCE: "true"
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+  targetCPUUtilizationPercentage: 70
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+affinity:
+  podAntiAffinity: preferred
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: null
+persistence:
+  enabled: true
+  size: 50Gi
+  storageClass: ""
+configMap:
+  enabled: true
+secret:
+  enabled: true
+  # Values must be provided by sealed-secrets / external-secrets — never commit plaintext
+  createPlaceholder: false
+web:
+  enabled: true
+  replicaCount: 2
+rollingUpdate:
+  maxUnavailable: 0
+  maxSurge: 1
+note: Wave 6 production values — HPA, PDB, probes, affinity, PVC, ConfigMap/Secret, web+gateway

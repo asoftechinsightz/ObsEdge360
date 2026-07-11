@@ -32,10 +32,14 @@ spec:
       {{- end }}
       containers:
         - name: api-gateway
-          image: {{ .Values.image.gateway }}
+          image: {{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.gateway }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.gatewayPort }}
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources.gateway | nindent 12 }}
+          {{- end }}
           env:
             - name: DEPLOYMENT_MODE
               value: {{ .Values.env.DEPLOYMENT_MODE | quote }}

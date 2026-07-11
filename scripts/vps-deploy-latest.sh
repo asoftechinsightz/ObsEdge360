@@ -8,7 +8,8 @@ ls -lh /var/backups/opsedge360-trinetra360-*.sql.gz | tail -2 || true
 git log -1 --oneline
 
 echo "=== FETCH BUNDLE ==="
-git fetch /tmp/opsedge360-latest.bundle +feature/sprint0-enterprise-foundation:refs/remotes/bundle/latest
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-feature/sprint0-enterprise-foundation}"
+git fetch /tmp/opsedge360-latest.bundle "+${DEPLOY_BRANCH}:refs/remotes/bundle/latest"
 git reset --hard refs/remotes/bundle/latest
 ENVBAK=$(ls -1t /root/opsedge360.env.pre-deploy-* | head -1)
 cp -a "$ENVBAK" .env

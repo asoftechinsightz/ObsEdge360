@@ -322,6 +322,14 @@ async function main() {
     console.log('037_enterprise_integrations.sql already applied.');
   }
 
+  const secretRotationJobs = await tableExists(client, 'secret_rotation_jobs');
+  if (!secretRotationJobs) {
+    const s38 = path.join(migrationsDir, '038_wave6_enterprise_deployment.sql');
+    if (fs.existsSync(s38)) await runSqlFile(client, s38);
+  } else {
+    console.log('038_wave6_enterprise_deployment.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
