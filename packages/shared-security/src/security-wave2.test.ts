@@ -33,7 +33,9 @@ describe('audit event schema', () => {
   it('maps standard fields into audit_logs row shape', () => {
     const row = toAuditLogRow({
       tenantId: '11111111-1111-1111-1111-111111111111',
-      userId: 'u1',
+      userId: '22222222-2222-2222-2222-222222222222',
+      eventCategory: 'authorization',
+      eventType: 'deny',
       action: 'authz.deny',
       resource: 'tenant',
       decision: 'deny',
@@ -42,7 +44,7 @@ describe('audit event schema', () => {
       ip: '1.2.3.4',
     });
     assert.equal(row.tenantId, '11111111-1111-1111-1111-111111111111');
-    assert.equal(row.actorId, 'u1');
-    assert.equal((row.metadata as { decision: string }).decision, 'deny');
+    assert.equal(row.actorId, '22222222-2222-2222-2222-222222222222');
+    assert.equal((row.metadata as { outcome: string }).outcome, 'deny');
   });
 });

@@ -13,7 +13,7 @@ import {
   buildAuthContext,
   inferPermission,
   loadTenantPolicies,
-  writeAuditLog,
+  emitAudit,
   incSecurityMetric,
   type AuthContext,
 } from '@opsedge360/shared-security';
@@ -95,16 +95,18 @@ export class AuthorizationGuard implements CanActivate {
       incSecurityMetric('security.auth.cross_tenant_attempt');
       await this.safeAudit({
         tenantId: tenantContext.id,
-        actorId: user.sub,
+        organizationId: tenantContext.id,
+        actor: user.sub,
+        actorType: 'user',
+        eventCategory: 'authorization',
+        eventType: 'tenant_spoof',
         action: 'authz.deny',
+        outcome: 'deny',
         resourceType: 'tenant',
-        ipAddress: request.ip,
-        metadata: {
-          reason: 'tenant_spoof',
-          headerTenant,
-          decision: 'deny',
-          policy: 'tenant-isolation-v1',
-        },
+        clientIp: request.ip,
+        reason: 'tenant_spoof',
+        metadata: { headerTenant },
+        sourceService: 'api-gateway',
       });
       throw new ForbiddenException({
         statusCode: 403,
@@ -148,16 +150,19 @@ export class AuthorizationGuard implements CanActivate {
       incSecurityMetric('security.auth.denied');
       await this.safeAudit({
         tenantId: tenantContext.id,
-        actorId: user.sub,
+        organizationId: tenantContext.id,
+        actor: user.sub,
+        actorType: 'user',
+        eventCategory: 'authorization',
+        eventType: 'permission_deny',
         action: 'authz.deny',
+        outcome: 'deny',
         resourceType: required.split(':')[0],
-        ipAddress: request.ip,
-        metadata: {
-          permission: required,
-          reason: decision.reason,
-          decision: 'deny',
-          policy: 'rbac-abac-v1',
-        },
+        permission: required,
+        clientIp: request.ip,
+        reason: decision.reason,
+        policy: 'rbac-abac-v1',
+        sourceService: 'api-gateway',
       });
       throw new ForbiddenException({
         statusCode: 403,
@@ -171,9 +176,9 @@ export class AuthorizationGuard implements CanActivate {
     return true;
   }
 
-  private async safeAudit(entry: Parameters<typeof writeAuditLog>[0]): Promise<void> {
+  private async safeAudit(entry: Parameters<typeof emitAudit>[0]): Promise<void> {
     try {
-      await writeAuditLog(entry);
+      await emitAudit(entry);
     } catch {
       // never fail closed on audit transport errors during deny path logging
     }

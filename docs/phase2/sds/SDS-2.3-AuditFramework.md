@@ -3,310 +3,254 @@
 **Document ID:** OE360-SDS-2.3  
 **Wave:** 3 — Audit & Compliance Foundation  
 **Release:** `v0.9.2`  
-**Status:** 🟡 **IN REVIEW** — EAB architecture review required before coding  
-**ADRs:** 012, 013 (+ baseline Wave 1–2)  
-**Depends on:** Wave 2 closed (`v0.9.2-wave2`), [SECURITY_BASELINE_v1.0](../../security/SECURITY_BASELINE_v1.0.md), [AUDIT_EVENT_SCHEMA](../AUDIT_EVENT_SCHEMA.md)  
-**Coding:** ⏸️ **BLOCKED** until this SDS is Accepted  
+**Status:** ✅ **ACCEPTED WITH CONDITIONS** (EAB 2026-07-11) — conditions incorporated below  
+**ADRs:** 012, 013  
+**Depends on:** Wave 2 closed (`v0.9.2-wave2`), [SECURITY_BASELINE_v1.0](../../security/SECURITY_BASELINE_v1.0.md)  
+**Coding:** ✅ Authorized after this revision  
 
 ---
 
 ## 1. Objectives
 
-Make audit and compliance **systematic and dual-layered**:
+Deliver a dual-layer, API-first audit foundation:
 
-1. Every security- and compliance-relevant action emits a schema-conformant audit event.  
-2. Operational audit supports fast search/UI (short retention).  
-3. Compliance evidence store supports long retention, investigation, and regulatory export.  
-4. APIs expose search, export, and evidence without breaking tenant isolation.
+1. **Layer 1 — Operational Audit** — fast, searchable, short retention, UI-ready.  
+2. **Layer 2 — Compliance Evidence** — durable, integrity-verified, long retention, via **async queue**.  
+3. Policy-driven retention, verification APIs, metrics, and tests — without UEBA/dashboards in Wave 3.
 
-## 2. Scope
+## 2. EAB conditions (binding)
 
-### In (Wave 3)
+| # | Condition | Incorporation |
+|---|-----------|---------------|
+| C1 | Versioned event schema from day one | `schemaVersion` mandatory; schema v1.1 |
+| C2 | Async evidence pipeline (not sync L2) | App → **Audit Queue** → Evidence Writer → Compliance Storage |
+| C3 | Documented immutability strategy | §9 |
+| C4 | Policy-driven retention (not fixed only) | §8 retention classes |
+| C5 | Explicit API set | §10 |
+| C6 | Wave 3 minimum / defer list | §3 |
+| C7 | Measurable acceptance criteria | §14 |
 
-| Area | Deliverable |
-|------|-------------|
-| Event model | Expanded standard schema (this SDS + schema doc) |
-| Emitters | AuthN, AuthZ deny (existing), AuthZ allow (configurable), admin/config/policy, compliance actions |
-| Dual storage | Layer 1 operational + Layer 2 compliance evidence path (design + initial write path) |
-| Retention | Policy metadata + purge/archive job design |
-| Tamper posture | Append-only app writes; hash field; signatures/chain = future |
-| APIs | Search, export, compliance export, evidence API (tenant-scoped) |
-| OpenAPI | All new endpoints |
-| Tests | Emitter coverage, tenant isolation, negative access, perf smoke |
-| Docs | Baseline §4 update; Wave 3 completion |
+---
 
-### Out (later)
+## 3. Wave 3 scope
 
-- Full GRC UI productization  
-- SIEM connectors (Wave 5)  
-- WORM / object-lock cloud archive  
-- Legal hold workflows  
-- Digital signatures & immutable hash chain (design reserved; not required to ship Wave 3)  
-- Cross-tenant break-glass auditor role (design only)
+### Mandatory
 
-## 3. Architectural principle — two audit layers
+- Dual-write path: L1 sync + L2 via **audit queue**  
+- Operational store (`audit_logs`)  
+- Compliance evidence store (`audit_evidence`)  
+- Durable outbox/queue + evidence writer  
+- Retention policies (policy-driven)  
+- Search API  
+- Integrity verification API  
+- Ingest API (service/internal)  
+- Evidence export API  
+- Retention management API  
+- Legal hold API (foundation / stub enforceable)  
+- Health monitoring + security/audit metrics  
+- Tests (unit, integration, negative, restart/at-least-once)
 
-As the platform grows, **do not** force one store to serve both dashboards and regulatory evidence.
+### Defer (post–Wave 3)
+
+- AI anomaly detection · behaviour analytics · risk scoring · UEBA  
+- Compliance dashboards · executive reporting  
+- Full WORM/Object Lock cloud archive  
+- Digital signature issuance (field reserved)  
+- Periodic Merkle tree verification job (design only in Wave 3)
+
+---
+
+## 4. Architecture
 
 ```text
-                    ┌─────────────────────────────┐
-   Emitters ───────►│  Audit Ingest (shared API)  │
-                    └─────────────┬───────────────┘
-                                  │
-              ┌───────────────────┴───────────────────┐
-              ▼                                       ▼
-   ┌─────────────────────┐               ┌─────────────────────────┐
-   │ Layer 1             │               │ Layer 2                 │
-   │ Operational Audit   │               │ Compliance Evidence     │
-   │ Fast · searchable   │               │ Immutable intent        │
-   │ 30–90 days          │               │ Long retention          │
-   │ UI / ops dashboards │               │ Investigations / regs   │
-   └─────────────────────┘               └─────────────────────────┘
+Application / Gateway
+        │
+        ├──────────────────────────────► Layer 1: Operational Audit (sync, best-effort)
+        │                                 audit_logs  (30–90d typical)
+        │
+        └──────────────────────────────► Audit Queue (durable outbox [+ Kafka topic optional])
+                                                │
+                                                ▼
+                                         Evidence Writer
+                                                │
+                                                ▼
+                                         Layer 2: Compliance Storage
+                                         audit_evidence (immutable intent, long retention)
 ```
 
-| | Layer 1 — Operational Audit | Layer 2 — Compliance Evidence Store |
-|--|------------------------------|--------------------------------------|
-| Purpose | Ops, security triage, product UI | Regulatory evidence, investigations |
-| Latency | Low (sync or near-sync write) | May be async (queue → archive writer) |
-| Retention | **30–90 days** (configurable per tenant) | **1–7+ years** (policy-driven) |
-| Mutability | Append-only; purge after retention | Append-only; no purge without EAB |
-| Storage (Wave 3) | Postgres `audit_logs` (existing) | Postgres `audit_evidence` (+ optional object storage later) |
-| Query | Full-text / filters for UI | Evidence ID, control ID, date range, export packs |
-| Competition | Must not slow Layer 2 archives | Must not block Layer 1 UI queries |
+**Rationale:** Async L2 reduces request latency, enables retry/back-pressure, isolates failures, and scales independently from the request path.
 
-**Wave 3 minimum:** Layer 1 hardened + Layer 2 table/API skeleton with dual-write for **high-value categories** (Authentication, Authorization deny, Administration, Compliance, Policy). Full async archive pipeline may be staged if EAB accepts phased delivery.
+**At-least-once:** Outbox rows remain until writer ACK; idempotent evidence insert on `event_id`.
 
 ---
 
-## 4. Audit event model
+## 5. Event model (schema v1.1 — stable)
 
-### 4.1 Standard schema (logical)
+`schemaVersion`: **`1.1`**
 
-All emitters MUST populate the following logical fields (storage mapping in §4.2).
+### Mandatory fields (EAB)
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| **eventId** | Yes | UUID; stable unique id |
-| **timestamp** | Yes | Server UTC ISO-8601 |
-| **tenantId** | Yes | Tenant **UUID** |
-| **organization** | No* | Org/tenant display name or slug (*required when known) |
-| **userId** | Cond. | Actor user UUID |
-| **role** | No | Primary role at decision time |
-| **permission** | No | Permission evaluated (e.g. `cmdb:read`) |
-| **resource** | Cond. | Resource type (+ optional resourceId) |
-| **action** | Yes | Canonical action string |
-| **decision** | Cond. | `allow` \| `deny` \| `n/a` |
-| **reason** | No | Human/machine reason code |
-| **riskScore** | No | 0–100 |
-| **sourceIp** | No | Client IP |
-| **userAgent** | No | UA string |
-| **correlationId** | No | Request correlation |
-| **traceId** | No | Distributed trace |
-| **sessionId** | No | Session / refresh family id |
-| **service** | Yes | Emitting service (`api-gateway`, …) |
-| **environment** | Yes | `production` \| `staging` \| `development` |
-| **category** | Yes | See §5 |
-| **policy** | No | Policy id/version |
-| **controlIds** | No | Compliance control refs (e.g. `CC6.1`) |
-| **metadata** | No | Extra JSON (no secrets) |
+| Field | Type | Notes |
+|-------|------|-------|
+| eventId | UUID | Stable unique id |
+| tenantId | UUID | Tenant |
+| organizationId | UUID | Org; Wave 3 maps to tenant id unless separate org model exists |
+| timestamp | ISO-8601 UTC | Server time |
+| eventCategory | enum string | See §6 |
+| eventType | string | Specific type within category |
+| actor | string/UUID | Actor identifier |
+| actorType | string | `user` \| `system` \| `api_key` \| `service` |
+| resourceType | string | |
+| resourceId | string | |
+| action | string | Canonical action |
+| outcome | string | `success` \| `failure` \| `allow` \| `deny` \| `n/a` |
+| severity | string | `low` \| `medium` \| `high` \| `critical` \| `info` |
+| sourceService | string | Emitting service |
+| environment | string | `production` \| `staging` \| `development` |
+| correlationId | string | |
+| traceId | string | |
+| sessionId | string | |
+| clientIp | string | |
+| userAgent | string | |
+| beforeHash | string \| null | State hash before change |
+| afterHash | string \| null | State hash after change |
+| metadata | object | Extensible; **no secrets** |
+| signature | string \| null | Reserved (future digital signatures) |
+| schemaVersion | string | e.g. `1.1` |
 
-This **extends** [AUDIT_EVENT_SCHEMA.md](../AUDIT_EVENT_SCHEMA.md); Wave 3 updates that doc to FROZEN v1.1 after SDS acceptance.
-
-### 4.2 Storage mapping (Layer 1)
-
-| Logical | Column / location |
-|---------|-------------------|
-| eventId | `id` (UUID PK; add if missing via migration 017) |
-| timestamp | `created_at` |
-| tenantId | `tenant_id` |
-| userId | `actor_id` |
-| action | `action` |
-| resource | `resource_type`, `resource_id` |
-| correlationId | `correlation_id` |
-| sourceIp | `ip_address` |
-| organization, role, permission, decision, reason, riskScore, userAgent, traceId, sessionId, service, environment, category, policy, controlIds | `metadata` JSONB |
-
-### 4.3 Layer 2 evidence row (proposed)
-
-`audit_evidence`: `id`, `tenant_id`, `event_id` (FK/logical), `category`, `payload` JSONB (full event snapshot), `content_hash`, `retained_until`, `created_at`, `control_ids[]`.
+Legacy Wave 2 fields (`decision`, `permission`, `reason`, `riskScore`, `policy`) map into `outcome` / `metadata` for compatibility.
 
 ---
 
-## 5. Event categories
+## 6. Event categories
 
-| Category | Examples |
+| Category | Coverage |
 |----------|----------|
-| **Authentication** | login success/fail, logout, refresh, password reset, SSO |
-| **Authorization** | allow/deny, tenant spoof, permission check |
-| **Configuration** | connector/config changes, feature flags |
-| **Policy** | RBAC/ABAC policy create/update/deprecate |
-| **Compliance** | control evaluation, evidence attach, score change |
-| **Security** | API key issue/revoke, threat detections |
-| **Workflow** | workflow start/complete/fail (future-ready) |
-| **Integration** | webhook/outbound integration calls |
-| **AI** | agent/AI execute (future-ready; emit when used) |
-| **System** | migrate, deploy marker, health degrade (selective) |
-| **Administration** | user/role/tenant admin mutations |
+| Identity & Authentication | login, logout, refresh, SSO, password reset |
+| Authorization | allow/deny, tenant spoof |
+| Configuration Changes | connectors, feature flags, service config |
+| Infrastructure Lifecycle | CI create/update/delete (when emitted) |
+| Secrets & Key Management | API key issue/revoke |
+| API Access | sensitive API access (sampled/config) |
+| Data Access | bulk reads of sensitive resources |
+| Data Export | audit/compliance exports |
+| Administrative Actions | user/role admin |
+| Deployment & Release | deploy markers (selective) |
+| Policy Changes | RBAC/ABAC policy mutations |
+| Backup & Restore | backup/restore jobs (when wired) |
+| Tenant Administration | tenant create/update |
+| Integration Events | webhooks/outbound |
+| AI/Automation Decisions | agent/AI execute (emit when used; analytics deferred) |
 
-Wave 3 **mandatory emitters:** Authentication, Authorization (deny always; allow optional/sampled), Administration, Policy, Compliance (when APIs touched), Security (API keys if present).
-
----
-
-## 6. Storage strategy
-
-| Store | Role | Wave 3 |
-|-------|------|--------|
-| **Operational Audit** | Layer 1 hot path | Extend `audit_logs`; indexes; retention job |
-| **Compliance Audit / Evidence** | Layer 2 | New `audit_evidence` (+ dual-write) |
-| **Long-Term Archive** | Cold | Design: export packs to object storage; implement stub or deferred with EAB note |
-
-### 6.1 Retention policy
-
-| Class | Default | Configurable |
-|-------|---------|--------------|
-| Operational (L1) | 90 days | 30–90 per tenant |
-| Compliance evidence (L2) | 2555 days (~7y) | Policy table |
-| AuthZ deny | Mirror to L2 always | — |
-| AuthZ allow | L1 only (or sample) | Flag `AUDIT_ALLOW_SAMPLE_RATE` |
-
-### 6.2 Tamper protection (Wave 3 vs future)
-
-| Control | Wave 3 | Future |
-|---------|--------|--------|
-| Append-only application API | ✅ | |
-| No UPDATE/DELETE endpoints | ✅ | |
-| `content_hash` (SHA-256 of canonical payload) | ✅ on L2 | |
-| DB role revoke DELETE | Recommended | |
-| Digital signatures | | ✅ |
-| Hash-chained immutable log | | ✅ |
-| WORM object lock | | ✅ |
+Wave 3 **mandatory emitters:** Identity & Authentication, Authorization (deny always; allow optional/sampled), Administrative Actions, Policy Changes, Data Export, Secrets & Key Management (if APIs used).
 
 ---
 
-## 7. Performance
+## 7. Storage
 
-| Topic | Target / approach |
-|-------|-------------------|
-| **Expected events/sec** | Baseline: &lt; 50/s typical; design for **500/s** burst without blocking requests (async buffer if needed) |
-| **Write path** | Sync L1 best-effort; never fail closed on L1 write except when `AUDIT_FAIL_CLOSED=true` (default false) |
-| **Retention** | Nightly purge L1 beyond policy; L2 exempt |
-| **Compression** | JSONB as-is Wave 3; archive packs gzip later |
-| **Indexing** | `(tenant_id, created_at DESC)`, `(tenant_id, action)`, `(tenant_id, (metadata->>'category'))` |
-| **Partitioning** | Design note: monthly partition by `created_at` if volume warrants; optional migration |
-| **Archive strategy** | Scheduled export of L2 packs (JSONL.gz) — stub job OK if EAB accepts |
+| Store | Table | Role |
+|-------|-------|------|
+| Operational | `audit_logs` | Layer 1 hot path |
+| Queue | `audit_evidence_outbox` | Durable audit queue |
+| Compliance | `audit_evidence` | Layer 2 evidence (not `compliance_evidence` control artifacts) |
+| Policy | `audit_retention_policies` | Per-tenant/class retention |
+| Legal hold | `audit_legal_holds` | Hold markers |
 
-Perf budget: audit write p99 &lt; **20ms** added to request when sync; prefer fire-and-forget queue for L2.
+Optional: Kafka topic `audit.evidence` mirrors outbox for future independent writers (`KAFKA_ENABLED`).
 
 ---
 
-## 8. APIs
+## 8. Retention (policy-driven)
 
-All under `/api/v1`, AuthZ via centralized engine, tenant from `tenantContext`.
+| Class | Typical retention | Notes |
+|-------|-------------------|-------|
+| Operational | 30–90 days | L1 purge job |
+| Security | 1 year | Prefer L2 for security-class events |
+| Compliance | 7 years | L2 default |
+| Financial | Policy-driven | Tenant policy row |
+| Legal Hold | Indefinite until released | Suppresses purge |
 
-| API | Method | Permission | Purpose |
-|-----|--------|------------|---------|
-| **Audit Search** | `GET /audit/events` | `security:read` or `audit:read` | Filter by time, category, action, actor, decision |
-| **Audit Export** | `GET /audit/events/export` | `security:read` + export grant | CSV/JSONL operational export (L1) |
-| **Compliance Export** | `GET /audit/compliance/export` | `compliance:read` or `audit:export` | Evidence pack (L2) by date/control |
-| **Evidence API** | `GET /audit/evidence/:id` | `compliance:read` | Single evidence record + hash |
-
-OpenAPI required. Pagination mandatory. Max page size enforced.
-
----
-
-## 9. Security
-
-| Control | Requirement |
-|---------|-------------|
-| **Encryption in transit** | TLS (existing Nginx) |
-| **Encryption at rest** | Host/volume; no plaintext secrets in payload |
-| **Hash verification** | L2 `content_hash`; verify on evidence GET |
-| **Digital signatures** | Future — reserved field `signature` nullable |
-| **Immutable audit chain** | Future — `prev_hash` nullable |
-| **Tenant isolation** | All reads filtered by resolved tenant UUID |
-| **PII** | Redact passwords, tokens, Authorization headers |
-| **Feature flags** | `AUDIT_EMIT`, `AUDIT_L2_DUAL_WRITE`, `AUDIT_ALLOW_SAMPLE_RATE` |
+Defaults live in `audit_retention_policies`; operators change via Retention Management API — **not** hard-coded only in code.
 
 ---
 
-## 10. Data flow & trust boundaries
+## 9. Immutability strategy
 
-```text
-Client → Gateway (AuthN/AuthZ) → emit AuditEvent
-       → writeStandardAudit → L1 audit_logs
-       → (if category high-value) → L2 audit_evidence + content_hash
-       → Search/Export APIs (tenant-scoped)
-```
+| Capability | Wave 3 | Future |
+|------------|--------|--------|
+| Append-only application writes | ✅ | |
+| No UPDATE/DELETE evidence APIs | ✅ | |
+| `content_hash` (SHA-256 canonical payload) | ✅ | |
+| Idempotent insert on `event_id` | ✅ | |
+| `signature` field reserved | ✅ nullable | Issue signatures |
+| Hash chaining (`prev_hash`) | Design note | ✅ |
+| Periodic Merkle verification | Design note | ✅ |
+| WORM / Object Lock archive | Design note | ✅ |
 
-| Boundary | Trust |
-|----------|-------|
-| Services → DB | Only via shared audit writer |
-| Client → Audit APIs | JWT + permission; never client-supplied tenant without binder |
-| Operators → DB | Prefer no manual DELETE; break-glass documented |
-
----
-
-## 11. Threat model
-
-| ID | Threat | Mitigation |
-|----|--------|------------|
-| A1 | Missing audit on sensitive action | Mandatory emitter matrix + tests |
-| A2 | Cross-tenant audit read | Tenant UUID filter + AuthZ |
-| A3 | Tamper / delete evidence | Append-only; hash; no delete API |
-| A4 | Secret leakage in audit | Redaction helpers; schema allowlist |
-| A5 | Audit DoS / volume | Rate limits; sampling on allows; async L2 |
-| A6 | L1/L2 divergence | Dual-write metrics; reconcile job (later) |
+**Wave 3 defensibility:** hash verification API + append-only L2 + legal hold foundation.
 
 ---
 
-## 12. Failure modes & recovery
+## 10. APIs
 
-| Failure | Behavior | Recovery |
-|---------|----------|----------|
-| L1 write fail | Request continues (default); metric `security.audit.write_fail` | Fix DB; backfill not required |
-| L2 write fail | Metric + retry queue | Replay from L1 for high-value |
-| Search overload | Pagination + timeouts | Indexes; read replicas later |
-| Flag `AUDIT_EMIT=false` | Emitters no-op (except optional deny best-effort) | Re-enable |
+| API | Method | Purpose |
+|-----|--------|---------|
+| **Audit ingestion** | `POST /api/v1/audit/events` | Ingest (service/admin); also used internally |
+| **Audit search** | `GET /api/v1/audit/events` | Operational search (L1) |
+| **Evidence export** | `GET /api/v1/audit/evidence/export` | Compliance pack (L2) |
+| **Integrity verification** | `GET /api/v1/audit/evidence/:id/verify` | Recompute vs `content_hash` |
+| **Retention management** | `GET/PUT /api/v1/audit/retention` | Policy CRUD (tenant-scoped) |
+| **Legal hold** | `POST/DELETE /api/v1/audit/legal-holds` | Create/release hold |
 
----
-
-## 13. Rollback
-
-1. `AUDIT_L2_DUAL_WRITE=false` — stop evidence writes  
-2. `AUDIT_EMIT=false` — stop new emits  
-3. Code rollback to `v0.9.2-wave2`  
-4. Do **not** drop `audit_logs` / `audit_evidence` without EAB  
+All tenant-scoped via Wave 2 binder; AuthZ via centralized engine (`security:read` / `audit:*` / `compliance:read` as appropriate). OpenAPI required.
 
 ---
 
-## 14. Acceptance criteria
+## 11. Performance & reliability
 
-1. Schema v1.1 published and used by all Wave 3 emitters  
-2. Dual-layer design implemented at least as L1 + L2 table/dual-write for mandatory categories  
-3. Search + Export + Compliance Export + Evidence APIs live with OpenAPI  
-4. Tenant isolation negative tests green  
-5. Retention job design (and purge for L1) documented/runnable  
-6. `content_hash` verified on evidence read  
-7. Security Baseline §4 updated  
-8. Wave 3 tests + validation script  
-9. EAB Wave 3 review before Wave 4  
-
----
-
-## 15. Implementation waves within Wave 3 (suggested)
-
-| Step | Work | Exit |
-|------|------|------|
-| 3a | Schema migration 017 + shared types + redaction | Unit tests |
-| 3b | Mandatory emitters | Integration tests |
-| 3c | L2 table + dual-write | Hash tests |
-| 3d | Search/Export/Evidence APIs | OpenAPI + negative tests |
-| 3e | Retention job + docs + baseline | Wave review |
+| Target | Value |
+|--------|-------|
+| L1 write under normal ops | **100% success** best-effort with metric on failure; default fail-open on request path |
+| L2 delivery | **At-least-once** via outbox |
+| Restart | No loss of queued evidence (outbox durable) |
+| Queue recovery | Writer resumes after interruption |
+| Search latency | p95 &lt; **500ms** for 7-day tenant filter, page ≤ 100 (target under expected load) |
+| L2 sync on request path | **Forbidden** — queue only |
 
 ---
 
-## 16. Governance
+## 12. Security, metrics, health
 
-**No Wave 3 production coding until this SDS is Accepted by EAB.**
+**Flags:** `AUDIT_EMIT`, `AUDIT_L2_QUEUE`, `AUDIT_ALLOW_SAMPLE_RATE`, `AUDIT_FAIL_CLOSED` (default false).
 
-Cadence: SDS review → Accept → implement 3a–3e → test → docs → deploy/validate → Wave review → then Wave 4.
+**Metrics:** `security.audit.write_fail`, `security.audit.l1_success`, `security.audit.queue_enqueued`, `security.audit.l2_written`, `security.audit.verify_fail`, `security.audit.queue_depth`.
+
+**Health:** Writer heartbeat + outbox depth exposed on gateway ops/metrics path.
+
+---
+
+## 13. Threat model & rollback
+
+Unchanged intent from prior draft: gap coverage, cross-tenant read prevention, tamper resistance, secret redaction, volume DoS via sampling/back-pressure.
+
+**Rollback:** disable `AUDIT_L2_QUEUE` / `AUDIT_EMIT`; redeploy `v0.9.2-wave2`; never drop audit tables without EAB.
+
+---
+
+## 14. Acceptance criteria (measurable)
+
+1. **100%** successful L1 writes under normal operation (failures only when DB down; metriced).  
+2. **At-least-once** delivery for compliance (L2) records.  
+3. Evidence **integrity verification passes** for written records.  
+4. **No loss** of queued evidence across service restart.  
+5. **Configurable retention** policies enforced by purge job (respect legal hold).  
+6. **Queue recovery** after writer interruption.  
+7. Audit search meets **latency target** under expected load (smoke + documented).  
+8. OpenAPI + tests + Security Baseline §4 → v1.1 notes.  
+9. Dual-layer async pipeline only (no sync L2 on request path).
+
+---
+
+## 15. Governance
+
+SDS Accepted with Conditions → this revision → implement Wave 3 minimum → test → deploy/validate → Wave 3 review → Wave 4.

@@ -17,6 +17,7 @@ security:
 tags:
   - name: health
   - name: auth
+  - name: audit
   - name: executive
   - name: cmdb
   - name: discovery
@@ -48,8 +49,119 @@ paths:
                     type: string
                   user:
                     type: object
+        '201':
+          description: New access token issued (Nest default)
         '401':
           description: Invalid or expired token
+
+  /audit/events:
+    get:
+      tags: [audit]
+      summary: Search operational audit events (Layer 1)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - name: limit
+          in: query
+          schema: { type: integer, maximum: 100 }
+        - name: action
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Audit search results
+    post:
+      tags: [audit]
+      summary: Ingest audit event (L1 + queue for L2)
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Event accepted
+        '200':
+          description: Event accepted
+
+  /audit/evidence/export:
+    get:
+      tags: [audit]
+      summary: Export compliance evidence (Layer 2)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Evidence export pack
+
+  /audit/evidence/{id}/verify:
+    get:
+      tags: [audit]
+      summary: Verify evidence content hash
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Verification result
+
+  /audit/retention:
+    get:
+      tags: [audit]
+      summary: List retention policies
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Retention policies
+    put:
+      tags: [audit]
+      summary: Upsert tenant retention policy
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Updated
+
+  /audit/legal-holds:
+    post:
+      tags: [audit]
+      summary: Create legal hold
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Hold created
+
+  /audit/legal-holds/{id}:
+    delete:
+      tags: [audit]
+      summary: Release legal hold
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Released
+
+  /audit/health:
+    get:
+      tags: [audit]
+      summary: Audit pipeline health (writer + outbox depth)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Writer status
 
   /health:
     get:

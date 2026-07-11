@@ -7,7 +7,12 @@ export type SecurityMetricName =
   | 'security.auth.cross_tenant_attempt'
   | 'security.auth.refresh_success'
   | 'security.auth.refresh_failure'
-  | 'security.audit.write_fail';
+  | 'security.audit.write_fail'
+  | 'security.audit.l1_success'
+  | 'security.audit.queue_enqueued'
+  | 'security.audit.l2_written'
+  | 'security.audit.verify_fail'
+  | 'security.audit.queue_depth';
 
 const counters = new Map<SecurityMetricName, number>();
 

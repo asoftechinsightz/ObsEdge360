@@ -154,6 +154,14 @@ async function main() {
     console.log('016_authz_policy_versions.sql already applied.');
   }
 
+  const auditEvidence = await tableExists(client, 'audit_evidence');
+  if (!auditEvidence) {
+    const s17 = path.join(migrationsDir, '017_audit_dual_layer.sql');
+    if (fs.existsSync(s17)) await runSqlFile(client, s17);
+  } else {
+    console.log('017_audit_dual_layer.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

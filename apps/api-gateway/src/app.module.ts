@@ -29,6 +29,8 @@ import { SsoController } from './auth/sso.controller';
 import { SsoService } from './auth/sso.service';
 import { CopilotController } from './copilot/copilot.controller';
 import { CopilotService } from './copilot/copilot.service';
+import { AuditController } from './audit/audit.controller';
+import { AuditEvidenceWriterService } from './audit/audit-evidence-writer.service';
 
 @Module({
   controllers: [
@@ -52,6 +54,7 @@ import { CopilotService } from './copilot/copilot.service';
     QuantumController,
     GovernanceController,
     PlatformController,
+    AuditController,
   ],
   providers: [
     ProxyService,
@@ -59,6 +62,7 @@ import { CopilotService } from './copilot/copilot.service';
     AuthService,
     SsoService,
     CopilotService,
+    AuditEvidenceWriterService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

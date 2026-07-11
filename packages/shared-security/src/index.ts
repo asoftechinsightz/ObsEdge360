@@ -1,7 +1,14 @@
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { query, queryOne } from '@opsedge360/shared-db';
 import { createLogger } from '@opsedge360/shared-logger';
-import { toAuditLogRow, type AuditEvent } from './audit-event';
+import {
+  toAuditLogRow,
+  normalizeAuditEvent,
+  redactAuditMetadata,
+  shouldEnqueueEvidence,
+  contentHash,
+  type AuditEvent,
+} from './audit-event';
 import { incSecurityMetric } from './metrics';
 
 export * from './permissions';
@@ -274,12 +281,14 @@ export async function writeAuditLog(entry: {
   correlationId?: string;
   ipAddress?: string;
   metadata?: Record<string, unknown>;
+  eventId?: string;
+  schemaVersion?: string;
 }): Promise<void> {
   try {
     await query(
       `INSERT INTO audit_logs
-        (tenant_id, actor_id, actor_type, action, resource_type, resource_id, correlation_id, ip_address, metadata)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        (tenant_id, actor_id, actor_type, action, resource_type, resource_id, correlation_id, ip_address, metadata, event_id, schema_version)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       [
         entry.tenantId,
         entry.actorId ?? null,
@@ -290,16 +299,160 @@ export async function writeAuditLog(entry: {
         entry.correlationId ?? null,
         entry.ipAddress ?? null,
         JSON.stringify(entry.metadata ?? {}),
+        entry.eventId ?? null,
+        entry.schemaVersion ?? '1.1',
       ],
     );
+    incSecurityMetric('security.audit.l1_success');
     log.info('Audit event recorded', { action: entry.action, resourceType: entry.resourceType });
   } catch (err) {
-    incSecurityMetric('security.audit.write_fail');
-    throw err;
+    // Fallback if migration 017 columns not yet applied
+    try {
+      await query(
+        `INSERT INTO audit_logs
+          (tenant_id, actor_id, actor_type, action, resource_type, resource_id, correlation_id, ip_address, metadata)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [
+          entry.tenantId,
+          entry.actorId ?? null,
+          entry.actorType ?? 'user',
+          entry.action,
+          entry.resourceType ?? null,
+          entry.resourceId ?? null,
+          entry.correlationId ?? null,
+          entry.ipAddress ?? null,
+          JSON.stringify(entry.metadata ?? {}),
+        ],
+      );
+      incSecurityMetric('security.audit.l1_success');
+    } catch (err2) {
+      incSecurityMetric('security.audit.write_fail');
+      throw err2;
+    }
   }
 }
 
+/**
+ * Wave 3 emit pipeline: L1 sync + durable outbox enqueue for L2 (async writer).
+ * Never writes L2 synchronously on the request path.
+ */
+export async function emitAudit(event: AuditEvent): Promise<{ eventId: string; queued: boolean }> {
+  if (process.env.AUDIT_EMIT === 'false') {
+    return { eventId: event.eventId ?? 'suppressed', queued: false };
+  }
+  const normalized = normalizeAuditEvent({
+    ...event,
+    metadata: redactAuditMetadata(event.metadata ?? {}),
+  });
+  const row = toAuditLogRow(normalized);
+  const failClosed = process.env.AUDIT_FAIL_CLOSED === 'true';
+  try {
+    await writeAuditLog(row);
+  } catch (err) {
+    if (failClosed) throw err;
+    log.warn('L1 audit write failed (fail-open)', { err: (err as Error).message });
+  }
+
+  let queued = false;
+  if (shouldEnqueueEvidence(normalized.eventCategory, normalized.outcome)) {
+    try {
+      await query(
+        `INSERT INTO audit_evidence_outbox (event_id, tenant_id, payload)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (event_id) DO NOTHING`,
+        [normalized.eventId, normalized.tenantId, JSON.stringify(normalized)],
+      );
+      incSecurityMetric('security.audit.queue_enqueued');
+      queued = true;
+    } catch (err) {
+      incSecurityMetric('security.audit.write_fail');
+      log.warn('Audit outbox enqueue failed', { err: (err as Error).message });
+      if (failClosed) throw err;
+    }
+  }
+  return { eventId: normalized.eventId!, queued };
+}
+
 export async function writeStandardAudit(event: AuditEvent): Promise<void> {
-  const row = toAuditLogRow(event);
-  await writeAuditLog(row);
+  await emitAudit(event);
+}
+
+export async function processAuditOutboxBatch(limit = 50): Promise<number> {
+  const rows = await query<{ id: string; event_id: string; tenant_id: string; payload: AuditEvent | string }>(
+    `WITH cte AS (
+       SELECT id FROM audit_evidence_outbox
+       WHERE processed_at IS NULL AND available_at <= NOW()
+       ORDER BY created_at ASC
+       LIMIT $1
+     )
+     UPDATE audit_evidence_outbox o
+     SET available_at = NOW() + INTERVAL '2 minutes', attempts = o.attempts + 1
+     FROM cte WHERE o.id = cte.id
+     RETURNING o.id, o.event_id, o.tenant_id, o.payload`,
+    [limit],
+  );
+  let written = 0;
+  for (const row of rows) {
+    const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+    const normalized = normalizeAuditEvent(payload);
+    const hash = contentHash(normalized);
+    try {
+      await query(
+        `INSERT INTO audit_evidence
+          (event_id, tenant_id, organization_id, event_category, event_type, payload, content_hash, schema_version)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT (event_id) DO NOTHING`,
+        [
+          normalized.eventId,
+          normalized.tenantId,
+          normalized.organizationId ?? normalized.tenantId,
+          normalized.eventCategory,
+          normalized.eventType,
+          JSON.stringify(normalized),
+          hash,
+          normalized.schemaVersion ?? '1.1',
+        ],
+      );
+      await query(`UPDATE audit_evidence_outbox SET processed_at = NOW(), last_error = NULL WHERE id = $1`, [
+        row.id,
+      ]);
+      incSecurityMetric('security.audit.l2_written');
+      written += 1;
+    } catch (err) {
+      await query(
+        `UPDATE audit_evidence_outbox
+         SET available_at = NOW() + INTERVAL '30 seconds', last_error = $2
+         WHERE id = $1`,
+        [row.id, (err as Error).message],
+      );
+    }
+  }
+  return written;
+}
+
+export async function getAuditOutboxDepth(): Promise<number> {
+  const row = await queryOne<{ c: string }>(
+    `SELECT COUNT(*)::text AS c FROM audit_evidence_outbox WHERE processed_at IS NULL`,
+  );
+  const depth = Number(row?.c ?? 0);
+  // store latest depth as gauge-like counter set
+  return depth;
+}
+
+export async function verifyEvidenceHash(evidenceId: string, tenantId: string): Promise<{
+  ok: boolean;
+  eventId?: string;
+  expected?: string;
+  actual?: string;
+}> {
+  const row = await queryOne<{ event_id: string; payload: AuditEvent; content_hash: string }>(
+    `SELECT event_id, payload, content_hash FROM audit_evidence WHERE id = $1 AND tenant_id = $2`,
+    [evidenceId, tenantId],
+  );
+  if (!row) return { ok: false };
+  const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+  const actual = contentHash(payload);
+  const ok = actual === row.content_hash;
+  if (!ok) incSecurityMetric('security.audit.verify_fail');
+  return { ok, eventId: row.event_id, expected: row.content_hash, actual };
 }
