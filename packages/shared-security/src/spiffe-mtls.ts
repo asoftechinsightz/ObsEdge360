@@ -533,6 +533,108 @@ export async function meshHealthSummary(): Promise<Record<string, unknown>> {
 
 /** In-process mTLS handshake proof (client+server using same CA). */
 export async function proveMtlsHandshake(): Promise<{ ok: boolean; clientSpiffeId?: string; reason?: string }> {
+  const https = await import('https');
+  await bootstrapTrustCa();
+  const { caCert, caKey, pemCert: caPem } = await caMaterial();
+  const serverKeys = generateKeyPair();
+  const clientKeys = generateKeyPair();
+  const serverSpiffe = buildSpiffeId('probe-server', 'platform');
+  const clientSpiffe = buildSpiffeId('probe-client', 'platform');
+  const serverCert = createSvidCert({
+    caCert,
+    caKey,
+    publicKey: serverKeys.publicKey,
+    spiffeId: serverSpiffe,
+    ttlSeconds: 3600,
+  }).cert;
+  const clientCert = createSvidCert({
+    caCert,
+    caKey,
+    publicKey: clientKeys.publicKey,
+    spiffeId: clientSpiffe,
+    ttlSeconds: 3600,
+  }).cert;
+  const serverPem = certToPem(serverCert);
+  const clientPem = certToPem(clientCert);
+  const serverKeyPem = privateKeyToPem(serverKeys.privateKey);
+  const clientKeyPem = privateKeyToPem(clientKeys.privateKey);
+
+  const checkServerIdentity = (_host: string, cert: import("tls").PeerCertificate): Error | undefined => {
+    const san = (cert as { subjectaltname?: string }).subjectaltname ?? '';
+    const match = san.match(/URI:(spiffe:\/\/[^,\s]+)/i) ?? san.match(/(spiffe:\/\/[^,\s]+)/i);
+    if (!match?.[1]?.startsWith(`spiffe://${spiffeTrustDomain()}/`)) {
+      return new Error(`spiffe_san_mismatch:${san || 'empty'}`);
+    }
+    return undefined;
+  };
+
+  return new Promise((resolve) => {
+    const server = https.createServer(
+      {
+        key: serverKeyPem,
+        cert: serverPem,
+        ca: caPem,
+        requestCert: true,
+        rejectUnauthorized: true,
+      },
+      (req, res) => {
+        const peer = (req.socket as import('tls').TLSSocket).getPeerCertificate(true);
+        const peerPem = peer?.raw
+          ? `-----BEGIN CERTIFICATE-----\n${Buffer.from(peer.raw).toString("base64").match(/.{1,64}/g)?.join("\n")}\n-----END CERTIFICATE-----\n`
+          : clientPem;
+        const verified = verifySpiffePeerPem(peerPem, caPem);
+        res.writeHead(verified.ok ? 200 : 401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(verified));
+      },
+    );
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address();
+      if (!addr || typeof addr === 'string') {
+        server.close();
+        resolve({ ok: false, reason: 'bind_failed' });
+        return;
+      }
+      const req = https.request(
+        {
+          host: '127.0.0.1',
+          port: addr.port,
+          path: '/',
+          method: 'GET',
+          servername: 'localhost',
+          key: clientKeyPem,
+          cert: clientPem,
+          ca: caPem,
+          rejectUnauthorized: true,
+          checkServerIdentity,
+        },
+        (res) => {
+          let body = '';
+          res.on('data', (d) => {
+            body += d.toString();
+          });
+          res.on('end', () => {
+            server.close();
+            try {
+              const parsed = JSON.parse(body) as { ok: boolean; spiffeId?: string; reason?: string };
+              resolve({
+                ok: Boolean(parsed.ok),
+                clientSpiffeId: parsed.spiffeId ?? clientSpiffe,
+                reason: parsed.reason,
+              });
+            } catch {
+              resolve({ ok: false, reason: `parse_failed:${body.slice(0, 200)}` });
+            }
+          });
+        },
+      );
+      req.on('error', (err) => {
+        server.close();
+        resolve({ ok: false, reason: err.message });
+      });
+      req.end();
+    });
+  });
+}> {
   const { createServer } = await import('https');
   const { connect } = await import('tls');
   await bootstrapTrustCa();
