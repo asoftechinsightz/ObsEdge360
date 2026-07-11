@@ -10,6 +10,12 @@ COMPOSE="docker compose -f $ROOT/docker-compose.yml -f $ROOT/docker-compose.prod
 auth() { curl -sk -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' "$@"; }
 now_ms() { python3 -c 'import time;print(int(time.time()*1000))'; }
 
+restore_plane() {
+  $COMPOSE up -d --no-deps --force-recreate api-gateway nginx >/dev/null 2>&1 || true
+  wait_health || true
+}
+trap restore_plane EXIT
+
 echo "=== Wave 7 HA/Chaos drills ==="
 RUN=$(auth -X POST "$API/admin/system/certification/runs" \
   -d '{"suiteKey":"chaos","runType":"drill","notes":"host container restart drills"}')
@@ -21,6 +27,20 @@ wait_health() {
   while [ $i -lt 90 ]; do
     CODE=$(curl -sk -o /dev/null -w '%{http_code}' "$API/health" || true)
     if [ "$CODE" = "200" ]; then echo "healthy@$i"; return 0; fi
+    sleep 2
+    i=$((i+1))
+  done
+  echo "wait_health_timeout"
+  return 1
+}
+
+wait_postgres() {
+  local i=0
+  while [ $i -lt 60 ]; do
+    if docker exec opsedge360-postgres-1 pg_isready -U trinetra >/dev/null 2>&1; then
+      echo "postgres_ready@$i"
+      return 0
+    fi
     sleep 2
     i=$((i+1))
   done
@@ -47,16 +67,15 @@ drill worker_restart discovery
 echo "--- drill db_restart ---"
 t0=$(now_ms)
 docker restart opsedge360-postgres-1
-sleep 10
-# Gateway may hold dead pools — recreate after datastore restart (HA recovery pattern)
-$COMPOSE up -d --no-deps --force-recreate api-gateway
+wait_postgres
+sleep 5
+$COMPOSE up -d --no-deps --force-recreate api-gateway nginx
 wait_health
 t1=$(now_ms)
 ms=$((t1 - t0))
 auth -X POST "$API/admin/system/certification/runs/$RID/chaos" \
-  -d "{\"experimentKey\":\"db_restart\",\"target\":\"postgres\",\"injection\":\"docker_restart_plus_gateway_recreate\",\"recovered\":true,\"recoveryMs\":$ms,\"dataLoss\":false,\"detail\":{\"note\":\"existing volumes preserved; gateway recreated for pool recovery\"}}" >/dev/null
+  -d "{\"experimentKey\":\"db_restart\",\"target\":\"postgres\",\"injection\":\"docker_restart_plus_gateway_nginx_recreate\",\"recovered\":true,\"recoveryMs\":$ms,\"dataLoss\":false,\"detail\":{\"note\":\"volumes preserved; gateway+nginx recreated after pg_isready\"}}" >/dev/null
 
-# Redis restart (non-destructive)
 echo "--- drill redis_restart ---"
 t0=$(now_ms)
 docker restart opsedge360-redis-1 || true
@@ -76,7 +95,6 @@ HID=$(python3 -c "import json,sys;print(json.load(sys.stdin)['id'])" <<<"$HA")
 auth -X PUT "$API/admin/system/certification/runs/$HID/complete" \
   -d "{\"status\":\"passed\",\"checks\":$CHECKS,\"passed\":4,\"failed\":0,\"metrics\":{\"chaosRunId\":\"$RID\"}}" >/dev/null
 
-# Ensure API plane healthy before exit
-$COMPOSE up -d --no-deps --force-recreate nginx >/dev/null 2>&1 || true
+trap - EXIT
 wait_health
 echo "WAVE7_CHAOS_HA_OK run=$RID ha=$HID"
