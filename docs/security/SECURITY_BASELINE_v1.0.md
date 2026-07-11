@@ -129,4 +129,12 @@ Client-supplied tenant headers are **never** trusted without JWT match.
 | 4 | Secrets & platform | §6, §7 |
 | 5 | Security observability | §8 export |
 
-**Next baseline bump:** after Wave 3 → `SECURITY_BASELINE_v1.1.md` (or amend v1.0 with changelog).
+**Next baseline bump:** after Wave 3 SDS acceptance + implementation → `SECURITY_BASELINE_v1.1.md` (dual-layer audit).
+
+## 13. EAB status (2026-07-11)
+
+| Item | Status |
+|------|--------|
+| Security Baseline v1.0 | ✅ Accepted |
+| Wave 2 | ✅ Closed |
+| SDS-2.3 | 🟡 In review — coding blocked |

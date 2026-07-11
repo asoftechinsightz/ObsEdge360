@@ -6,11 +6,15 @@
 
 | Wave | WBS | Focus | SDS |
 |------|-----|-------|-----|
-| 1 | 2.1 | Identity & Authorization Spine | [SDS-2.1-RBAC.md](./sds/SDS-2.1-RBAC.md) — **Accepted** |
-| 2 | 2.2 | Tenant Security | [SDS-2.2-TenantIsolation.md](./sds/SDS-2.2-TenantIsolation.md) — **Deployed** (`v0.9.2-wave2`) |
-| 3 | 2.3 | Audit & Compliance Foundation | SDS-2.3-AuditFramework.md — **Authorized to start** |
+| 1 | 2.1 | Identity & Authorization Spine | [SDS-2.1-RBAC.md](./sds/SDS-2.1-RBAC.md) — **Closed** |
+| 2 | 2.2 | Tenant Security | [SDS-2.2-TenantIsolation.md](./sds/SDS-2.2-TenantIsolation.md) — **Closed** (`v0.9.2-wave2`) |
+| 3 | 2.3 | Audit & Compliance Foundation | [SDS-2.3-AuditFramework.md](./sds/SDS-2.3-AuditFramework.md) — **In review (no coding)** |
 | 4 | 2.4 | Secrets & Platform Security | SDS-2.4-Secrets.md |
 | 5 | 2.5 | Security Observability | SDS-2.5-SecurityObservability.md |
+
+**Wave 3 gate:** EAB must Accept SDS-2.3 before implementation. Planning: [WAVE3_PLANNING.md](./WAVE3_PLANNING.md).  
+**Remote push:** Hold branch + `v0.9.2-wave2` until Wave 3 planning pack is complete (EAB).
+
 
 ## Engineering rules (binding)
 
