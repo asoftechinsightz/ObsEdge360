@@ -14,4 +14,4 @@
 | Docs | ✅ |
 | Tag | `v0.9.3-wave3` |
 
-**Wave 4:** 🟢 Implementing — Topology (live dependency, layout, blast-radius UX)
+**Wave 4:** ✅ Closed (`v0.9.3-wave4`) — Topology
