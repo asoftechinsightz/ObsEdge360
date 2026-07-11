@@ -2,4 +2,4 @@
 
 **Status:** ✅ **CLOSED**  
 **Tag:** `v0.9.3-wave2`  
-**Wave 3:** 🟢 Implementing — Discovery & CMDB Depth
+**Wave 3:** ✅ Closed (`v0.9.3-wave3`) — Discovery & CMDB Depth
