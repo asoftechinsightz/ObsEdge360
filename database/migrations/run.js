@@ -306,6 +306,14 @@ async function main() {
     console.log('035_platform_governance.sql already applied.');
   }
 
+  const automationWorkflows = await tableExists(client, 'automation_workflows');
+  if (!automationWorkflows) {
+    const s36 = path.join(migrationsDir, '036_controlled_automation.sql');
+    if (fs.existsSync(s36)) await runSqlFile(client, s36);
+  } else {
+    console.log('036_controlled_automation.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

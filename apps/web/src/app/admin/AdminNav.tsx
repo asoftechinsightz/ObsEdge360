@@ -30,8 +30,16 @@ const LINKS = [
   { href: '/admin/upgrade-status', label: 'Upgrade Status' },
   { href: '/admin/audit', label: 'Audit' },
   { href: '/admin/integrations', label: 'Integrations' },
-  { href: '/admin/automation', label: 'Automation Policies' },
-  { href: '/admin/runbooks', label: 'Runbook Manager' },
+  { href: '/admin/automation-dashboard', label: 'Automation Dashboard' },
+  { href: '/admin/workflows', label: 'Workflow Designer' },
+  { href: '/admin/runbooks', label: 'Runbook Library' },
+  { href: '/admin/policy-manager', label: 'Policy Manager' },
+  { href: '/admin/approvals', label: 'Approval Queue' },
+  { href: '/admin/executions', label: 'Execution History' },
+  { href: '/admin/simulations', label: 'Simulation Results' },
+  { href: '/admin/emergency-stop', label: 'Emergency Stop' },
+  { href: '/admin/automation-history', label: 'Automation History' },
+  { href: '/admin/automation', label: 'Automation Policies (legacy)' },
 ];
 
 export function AdminNav() {
