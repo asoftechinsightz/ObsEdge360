@@ -93,7 +93,7 @@ export class Wave6Service {
       [tid],
     );
     const sessions = await query(
-      `SELECT id, user_id, device_info, ip_address, last_seen_at, revoked_at
+      `SELECT id, user_id, device_label, ip_address, last_seen_at, revoked_at
        FROM user_sessions WHERE tenant_id=$1 ORDER BY last_seen_at DESC LIMIT 50`,
       [tid],
     );
