@@ -200,7 +200,7 @@ export class Wave6Service {
     if (!body.profileName) throw new BadRequestException('profileName required');
     const row = await queryOne(
       `INSERT INTO deployment_profiles
-         (tenant_id, profile_name, mode, namespace, helm_release, values_snapshot, airgap, status)
+         (tenant_id, profile_name, mode, kubernetes, helm_release, values_snapshot, airgap, status)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8)
        RETURNING *`,
       [

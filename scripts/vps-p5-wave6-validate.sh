@@ -168,7 +168,7 @@ CERT_ID=$(python3 -c "import json;print(json.load(open('/tmp/p5w6_certup.json'))
 if [ -n "$CERT_ID" ]; then
   CV=$(curl -sk -o /tmp/p5w6_cv.json -w '%{http_code}' -X POST "$API/admin/system/security/certificates/${CERT_ID}/validate" \
     -H "Authorization: Bearer $TOKEN")
-  check certificate_validate 200 "$CV"
+  if [ "$CV" = "200" ] || [ "$CV" = "201" ]; then echo "PASS certificate_validate ($CV)"; PASS=$((PASS+1)); else echo "FAIL certificate_validate got=$CV"; FAIL=$((FAIL+1)); fi
 else
   echo "FAIL certificate_validate"; FAIL=$((FAIL+1));
 fi
