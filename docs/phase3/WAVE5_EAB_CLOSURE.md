@@ -14,4 +14,6 @@
 | Docs | ✅ |
 | Tag | `v0.9.3-wave5` |
 
-**Wave 6:** 🟢 Implementing — Operations Dashboards
+**Wave 6:** ✅ Closed (`v0.9.3-wave6`) — Operations Dashboards  
+
+**Phase 3 Core Observability:** ✅ Waves 1–6 complete
