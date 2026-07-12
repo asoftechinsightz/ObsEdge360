@@ -15,6 +15,7 @@
 - Banking360 payment monitors
 - Phase 2 / GA compatibility
 
-## Production result
+## Production result (2026-07-12)
 
-Filled after VPS run.
+**pass=19 fail=0** at tip `be66dcd8495ee3c1caac82644c8ef7a268dec667`  
+**Output:** `P3_ENTERPRISE_EXCELLENCE_VALIDATION_OK`

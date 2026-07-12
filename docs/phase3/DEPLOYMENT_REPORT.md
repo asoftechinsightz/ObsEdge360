@@ -13,6 +13,16 @@
 | Banking360 | Payment rail monitors framework |
 | Security | MFA framework (unenforced) |
 
+## Production evidence (2026-07-12)
+
+| Field | Value |
+|-------|-------|
+| Branch | `feature/phase3-enterprise-excellence` |
+| Production SHA | `be66dcd8495ee3c1caac82644c8ef7a268dec667` |
+| Migration | `043_phase3_enterprise_excellence.sql` applied |
+| Health | 200 |
+| Validation | `P3_ENTERPRISE_EXCELLENCE_VALIDATION_OK` (19/19) |
+
 ## Migration
 
 `043_phase3_enterprise_excellence.sql`
