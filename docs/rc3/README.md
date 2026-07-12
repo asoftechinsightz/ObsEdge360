@@ -1,7 +1,9 @@
 # OpsEdge360 RC3 — Enterprise Pilot Program Readiness
 
-**Status:** Implementation pending production validation  
+**Status:** Validated — `RC3_EPP_VALIDATION_OK`  
 **Channel:** `v1.0.0-rc3-epp`  
+**Branch:** `feature/rc3-enterprise-pilot-program`  
+**Git SHA:** `4f39eec43d15055b087894ed667432c02a4e26b8`  
 **Token:** `RC3_EPP_VALIDATION_OK`  
 **Baseline:** RC2 `a2d7e44` / `RC2_PILOT_VALIDATION_OK`
 

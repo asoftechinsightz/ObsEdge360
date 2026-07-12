@@ -14,4 +14,11 @@ Additive migration 047. RC2/RC1 routes preserved.
 
 ## Validation
 
-See [RC3_VALIDATION.md](./RC3_VALIDATION.md). Token: `RC3_EPP_VALIDATION_OK`.
+| Field | Value |
+|-------|-------|
+| Date | 2026-07-12 |
+| SHA | `4f39eec43d15055b087894ed667432c02a4e26b8` |
+| Result | pass=18 fail=0 |
+| Token | `RC3_EPP_VALIDATION_OK` |
+
+See [RC3_VALIDATION.md](./RC3_VALIDATION.md).
