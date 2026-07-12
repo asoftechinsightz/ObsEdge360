@@ -19,8 +19,13 @@ export async function KpiGrid() {
         fetchApi<{ overallScore: number }>('/compliance/score'),
         fetchApi<{ efficiency_score: string }>('/sustainability/summary'),
       ]);
-      kpis.complianceScore = compliance.overallScore;
-      kpis.sustainabilityScore = Number(sustainability.efficiency_score) || kpis.sustainabilityScore;
+      if (typeof compliance.overallScore === 'number' && compliance.overallScore > 0) {
+        kpis.complianceScore = compliance.overallScore;
+      }
+      const sus = Number(sustainability.efficiency_score);
+      if (Number.isFinite(sus) && sus > 0) {
+        kpis.sustainabilityScore = sus;
+      }
     } catch {
       if (source === 'live') source = 'partial';
     }
