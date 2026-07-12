@@ -36,15 +36,19 @@ Requires **Product Approval** (written), including but not limited to:
 3. Estimate risk to freeze (regression, ops load).  
 4. Get Product written approval before branching for the work.
 
+## Strategic pause
+
+See [`docs/STRATEGIC_PAUSE.md`](./STRATEGIC_PAUSE.md) — market proof over milestones for the next 90–180 days.
+
 ## Redirect capacity to
 
-1. AsoftechInsightz brand and GTM  
-2. Landing enterprise pilots  
-3. Sales, CS, procurement, and partner assets ([`docs/gtm/`](./gtm/README.md))  
-4. Customer feedback loops via [`docs/cvp/`](./cvp/README.md)  
-5. Enterprise UX polish ([`docs/ux-audit/`](./ux-audit/README.md), [`docs/apex/`](./apex/README.md))  
-6. **Program TITAN** — scale & customer success ([`docs/titan/`](./titan/README.md))  
-7. v1.1 only from real-world usage (dual-customer roadmap rule)
+1. Enterprise demos, pilots, interviews, ROI, case studies  
+2. Sales enablement, partner onboarding, investor conversations  
+3. GTM assets ([`docs/gtm/`](./gtm/README.md))  
+4. CVP evidence ([`docs/cvp/`](./cvp/README.md))  
+5. TITAN ops & support ([`docs/titan/`](./titan/README.md))  
+6. Freeze allow-list engineering only  
+7. v1.1 exclusively from validated customer evidence
 
 ## Unfreeze criteria
 
