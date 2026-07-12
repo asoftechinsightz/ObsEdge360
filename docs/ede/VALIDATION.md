@@ -1,10 +1,11 @@
 # EDE v1.0 — Validation & Deliverables
 
-**Git Commit SHA (tip):** `1e1a0cc6fcc06a88235b61ae6568439b7ca0864b`  
+**Git Commit SHA (tip):** `14ef7cd7dde175484ce8541902c828430800ff8a`  
 **Feature commit:** `a01c7e8ff42a2750a251512a17bde78e40832b0a`  
-**Production SHA:** `1e1a0cc6fcc06a88235b61ae6568439b7ca0864b`  
+**Production SHA:** `14ef7cd7dde175484ce8541902c828430800ff8a`  
 **Validation token:** `EDE_V1_VALIDATION_OK`  
-**Pack loaded at (UTC):** `2026-07-12T15:33:06Z`
+**Pack loaded at (UTC):** `2026-07-12T15:33:06Z`  
+**Demo reset validation:** `POST /demo/ede/reset` → HTTP 201, `loaded=true`, `demoCiCount=3502`, `servers=1500`
 
 ## Demo tenant summary
 
