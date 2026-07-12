@@ -14,7 +14,7 @@
 
 ## Git Commit SHA
 
-_Filled at commit._
+`4dc08ae20e0d39b4782686a3601f9511468f3975`
 
 ## Scope discipline
 
