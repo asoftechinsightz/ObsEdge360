@@ -34,7 +34,7 @@
 
 ## Git Commit SHA
 
-_Pending commit — updated after land._
+`b3dc2a6b3b00450e941262f3f5658ad15df12fc9`
 
 ## Known limitations
 

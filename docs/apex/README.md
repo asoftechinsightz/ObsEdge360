@@ -16,4 +16,4 @@
 | 08 | [Final Enterprise Readiness Report](./08_FINAL_ENTERPRISE_READINESS_REPORT.md) |
 | — | [Before/After Notes](./BEFORE_AFTER.md) |
 
-**Git SHA:** see validation report (filled at commit time).
+**Git SHA:** `b3dc2a6b3b00450e941262f3f5658ad15df12fc9`
