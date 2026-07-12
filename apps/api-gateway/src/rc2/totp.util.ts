@@ -1,4 +1,5 @@
 import { createHmac, createHash, randomBytes, timingSafeEqual } from 'crypto';
+import { decryptSecret, encryptSecret } from '@opsedge360/shared-security';
 
 const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
@@ -101,4 +102,30 @@ export function labChallengeCode(secret: string): string {
 export function labCodesEnabled(): boolean {
   const v = (process.env.OPS_MFA_LAB_CODES || '').toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';
+}
+
+const MFA_ENC_PREFIX = 'oe360:v1:';
+
+/** AES-256-GCM envelope for TOTP secrets at rest (RC3). */
+export function encryptMfaSecret(plaintext: string): string {
+  const { ciphertext, nonce, keyId } = encryptSecret(plaintext);
+  return `${MFA_ENC_PREFIX}${keyId}:${nonce}:${ciphertext}`;
+}
+
+/** Decrypt envelope or return legacy plaintext Base32 secret. */
+export function decryptMfaSecret(stored: string): string {
+  if (!stored) return stored;
+  if (!stored.startsWith(MFA_ENC_PREFIX)) return stored;
+  const rest = stored.slice(MFA_ENC_PREFIX.length);
+  const parts = rest.split(':');
+  if (parts.length < 3) throw new Error('Invalid MFA secret envelope');
+  const keyId = parts[0];
+  const nonce = parts[1];
+  const ciphertext = parts.slice(2).join(':');
+  void keyId;
+  return decryptSecret(ciphertext, nonce);
+}
+
+export function isEncryptedMfaSecret(stored: string): boolean {
+  return !!stored && stored.startsWith(MFA_ENC_PREFIX);
 }

@@ -122,7 +122,7 @@ export class AuthController {
   @Post('refresh')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Refresh access token (sliding expiry)' })
-  refresh(@Req() req: Request) {
+  async refresh(@Req() req: Request) {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing bearer token');

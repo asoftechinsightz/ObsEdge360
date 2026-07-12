@@ -8,7 +8,7 @@ import { createHash, randomBytes } from 'crypto';
 import { getPlatformConfig } from '@opsedge360/platform-config';
 import { query, queryOne } from '@opsedge360/shared-db';
 import type { JwtPayload } from '../auth/auth.service';
-import { verifyTotp as verifyTotpCode, labChallengeCode, labCodesEnabled } from '../rc2/totp.util';
+import { verifyTotp as verifyTotpCode, labChallengeCode, labCodesEnabled, encryptMfaSecret, decryptMfaSecret } from '../rc2/totp.util';
 
 function requireAdmin(user: JwtPayload) {
   if (user.role !== 'admin') throw new ForbiddenException('Admin role required');
@@ -158,11 +158,12 @@ export class Phase4Service {
 
   async enrollTotp(user: JwtPayload) {
     const secret = randomTotpSecret();
+    const stored = encryptMfaSecret(secret);
     const row = await queryOne(
       `INSERT INTO mfa_factors (user_id, factor_type, status, secret_enc, metadata)
        VALUES ($1,'totp','pending',$2,$3::jsonb)
        RETURNING id, factor_type, status, created_at`,
-      [user.sub, secret, JSON.stringify({ issuer: 'OpsEdge360', algorithm: 'SHA1', digits: 6, period: 30 })],
+      [user.sub, stored, JSON.stringify({ issuer: 'OpsEdge360', algorithm: 'SHA1', digits: 6, period: 30, encrypted: true })],
     );
     return {
       factor: row,
@@ -171,7 +172,7 @@ export class Phase4Service {
       otpauthUrl: `otpauth://totp/OpsEdge360:${encodeURIComponent(user.email || user.sub)}?secret=${secret}&issuer=OpsEdge360`,
       note: labCodesEnabled()
         ? 'Lab codes enabled (OPS_MFA_LAB_CODES). Prefer authenticator TOTP in production pilots.'
-        : 'Scan otpauthUrl with an authenticator app, then POST /me/mfa/verify with a 6-digit TOTP. Lab challenge codes are disabled.',
+        : 'Scan otpauthUrl with an authenticator app, then POST /me/mfa/verify with a 6-digit TOTP. Secret encrypted at rest.',
     };
   }
 
@@ -182,8 +183,14 @@ export class Phase4Service {
       [body.factorId, user.sub],
     );
     if (!factor) throw new NotFoundException('factor not found');
-    const totpOk = verifyTotpCode(factor.secret_enc, body.code, 1);
-    const labOk = labCodesEnabled() && body.code === labChallengeCode(factor.secret_enc);
+    let plaintext: string;
+    try {
+      plaintext = decryptMfaSecret(factor.secret_enc);
+    } catch {
+      throw new BadRequestException('Unable to decrypt MFA secret');
+    }
+    const totpOk = verifyTotpCode(plaintext, body.code, 1);
+    const labOk = labCodesEnabled() && body.code === labChallengeCode(plaintext);
     const acceptAny = process.env.MFA_RC1_ACCEPT_ANY === 'true';
     if (!acceptAny && !totpOk && !labOk) {
       throw new BadRequestException(

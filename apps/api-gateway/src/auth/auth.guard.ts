@@ -10,7 +10,7 @@ export class AuthGuard implements CanActivate {
     private authService: AuthService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -30,9 +30,10 @@ export class AuthGuard implements CanActivate {
 
     const token = authHeader.slice(7);
     try {
-      request.user = this.authService.verifyToken(token);
+      request.user = await this.authService.verifyAccessToken(token);
       return true;
-    } catch {
+    } catch (err) {
+      if (err instanceof UnauthorizedException) throw err;
       throw new UnauthorizedException('Invalid token');
     }
   }

@@ -71,6 +71,7 @@ async function bootstrap() {
       .addTag('reports')
       .addTag('phase4-rc1')
       .addTag('rc2-pilot')
+      .addTag('rc3-epp')
       .addTag('commercial')
       .build();
 
@@ -90,12 +91,26 @@ async function bootstrap() {
     console.warn('[security] AUTH_REQUIRED=false is not recommended in production');
   }
 
+  app.enableShutdownHooks();
+
   const port = process.env.API_GATEWAY_PORT ?? 4000;
   await app.listen(port);
   console.log(`OpsEdge360 API Gateway running on http://localhost:${port}`);
   if (process.env.SWAGGER_ENABLED !== 'false') {
     console.log(`Swagger docs: http://localhost:${port}/api/docs`);
   }
+
+  const shutdown = async (signal: string) => {
+    console.log(`[api-gateway] ${signal} received — graceful shutdown`);
+    try {
+      await app.close();
+    } catch (err) {
+      console.error('[api-gateway] shutdown error', err);
+    }
+    process.exit(0);
+  };
+  process.once('SIGTERM', () => void shutdown('SIGTERM'));
+  process.once('SIGINT', () => void shutdown('SIGINT'));
 }
 
 bootstrap();

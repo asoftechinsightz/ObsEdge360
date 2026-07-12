@@ -25,6 +25,7 @@ const CORE_NAV = [
   { href: '/security', icon: Shield, label: 'Security Center' },
   { href: '/pilot', icon: Building2, label: 'Pilot Package' },
   { href: '/rc2', icon: CheckCircle, label: 'RC2 Readiness' },
+  { href: '/rc3', icon: CheckCircle, label: 'RC3 / EPP' },
   { href: '/commercial', icon: Building2, label: 'License & Trial' },
   { href: '/rc1', icon: CheckCircle, label: 'RC1 Readiness' },
   { href: '/about', icon: Globe, label: 'About' },

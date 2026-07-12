@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
+import { EmptyState, ErrorState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
 import clsx from 'clsx';
 import Link from 'next/link';
 
@@ -77,15 +78,17 @@ export default function Banking360Page() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const dash = await apiClient<Dashboard>('/compliance/banking360');
       setData(dash);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Failed to load Banking360');
+      setError(err instanceof Error ? err.message : 'Failed to load Banking360');
     } finally {
       setLoading(false);
     }
@@ -196,11 +199,11 @@ export default function Banking360Page() {
         </div>
       </div>
 
-      {message && (
-        <div className="mb-4 rounded-lg border border-slate-600 bg-surface-elevated px-4 py-2 text-sm">
-          {message}
-          <button type="button" className="ml-3 text-slate-500" onClick={() => setMessage('')}>×</button>
-        </div>
+      {message && <SuccessBanner message={message} />}
+      {error && <ErrorState message={error} onRetry={() => load()} />}
+      {loading && !data && <LoadingSkeleton rows={4} />}
+      {!loading && !data && !error && (
+        <EmptyState title="Banking360 not loaded" hint="Activate the BFSI pack to seed controls and payment templates." />
       )}
 
       {data && (

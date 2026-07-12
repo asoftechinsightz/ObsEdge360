@@ -66,6 +66,8 @@ import { Phase4Controller } from './phase4/phase4.controller';
 import { Phase4Service } from './phase4/phase4.service';
 import { Rc2Controller } from './rc2/rc2.controller';
 import { Rc2Service } from './rc2/rc2.service';
+import { Rc3Controller } from './rc3/rc3.controller';
+import { Rc3Service } from './rc3/rc3.service';
 
 @Module({
   controllers: [
@@ -93,6 +95,7 @@ import { Rc2Service } from './rc2/rc2.service';
     Phase3Controller,
     Phase4Controller,
     Rc2Controller,
+    Rc3Controller,
     SyntheticsController,
     AuditController,
     SecretsController,
@@ -133,6 +136,7 @@ import { Rc2Service } from './rc2/rc2.service';
     Phase3Service,
     Phase4Service,
     Rc2Service,
+    Rc3Service,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

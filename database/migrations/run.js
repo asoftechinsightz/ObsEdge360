@@ -411,6 +411,14 @@ async function main() {
     }
   }
 
+  const pRc3 = await tableExists(client, 'rc3_readiness');
+  if (!pRc3) {
+    const s47 = path.join(migrationsDir, '047_rc3_epp_security_hardening.sql');
+    if (fs.existsSync(s47)) await runSqlFile(client, s47);
+  } else {
+    console.log('047_rc3_epp_security_hardening.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

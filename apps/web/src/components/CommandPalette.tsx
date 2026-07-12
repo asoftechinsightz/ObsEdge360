@@ -10,6 +10,7 @@ const ROUTES = [
   { href: '/security', label: 'Security Center' },
   { href: '/pilot', label: 'Pilot Package' },
   { href: '/rc2', label: 'RC2 Readiness' },
+  { href: '/rc3', label: 'RC3 / EPP' },
   { href: '/commercial', label: 'License & Trial' },
   { href: '/rc1', label: 'RC1 Readiness' },
   { href: '/about', label: 'About' },

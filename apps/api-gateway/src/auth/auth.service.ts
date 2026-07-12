@@ -9,7 +9,7 @@ import { createHash, randomBytes } from 'crypto';
 import { query, queryOne } from '@opsedge360/shared-db';
 import { incSecurityMetric } from '@opsedge360/shared-security';
 import { hashPassword, verifyPassword, slugifyOrg } from './password.util';
-import { hashBackupCode, labChallengeCode, labCodesEnabled, verifyTotp } from '../rc2/totp.util';
+import { hashBackupCode, labChallengeCode, labCodesEnabled, decryptMfaSecret, verifyTotp } from '../rc2/totp.util';
 
 export interface JwtPayload {
   sub: string;
@@ -17,6 +17,8 @@ export interface JwtPayload {
   tenantId: string;
   role: string;
   name?: string;
+  jti?: string;
+  sid?: string;
 }
 
 export interface MfaChallengePayload {
@@ -72,13 +74,16 @@ export class AuthService {
     }
   }
 
-  private issueToken(user: UserRow): { accessToken: string; user: JwtPayload } {
+  private issueToken(user: UserRow, opts?: { jti?: string; sid?: string }): { accessToken: string; user: JwtPayload } {
+    const jti = opts?.jti ?? randomBytes(16).toString('hex');
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       tenantId: user.slug,
       role: user.role,
       name: user.name ?? undefined,
+      jti,
+      sid: opts?.sid,
     };
     const accessToken = jwt.sign(payload, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
     return { accessToken, user: payload };
@@ -211,8 +216,14 @@ export class AuthService {
     }
 
     const asBackup = await this.tryConsumeBackupCode(challenge.sub, code);
-    const totpOk = /^\d{6}$/.test(code) && verifyTotp(factor.secret_enc, code, 1);
-    const labOk = labCodesEnabled() && code === labChallengeCode(factor.secret_enc);
+    let plaintextSecret = '';
+    try {
+      plaintextSecret = decryptMfaSecret(factor.secret_enc);
+    } catch {
+      throw new UnauthorizedException('MFA secret unavailable');
+    }
+    const totpOk = /^\d{6}$/.test(code) && verifyTotp(plaintextSecret, code, 1);
+    const labOk = labCodesEnabled() && code === labChallengeCode(plaintextSecret);
 
     if (!totpOk && !asBackup && !labOk) {
       await query(
@@ -248,17 +259,32 @@ export class AuthService {
     user: UserRow,
     opts: { passwordMustRotate?: boolean; mustEnrollMfa?: boolean; source: string },
   ): Promise<LoginResult> {
-    await query(
-      `INSERT INTO user_sessions (user_id, tenant_id, device_label, last_seen_at, expires_at)
-       VALUES ($1, $2, 'web', NOW(), NOW() + INTERVAL '24 hours')`,
-      [user.id, user.tenant_id],
-    ).catch(() => undefined);
+    const jti = randomBytes(16).toString('hex');
+    const session = await queryOne<{ id: string }>(
+      `INSERT INTO user_sessions (user_id, tenant_id, device_label, last_seen_at, expires_at, jti)
+       VALUES ($1, $2, 'web', NOW(), NOW() + INTERVAL '24 hours', $3)
+       RETURNING id`,
+      [user.id, user.tenant_id, jti],
+    ).catch(() => null);
+    // Fallback if jti column missing (pre-047): insert without jti
+    if (!session) {
+      await query(
+        `INSERT INTO user_sessions (user_id, tenant_id, device_label, last_seen_at, expires_at)
+         VALUES ($1, $2, 'web', NOW(), NOW() + INTERVAL '24 hours')`,
+        [user.id, user.tenant_id],
+      ).catch(() => undefined);
+    }
     await query(
       `INSERT INTO login_history (tenant_id, user_id, email, event, success, risk_score, metadata)
        VALUES ($1,$2,$3,'login',true,0,$4::jsonb)`,
-      [user.tenant_id, user.id, user.email.toLowerCase(), JSON.stringify({ source: opts.source })],
+      [
+        user.tenant_id,
+        user.id,
+        user.email.toLowerCase(),
+        JSON.stringify({ source: opts.source, jti }),
+      ],
     ).catch(() => undefined);
-    const issued = this.issueToken(user);
+    const issued = this.issueToken(user, { jti, sid: session?.id });
     return {
       ...issued,
       passwordMustRotate: opts.passwordMustRotate,
@@ -383,15 +409,18 @@ export class AuthService {
       [tenant.id],
     ).catch(() => undefined);
 
-    return this.issueToken({ ...user, slug: tenant.slug });
+    return this.completeLogin(
+      { ...user, slug: tenant.slug },
+      { source: 'signup' },
+    ) as Promise<{ accessToken: string; user: JwtPayload }>;
   }
 
   verifyToken(token: string): JwtPayload {
     return jwt.verify(token, this.secret) as JwtPayload;
   }
 
-  /** Sliding access-token refresh — same identity, new expiry (Wave 1 session foundation). */
-  refreshToken(token: string): { accessToken: string; user: JwtPayload; expiresIn: string } {
+  /** Verify JWT and reject revoked sessions (RC3 jti binding). */
+  async verifyAccessToken(token: string): Promise<JwtPayload> {
     let payload: JwtPayload;
     try {
       payload = this.verifyToken(token);
@@ -399,6 +428,42 @@ export class AuthService {
       const name = (err as { name?: string })?.name;
       if (name === 'TokenExpiredError') incSecurityMetric('security.auth.expired_token');
       else incSecurityMetric('security.auth.invalid_token');
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+    if (payload.jti) {
+      const row = await queryOne<{ revoked_at: string | null; expires_at: string | null }>(
+        `SELECT revoked_at, expires_at FROM user_sessions WHERE jti=$1 LIMIT 1`,
+        [payload.jti],
+      ).catch(() => null);
+      if (!row) {
+        // Legacy session row missing jti column / wiped — allow unless strict
+        if (process.env.JWT_REQUIRE_SESSION === 'true') {
+          throw new UnauthorizedException('Session not found');
+        }
+      } else if (row.revoked_at) {
+        incSecurityMetric('security.auth.invalid_token');
+        throw new UnauthorizedException('Session revoked');
+      } else if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
+        throw new UnauthorizedException('Session expired');
+      } else {
+        await query(`UPDATE user_sessions SET last_seen_at=NOW() WHERE jti=$1 AND revoked_at IS NULL`, [
+          payload.jti,
+        ]).catch(() => undefined);
+      }
+    }
+    return payload;
+  }
+
+  /** Sliding access-token refresh — preserves jti/session binding. */
+  async refreshToken(token: string): Promise<{ accessToken: string; user: JwtPayload; expiresIn: string }> {
+    let payload: JwtPayload;
+    try {
+      payload = await this.verifyAccessToken(token);
+    } catch (err) {
+      if (err instanceof UnauthorizedException) {
+        incSecurityMetric('security.auth.refresh_failure');
+        throw err;
+      }
       incSecurityMetric('security.auth.refresh_failure');
       throw new UnauthorizedException('Invalid or expired token');
     }
@@ -408,6 +473,8 @@ export class AuthService {
       tenantId: payload.tenantId,
       role: payload.role,
       name: payload.name,
+      jti: payload.jti,
+      sid: payload.sid,
     };
     const accessToken = jwt.sign(next, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
     incSecurityMetric('security.auth.refresh_success');
@@ -540,7 +607,12 @@ export class AuthService {
     }
 
     if (!user) throw new BadRequestException('Failed to provision SSO user');
-    return this.issueToken({ ...user, slug: tenant.slug });
+    const result = await this.completeLogin({ ...user, slug: tenant.slug }, { source: 'sso' });
+    if ('mfaRequired' in result) {
+      // SSO users with MFA required still need challenge — rare at provision time
+      throw new BadRequestException('MFA challenge required after SSO — complete password MFA enroll first');
+    }
+    return result;
   }
 
   private async enforcePasswordPolicy(password: string, tenantId?: string) {

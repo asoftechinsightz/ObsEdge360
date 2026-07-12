@@ -14,6 +14,9 @@ import {
   hashBackupCode,
   labChallengeCode,
   labCodesEnabled,
+  encryptMfaSecret,
+  decryptMfaSecret,
+  isEncryptedMfaSecret,
   otpauthUrl,
   verifyTotp,
 } from './totp.util';
@@ -167,21 +170,49 @@ export class Rc2Service {
   /* MFA — production TOTP */
   async enrollTotpProduction(user: JwtPayload) {
     const secret = generateTotpSecret();
+    const stored = encryptMfaSecret(secret);
     const row = await queryOne(
-      `INSERT INTO mfa_factors (user_id, factor_type, status, secret_enc, metadata)
-       VALUES ($1,'totp','pending',$2,$3::jsonb)
+      `INSERT INTO mfa_factors (user_id, factor_type, status, secret_enc, secret_key_id, secret_alg, metadata)
+       VALUES ($1,'totp','pending',$2,$3,'aes-256-gcm',$4::jsonb)
        RETURNING id, factor_type, status, created_at`,
       [
         user.sub,
-        secret,
-        JSON.stringify({ issuer: 'OpsEdge360', algorithm: 'SHA1', digits: 6, period: 30, rfc6238: true }),
+        stored,
+        process.env.SECRETS_KEY_ID ?? 'local-v1',
+        JSON.stringify({
+          issuer: 'OpsEdge360',
+          algorithm: 'SHA1',
+          digits: 6,
+          period: 30,
+          rfc6238: true,
+          encrypted: true,
+        }),
       ],
+    ).catch(async () =>
+      // Pre-047 columns missing
+      queryOne(
+        `INSERT INTO mfa_factors (user_id, factor_type, status, secret_enc, metadata)
+         VALUES ($1,'totp','pending',$2,$3::jsonb)
+         RETURNING id, factor_type, status, created_at`,
+        [
+          user.sub,
+          stored,
+          JSON.stringify({
+            issuer: 'OpsEdge360',
+            algorithm: 'SHA1',
+            digits: 6,
+            period: 30,
+            rfc6238: true,
+            encrypted: true,
+          }),
+        ],
+      ),
     );
     return {
       factor: row,
       secret,
       otpauthUrl: otpauthUrl(user.email || user.sub, secret),
-      note: 'Scan with an authenticator app, then POST /me/mfa/verify-totp with a 6-digit code.',
+      note: 'Scan with an authenticator app, then POST /me/mfa/verify-totp with a 6-digit code. Secret is encrypted at rest.',
     };
   }
 
@@ -193,10 +224,16 @@ export class Rc2Service {
     );
     if (!factor?.secret_enc) throw new NotFoundException('factor not found');
 
+    let plaintext: string;
+    try {
+      plaintext = decryptMfaSecret(factor.secret_enc);
+    } catch {
+      throw new BadRequestException('Unable to decrypt MFA secret — check SECRETS_MASTER_KEY');
+    }
+
     const asBackup = await this.tryConsumeBackupCode(user.sub, body.code);
-    const totpOk = /^\d{6}$/.test(body.code) && verifyTotp(factor.secret_enc, body.code, 1);
-    // Lab fallback only when OPS_MFA_LAB_CODES=1 (automation); off by default in production
-    const labOk = labCodesEnabled() && body.code === labChallengeCode(factor.secret_enc);
+    const totpOk = /^\d{6}$/.test(body.code) && verifyTotp(plaintext, body.code, 1);
+    const labOk = labCodesEnabled() && body.code === labChallengeCode(plaintext);
 
     if (!totpOk && !asBackup && !labOk) {
       await query(
@@ -205,6 +242,17 @@ export class Rc2Service {
         [user.sub, user.email],
       );
       throw new BadRequestException('Invalid MFA or backup code');
+    }
+
+    // Re-encrypt legacy plaintext secrets on successful verify
+    if (!isEncryptedMfaSecret(factor.secret_enc)) {
+      await query(`UPDATE mfa_factors SET secret_enc=$1, secret_key_id=$2, secret_alg='aes-256-gcm' WHERE id=$3`, [
+        encryptMfaSecret(plaintext),
+        process.env.SECRETS_KEY_ID ?? 'local-v1',
+        body.factorId,
+      ]).catch(() =>
+        query(`UPDATE mfa_factors SET secret_enc=$1 WHERE id=$2`, [encryptMfaSecret(plaintext), body.factorId]),
+      );
     }
 
     const updated = await queryOne(
