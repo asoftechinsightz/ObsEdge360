@@ -17,6 +17,7 @@ import clsx from 'clsx';
 import { AUTH_COOKIE } from '@/lib/auth';
 import { CopilotPanel } from '@/components/CopilotPanel';
 import { EnvironmentBanner } from '@/components/EnvironmentBanner';
+import { DemoDataBanner } from '@/components/ede/DemoDataBanner';
 import { CommandPalette } from '@/components/CommandPalette';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { NotificationCenter } from '@/components/NotificationCenter';
@@ -290,6 +291,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               Presentation mode · Ctrl+Shift+P to exit
             </div>
           )}
+          {!presentation && <DemoDataBanner />}
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

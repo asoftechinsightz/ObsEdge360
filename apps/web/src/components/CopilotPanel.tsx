@@ -28,12 +28,12 @@ interface CopilotPanelProps {
 }
 
 const SUGGESTIONS = [
-  'What is the root cause of current latency?',
-  'Explain recent alerts',
-  'Give me an executive summary',
-  'Give me recommendations',
-  'How is Banking360 compliance?',
-  'Are payment SLOs healthy?',
+  "Summarize today's critical incidents.",
+  'Why is UPI latency increasing?',
+  'Show services at highest business risk.',
+  "Explain yesterday's outage.",
+  'Recommend actions for certificate expiry.',
+  'Predict capacity risks.',
 ];
 
 export function CopilotPanel({ open, onClose }: CopilotPanelProps) {

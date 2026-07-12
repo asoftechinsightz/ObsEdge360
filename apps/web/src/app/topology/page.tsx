@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
+import { friendlyError } from '@/lib/friendly-error';
 import cytoscape from 'cytoscape';
 import clsx from 'clsx';
 
@@ -177,7 +178,7 @@ export default function TopologyPage() {
       setDeps(depRes.count ?? 0);
       renderGraph(graph.nodes ?? [], graph.edges ?? []);
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(friendlyError(err, 'Topology is empty. Load Illustrative Demo Data or run Discovery.'));
     } finally {
       setLoading(false);
     }
@@ -218,7 +219,7 @@ export default function TopologyPage() {
       await loadTopology(topoType);
       setMessage('Topology refreshed');
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(friendlyError(err));
       setLoading(false);
     }
   }
@@ -234,7 +235,7 @@ export default function TopologyPage() {
       await apiClient(`/cmdb/topology/${topoType}/refresh`, { method: 'POST', body: '{}' });
       await loadTopology(topoType);
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(friendlyError(err));
     }
   }
 
@@ -248,7 +249,7 @@ export default function TopologyPage() {
       await loadTopology(topoType);
       setMessage(`Layout applied: ${layoutAlgo}`);
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(friendlyError(err));
       setLoading(false);
     }
   }
@@ -262,7 +263,7 @@ export default function TopologyPage() {
       setBlast(r);
       renderGraph(nodes, edges, new Set(r.nodes.map((n) => n.id)));
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(friendlyError(err));
     }
   }
 
@@ -352,6 +353,7 @@ export default function TopologyPage() {
                   </p>
                   <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
                     <a href="/discovery" className="text-sky-400 hover:underline">Set up Discovery →</a>
+                    <a href="/demo/guided" className="text-sky-400 hover:underline">Load / guided demo →</a>
                     <a href="/apm" className="text-sky-400 hover:underline">APM / service map →</a>
                   </div>
                 </div>

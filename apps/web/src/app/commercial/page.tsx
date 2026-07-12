@@ -39,7 +39,14 @@ export default function CommercialPage() {
       .slice(0, 12)
       .map(([label, value]) => ({
         label: label.replace(/_/g, ' '),
-        value: typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—'),
+        value:
+          value == null
+            ? 'None'
+            : typeof value === 'object'
+              ? Object.entries(value as Record<string, unknown>)
+                  .map(([k, v]) => `${k}: ${v === true ? 'Yes' : v === false ? 'No' : String(v)}`)
+                  .join(' · ') || 'None'
+              : String(value),
       }));
   }, [ent]);
 

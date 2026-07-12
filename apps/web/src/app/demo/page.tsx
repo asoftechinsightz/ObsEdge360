@@ -35,11 +35,11 @@ export default function DemoTourPage() {
   }, []);
 
   const resetDemo = async () => {
-    await apiClient('/demo/reset', { method: 'POST', body: '{}' });
+    await apiClient('/demo/ede/reset', { method: 'POST', body: '{}' });
     setActive(null);
     setStep(0);
     setConfirmReset(false);
-    setMsg('Demo reset complete — tours re-enabled and progress cleared for the next walkthrough.');
+    setMsg('Demo reset complete — Illustrative Demo Data reloaded and tour progress cleared.');
   };
 
   const start = async (t: Tour) => {
@@ -100,12 +100,12 @@ export default function DemoTourPage() {
       <div className="mb-4 flex flex-wrap gap-2">
         {!confirmReset ? (
           <button type="button" className="rounded border border-white/20 px-3 py-2 text-sm" onClick={() => setConfirmReset(true)}>
-            Reset demo progress
+            Reset demo (reload pack)
           </button>
         ) : (
           <>
             <button type="button" className="rounded bg-amber-700 px-3 py-2 text-sm text-white" onClick={() => resetDemo().catch((e: Error) => setErr(e.message))}>
-              Confirm reset
+              Confirm full demo reset
             </button>
             <button type="button" className="rounded border border-white/20 px-3 py-2 text-sm" onClick={() => setConfirmReset(false)}>
               Cancel

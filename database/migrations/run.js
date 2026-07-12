@@ -419,6 +419,14 @@ async function main() {
     console.log('047_rc3_epp_security_hardening.sql already applied.');
   }
 
+  const edeInventory = await tableExists(client, 'ede_inventory_summary');
+  if (!edeInventory) {
+    const s48 = path.join(migrationsDir, '048_ede_enterprise_demo.sql');
+    if (fs.existsSync(s48)) await runSqlFile(client, s48);
+  } else {
+    console.log('048_ede_enterprise_demo.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

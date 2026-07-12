@@ -135,6 +135,7 @@ export function getNavSections(): NavSection[] {
       items: [
         { href: '/help', label: 'Help Center', icon: HelpCircle },
         { href: '/demo', label: 'Executive Demo', icon: Sparkles },
+        { href: '/demo/guided', label: 'Guided Evaluation', icon: Sparkles },
         { href: '/about', label: 'About', icon: BookOpen },
         { href: '/developer', label: 'Developer Mode', icon: Code2 },
       ],

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
+import { friendlyError } from '@/lib/friendly-error';
 import cytoscape from 'cytoscape';
 import clsx from 'clsx';
 
@@ -230,7 +231,7 @@ export default function DigitalTwinPage() {
       setEdges(graph.edges);
       renderGraph(graph.nodes, graph.edges);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Failed to load topology');
+      setMessage(friendlyError(err, 'Digital Twin has no graph yet. Load Illustrative Demo Data or connect Discovery.'));
     } finally {
       setLoading(false);
     }
@@ -354,7 +355,7 @@ export default function DigitalTwinPage() {
               <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
                 <a href="/discovery" className="text-sky-400 hover:underline">Set up Discovery →</a>
                 <a href="/cmdb" className="text-sky-400 hover:underline">Open CMDB →</a>
-                <a href="/developer" className="text-sky-400 hover:underline">Developer Mode / demo →</a>
+                <a href="/demo/guided" className="text-sky-400 hover:underline">Load Illustrative Demo Data →</a>
               </div>
             </div>
           )}

@@ -68,6 +68,8 @@ import { Rc2Controller } from './rc2/rc2.controller';
 import { Rc2Service } from './rc2/rc2.service';
 import { Rc3Controller } from './rc3/rc3.controller';
 import { Rc3Service } from './rc3/rc3.service';
+import { EdeController } from './ede/ede.controller';
+import { EdeSeedService } from './ede/ede-seed.service';
 
 @Module({
   controllers: [
@@ -96,6 +98,7 @@ import { Rc3Service } from './rc3/rc3.service';
     Phase4Controller,
     Rc2Controller,
     Rc3Controller,
+    EdeController,
     SyntheticsController,
     AuditController,
     SecretsController,
@@ -137,6 +140,7 @@ import { Rc3Service } from './rc3/rc3.service';
     Phase4Service,
     Rc2Service,
     Rc3Service,
+    EdeSeedService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

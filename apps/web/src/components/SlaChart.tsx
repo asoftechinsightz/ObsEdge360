@@ -35,11 +35,36 @@ export function ExecutiveTrendCharts() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await apiClient<{ points?: Point[]; series?: Point[] }>('/executive/trends').catch(() => null);
-        const points = res?.points || res?.series;
-        if (!cancelled && Array.isArray(points) && points.length) {
+        const res = await apiClient<{
+          points?: Point[];
+          series?: Array<{
+            day: string;
+            availability?: number;
+            slaCompliance?: number;
+            activeIncidents?: number;
+            mttrMinutes?: number;
+            sla?: number;
+            incidents?: number;
+            mttr?: number;
+          }>;
+          illustrative?: boolean;
+          label?: string;
+        }>('/executive/trends').catch(() => null);
+        const series = res?.series;
+        const legacy = res?.points;
+        if (!cancelled && Array.isArray(series) && series.length) {
+          const points: Point[] = series.map((p) => ({
+            day: String(p.day).slice(5) || String(p.day),
+            availability: p.availability,
+            sla: p.sla ?? p.slaCompliance ?? 99.9,
+            incidents: p.incidents ?? p.activeIncidents,
+            mttr: p.mttr ?? p.mttrMinutes,
+          }));
           setData(points);
-          setMode('live');
+          setMode(res?.illustrative ? 'illustrative' : 'live');
+        } else if (!cancelled && Array.isArray(legacy) && legacy.length) {
+          setData(legacy);
+          setMode(res?.illustrative ? 'illustrative' : 'live');
         }
       } catch {
         /* keep illustrative */
@@ -56,7 +81,7 @@ export function ExecutiveTrendCharts() {
         <div className="mb-1 flex items-center justify-between gap-2">
           <h2 className="font-semibold">SLA & availability (7 days)</h2>
           <span className="text-[10px] uppercase tracking-wide text-slate-500">
-            {mode === 'live' ? 'Live' : 'Illustrative sample'}
+            {mode === 'live' ? 'Live' : 'Illustrative Demo Data'}
           </span>
         </div>
         <p className="mb-3 text-xs text-slate-500" aria-hidden={false}>
