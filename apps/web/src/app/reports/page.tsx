@@ -8,6 +8,7 @@ import { PageHeader, DataTable, JsonViewer, StatusBadge } from '@/components/eig
 import { isDebugMode } from '@/lib/debug-mode';
 import { TrustBar } from '@/components/apex/TrustBar';
 import { InlineAiAssist } from '@/components/apex/InlineAiAssist';
+import { bump } from '@/lib/cvp/analytics';
 
 function asRows(data: unknown): Array<Record<string, unknown>> {
   if (!data) return [];
@@ -63,6 +64,7 @@ export default function ReportsPage() {
 
   const generate = async () => {
     await apiClient('/reports/generate', { method: 'POST', body: JSON.stringify({ reportType: type }) });
+    bump('reportGenerations');
     setMsg(`${TYPE_LABELS[type] || type} generated`);
     await load();
   };

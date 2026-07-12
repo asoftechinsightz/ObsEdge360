@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { fetchApi } from '@/lib/api';
 import type { ExecutiveKpis } from '@opsedge360/shared-types';
 import { Activity, IndianRupee, Shield, Leaf, AlertTriangle } from 'lucide-react';
 import { ErrorState } from '@/components/UiStates';
+import { DashboardClick } from '@/components/cvp/DashboardClick';
 
 export async function KpiGrid() {
   let kpis: ExecutiveKpis | null = null;
@@ -84,14 +84,14 @@ export async function KpiGrid() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {cards.map((card) => (
-          <Link key={card.label} href={card.href} className="kpi-card block hover:-translate-y-0.5">
+          <DashboardClick key={card.label} href={card.href} className="kpi-card block hover:-translate-y-0.5">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs text-slate-400">{card.label}</span>
               <card.icon size={16} className={card.color} aria-hidden />
             </div>
             <div className={`text-2xl font-bold ${card.color}`}>{card.value}</div>
             <div className="mt-1 text-xs text-slate-500">{card.trend}</div>
-          </Link>
+          </DashboardClick>
         ))}
       </div>
     </div>

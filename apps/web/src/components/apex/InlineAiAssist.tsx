@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { bump } from '@/lib/cvp/analytics';
 
 type Props = {
   /** Short context for the model, e.g. incident title */
@@ -28,6 +29,7 @@ export function InlineAiAssist({ context, prompt, title = 'AI insight', classNam
     setOpen(true);
     setLoading(true);
     setErr('');
+    bump('inlineAiRuns');
     try {
       const result = await apiClient<{
         reply: string;

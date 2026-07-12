@@ -24,6 +24,7 @@ import { UserMenu } from '@/components/UserMenu';
 import { PageTransition } from '@/components/PageTransition';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
 import { ApexModeControls } from '@/components/apex/ApexModeControls';
+import { CvpAnalyticsListener } from '@/components/cvp/CvpAnalyticsListener';
 import { apiClient } from '@/lib/api-client';
 import { getNavSections, INTERNAL_NAV, type NavSection } from '@/lib/nav-config';
 import { isDebugMode } from '@/lib/debug-mode';
@@ -296,6 +297,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <CommandPalette />
       <WebVitalsReporter />
+      <CvpAnalyticsListener />
     </div>
   );
 }

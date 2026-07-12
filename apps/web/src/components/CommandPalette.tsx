@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { flattenNav } from '@/lib/nav-config';
 import { isDebugMode } from '@/lib/debug-mode';
+import { trackSearch } from '@/lib/cvp/analytics';
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -59,7 +60,11 @@ export function CommandPalette() {
         <input
           autoFocus
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setQ(v);
+            if (v.trim().length > 1) trackSearch(v);
+          }}
           placeholder="Jump to page… (Ctrl/Cmd+K)"
           className="w-full border-b border-white/10 bg-transparent px-4 py-3 text-sm text-white outline-none"
           aria-label="Filter pages"

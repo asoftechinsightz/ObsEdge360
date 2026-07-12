@@ -42,8 +42,9 @@ Requires **Product Approval** (written), including but not limited to:
 2. Landing enterprise pilots  
 3. Sales, CS, procurement, and partner assets ([`docs/gtm/`](./gtm/README.md))  
 4. Customer feedback loops  
-5. Enterprise UX polish per [`docs/ux-audit/`](./ux-audit/README.md) (presentation only) — **EIG** premium bar + measured performance ([principles](./ux-audit/16_EIG_DESIGN_PRINCIPLES.md))  
-6. v1.1 only from real-world usage  
+5. Enterprise UX polish per [`docs/ux-audit/`](./ux-audit/README.md) and APEX [`docs/apex/`](./apex/README.md)  
+6. Customer Validation Program [`docs/cvp/`](./cvp/README.md) — pilots, feedback, evidence-driven v1.1  
+7. v1.1 only from real-world usage  
 
 ## Unfreeze criteria
 

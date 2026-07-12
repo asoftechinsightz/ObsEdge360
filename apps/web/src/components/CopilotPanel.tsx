@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bot, Send, Sparkles, X, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { bump } from '@/lib/cvp/analytics';
 import Link from 'next/link';
 import clsx from 'clsx';
 
@@ -49,6 +50,7 @@ export function CopilotPanel({ open, onClose }: CopilotPanelProps) {
 
   useEffect(() => {
     if (open) {
+      bump('copilotOpens');
       apiClient<{ recommendations: Recommendation[] }>('/copilot/recommendations')
         .then((d) => setRecs(d.recommendations.slice(0, 4)))
         .catch(() => undefined);
@@ -67,6 +69,7 @@ export function CopilotPanel({ open, onClose }: CopilotPanelProps) {
     setMessages(nextMessages);
     setInput('');
     setLoading(true);
+    bump('copilotMessages');
 
     try {
       const result = await apiClient<{

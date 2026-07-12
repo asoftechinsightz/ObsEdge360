@@ -80,6 +80,18 @@ const GROUPS: { title: string; links: { href: string; label: string; exact?: boo
       { href: '/admin/governance', label: 'Governance' },
     ],
   },
+  {
+    title: 'Customer Validation',
+    links: [
+      { href: '/admin/cvp', label: 'CVP Overview' },
+      { href: '/admin/cvp/pilots', label: 'Pilots' },
+      { href: '/admin/cvp/feedback', label: 'Feedback' },
+      { href: '/admin/cvp/feature-board', label: 'Feature Board' },
+      { href: '/admin/cvp/success', label: 'Success' },
+      { href: '/admin/cvp/analytics', label: 'Analytics' },
+      { href: '/admin/cvp/releases', label: 'Releases' },
+    ],
+  },
 ];
 
 export function AdminNav() {
