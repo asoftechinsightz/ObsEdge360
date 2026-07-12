@@ -124,7 +124,7 @@ URLs for RC/Pilot/Demo **unchanged** (backward compatible).
 
 ## Git Commit SHA
 
-_Filled after commit:_ `PENDING`
+`015aed0f2cbcbd2497dc227bcb42109c6edc5a14`
 
 ---
 
