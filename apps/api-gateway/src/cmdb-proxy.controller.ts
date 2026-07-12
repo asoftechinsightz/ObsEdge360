@@ -139,7 +139,7 @@ export class CmdbProxyController {
     const relationships = await query(
       `SELECT id, source_ci_id AS "sourceCiId", target_ci_id AS "targetCiId",
               relationship_type AS "relationshipType", COALESCE(strength,'normal') AS strength
-       FROM ci_relationships WHERE tenant_id=$1 ORDER BY created_at DESC NULLS LAST LIMIT 200`,
+       FROM relationships WHERE tenant_id=$1 ORDER BY created_at DESC NULLS LAST LIMIT 200`,
       [tenantId],
     ).catch(() => []);
     return { relationships, illustrative: true, label: 'Illustrative Demo Data' };
@@ -198,7 +198,7 @@ export class CmdbProxyController {
     const relationships = await query(
       `SELECT id, source_ci_id AS "sourceCiId", target_ci_id AS "targetCiId",
               relationship_type AS "relationshipType", COALESCE(strength,'normal') AS strength
-       FROM ci_relationships WHERE tenant_id=$1 AND (source_ci_id=$2 OR target_ci_id=$2) LIMIT 100`,
+       FROM relationships WHERE tenant_id=$1 AND (source_ci_id=$2 OR target_ci_id=$2) LIMIT 100`,
       [tid, id],
     ).catch(() => []);
     return res.status(200).json({ relationships });
@@ -424,7 +424,7 @@ export class CmdbProxyController {
       [tid],
     ).catch(() => []);
     const edges = await query<{ source_ci_id: string; target_ci_id: string; relationship_type: string }>(
-      `SELECT source_ci_id, target_ci_id, relationship_type FROM ci_relationships
+      `SELECT source_ci_id, target_ci_id, relationship_type FROM relationships
        WHERE tenant_id=$1 LIMIT 120`,
       [tid],
     ).catch(() => []);
@@ -536,7 +536,7 @@ export class CmdbProxyController {
     const live = await this.cmdbGet('/history', tid, { query: { ciId } });
     if (live) return res.status(live.status).json(live.data);
     const history = await query(
-      `SELECT * FROM ci_history WHERE tenant_id=$1 AND ci_id=$2 ORDER BY changed_at DESC LIMIT 50`,
+      `SELECT * FROM ci_config_history WHERE tenant_id=$1 AND ci_id=$2 ORDER BY changed_at DESC LIMIT 50`,
       [tid, ciId],
     ).catch(() => []);
     return res.status(200).json({ history, illustrative: true });
