@@ -63,6 +63,8 @@ async function bootstrap() {
       .addTag('enterprise-certification')
       .addTag('deployment-security')
       .addTag('general-availability')
+      .addTag('synthetics')
+      .addTag('phase2')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

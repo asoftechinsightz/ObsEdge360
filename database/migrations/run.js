@@ -354,6 +354,14 @@ async function main() {
     console.log('041_wave9_ga.sql already applied.');
   }
 
+  const platformEnvs = await tableExists(client, 'platform_environments');
+  if (!platformEnvs) {
+    const s42 = path.join(migrationsDir, '042_phase2_enterprise_maturity.sql');
+    if (fs.existsSync(s42)) await runSqlFile(client, s42);
+  } else {
+    console.log('042_phase2_enterprise_maturity.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

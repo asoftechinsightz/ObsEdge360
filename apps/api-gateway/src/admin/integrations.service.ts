@@ -8,6 +8,7 @@ import {
 import axios, { type AxiosRequestConfig } from 'axios';
 import { createSecretsProvider } from '@opsedge360/shared-security';
 import { query, queryOne } from '@opsedge360/shared-db';
+import { isOutboundDisabled } from '@opsedge360/platform-config';
 import type { JwtPayload } from '../auth/auth.service';
 import { AuthService } from '../auth/auth.service';
 import {
@@ -743,6 +744,12 @@ export class IntegrationsService {
     body: { channelId: string; severity?: string; title?: string; message?: string; data?: Record<string, unknown> },
   ) {
     requireAdmin(user);
+    // Phase 2: demo/UAT planes never send external notifications
+    if (isOutboundDisabled()) {
+      throw new BadRequestException(
+        'Outbound notifications disabled in this environment (APP_ENV demo/uat). Delivery blocked.',
+      );
+    }
     const tid = requireTenant(tenantId);
     const channel = await queryOne<Record<string, unknown>>(
       `SELECT * FROM enterprise_notification_channels WHERE id=$1 AND tenant_id=$2 AND enabled=true`,

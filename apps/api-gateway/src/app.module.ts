@@ -57,6 +57,9 @@ import { Wave8Controller } from './admin/wave8.controller';
 import { Wave8Service } from './admin/wave8.service';
 import { Wave9Controller } from './admin/wave9.controller';
 import { Wave9Service } from './admin/wave9.service';
+import { SyntheticsController } from './synthetics/synthetics.controller';
+import { SyntheticsService } from './synthetics/synthetics.service';
+import { Phase2Controller } from './phase2/phase2.controller';
 
 @Module({
   controllers: [
@@ -80,6 +83,8 @@ import { Wave9Service } from './admin/wave9.service';
     QuantumController,
     GovernanceController,
     PlatformController,
+    Phase2Controller,
+    SyntheticsController,
     AuditController,
     SecretsController,
     TrustController,
@@ -115,6 +120,7 @@ import { Wave9Service } from './admin/wave9.service';
     Wave7Service,
     Wave8Service,
     Wave9Service,
+    SyntheticsService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

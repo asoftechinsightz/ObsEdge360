@@ -22,10 +22,16 @@ export class PlatformController {
       cacheEnabled: cfg.cacheEnabled,
       dbPoolMax: cfg.dbPoolMax,
       cacheTtlSec: cfg.cacheTtlSec,
+      appEnv: cfg.appEnv,
+      environmentLabel: cfg.environmentLabel,
+      databaseName: cfg.databaseName,
+      isDemo: cfg.isDemo,
+      outboundDisabled: cfg.outboundDisabled,
       hints: {
         saas: 'DEPLOYMENT_MODE=saas PERFORMANCE_PROFILE=high — Kafka + Redis required',
         hybrid: 'DEPLOYMENT_MODE=hybrid — control plane cloud, data plane in customer region',
         onprem: 'DEPLOYMENT_MODE=onprem PERFORMANCE_PROFILE=standard — optional Kafka (HTTP fallback)',
+        env: 'APP_ENV=production|demo|development|local|uat|staging — separate data planes',
       },
     };
   }

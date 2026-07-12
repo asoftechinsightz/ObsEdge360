@@ -12,6 +12,8 @@ import {
 import clsx from 'clsx';
 import { AUTH_COOKIE, logout } from '@/lib/auth';
 import { CopilotPanel } from '@/components/CopilotPanel';
+import { EnvironmentBanner } from '@/components/EnvironmentBanner';
+import { CommandPalette } from '@/components/CommandPalette';
 
 const CORE_NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Executive Home' },
@@ -26,6 +28,7 @@ const CORE_NAV = [
   { href: '/cmdb/drift', icon: Database, label: 'CMDB Drift' },
   { href: '/transactions', icon: GitBranch, label: 'Transactions' },
   { href: '/observability', icon: Activity, label: 'Observability' },
+  { href: '/synthetics', icon: Activity, label: 'Synthetics' },
   { href: '/fleet', icon: Server, label: 'Universal Agents' },
   { href: '/apm', icon: Waypoints, label: 'APM' },
   { href: '/network', icon: Radio, label: 'Network' },
@@ -123,11 +126,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="ml-60 flex flex-1 flex-col">
+        <EnvironmentBanner />
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-slate-700 bg-surface/95 px-6 backdrop-blur">
-          <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-surface-elevated px-3 py-1.5 text-sm text-slate-400">
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-lg border border-slate-700 bg-surface-elevated px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200"
+            onClick={() => window.dispatchEvent(new Event('opsedge:command-palette'))}
+          >
             <Search size={14} />
-            <span>Search assets, services, transactions...</span>
-          </div>
+            <span>Search / jump…</span>
+            <kbd className="ml-2 rounded border border-slate-600 px-1 text-[10px]">Ctrl K</kbd>
+          </button>
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -137,9 +146,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <Bot size={16} />
               Copilot
             </button>
-            <button type="button" className="relative text-slate-400 hover:text-white">
+            <button type="button" className="relative text-slate-400 hover:text-white" aria-label="Notifications">
               <Bell size={20} />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">4</span>
             </button>
             <div className="flex items-center gap-2 text-sm text-slate-400">
               <User size={18} />
@@ -151,6 +159,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
+      <CommandPalette />
     </div>
   );
 }
