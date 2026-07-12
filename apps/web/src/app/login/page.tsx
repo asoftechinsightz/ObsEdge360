@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useEffect, useState, Suspense } from 'react';
 import {
+  enterDemoRequest,
   getApiUrl,
   isMfaChallenge,
   loginRequest,
@@ -127,6 +128,37 @@ function LoginForm() {
     }
   }
 
+  async function enterDemo() {
+    setError('');
+    setNotice('');
+    setLoading(true);
+    try {
+      const result = await enterDemoRequest();
+      if (isMfaChallenge(result)) {
+        setMfaToken(result.mfaToken);
+        setNotice('Enter the 6-digit code from your authenticator app (or a backup code).');
+        return;
+      }
+      await finishSession(result.accessToken, {
+        passwordMustRotate: result.passwordMustRotate,
+        mustEnrollMfa: result.mustEnrollMfa,
+        role: result.user?.role,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demo entry failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (searchParams.get('demo') === '1' && !mfaToken) {
+      void enterDemo();
+    }
+    // intentionally once on mount when ?demo=1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function startSso(provider: SsoProvider) {
     if (!orgSlug.trim()) {
       setError('Enter your organization slug for SSO');
@@ -152,9 +184,11 @@ function LoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-surface-elevated p-8 shadow-xl">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary font-bold text-white">O</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-cyan-700 text-xs font-semibold text-white">
+            360
+          </div>
           <div>
-            <h1 className="text-lg font-semibold">OpsEdge360</h1>
+            <h1 className="text-lg font-semibold tracking-tight">OpsEdge360</h1>
             <p className="text-sm text-slate-400">
               {mfaToken ? 'Multi-factor authentication' : 'Sign in to your organization'}
             </p>
@@ -264,6 +298,22 @@ function LoginForm() {
                 {p.name} <span className="text-xs text-slate-500">({p.protocol.toUpperCase()})</span>
               </button>
             ))}
+          </div>
+        )}
+
+        {!mfaToken && (
+          <div className="mt-5 border-t border-slate-700 pt-5">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void enterDemo()}
+              className="w-full rounded-lg border border-sky-500/40 bg-sky-500/10 py-2.5 text-sm font-medium text-sky-100 hover:bg-sky-500/20 disabled:opacity-60"
+            >
+              {loading ? 'Opening demo…' : 'Explore illustrative demo data'}
+            </button>
+            <p className="mt-2 text-center text-[11px] text-slate-500">
+              Opens Asoftech Global Bank demo estate (not live telemetry).
+            </p>
           </div>
         )}
 

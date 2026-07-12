@@ -69,13 +69,22 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     setDebug(isDebugMode());
     syncApexDomFlags();
     setPresentation(isPresentationMode());
-    setSections(getNavSections());
+    const nav = getNavSections();
+    setSections(nav);
     try {
       setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
       const raw = localStorage.getItem(OPEN_SECTIONS_KEY);
-      setOpenSections(raw ? JSON.parse(raw) : { executive: true, operations: true, security: true, help: true });
+      if (raw) {
+        setOpenSections(JSON.parse(raw));
+      } else {
+        const defaults: Record<string, boolean> = {};
+        for (const s of nav) {
+          defaults[s.id] = !s.defaultCollapsed;
+        }
+        setOpenSections(defaults);
+      }
     } catch {
-      setOpenSections({ executive: true, operations: true, security: true, help: true });
+      setOpenSections({ overview: true, estate: true, assurance: true, more: false });
     }
     apiClient<{ theme?: string }>('/me/preferences')
       .then((p) => {
@@ -119,14 +128,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const navBody = (
     <>
       <div className="flex items-center justify-between border-b border-[var(--eig-border)] p-4">
-        <Link href="/dashboard" className="flex min-w-0 items-center gap-2" onClick={() => setMobileOpen(false)}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[var(--eig-radius-sm)] bg-primary font-bold text-white">
-            O
+        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5" onClick={() => setMobileOpen(false)}>
+          <div
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 to-cyan-700 text-[10px] font-semibold tracking-tight text-white shadow-sm"
+            aria-hidden
+          >
+            360
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">OpsEdge360</div>
-              <div className="truncate text-[10px] text-slate-500">Enterprise Intelligence</div>
+              <div className="truncate text-sm font-semibold tracking-tight text-slate-100">OpsEdge360</div>
+              <div className="truncate text-[11px] text-slate-500">Enterprise observability</div>
             </div>
           )}
         </Link>
@@ -148,7 +160,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               {!collapsed && (
                 <button
                   type="button"
-                  className="mb-1 flex w-full items-center justify-between px-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-300"
+                  className="mb-1 flex w-full items-center justify-between px-2 py-0.5 text-[11px] font-medium text-slate-400 hover:text-slate-200"
                   onClick={() => toggleSection(section.id)}
                   aria-expanded={open}
                 >
@@ -205,9 +217,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         )}
       </nav>
 
-      <div className="border-t border-[var(--eig-border)] p-3 text-xs text-slate-500">
-        {!collapsed && <div>v1.0.0 · EIG</div>}
-        {collapsed && <div className="text-center">v1</div>}
+      <div className="border-t border-[var(--eig-border)] p-3 text-[11px] text-slate-500">
+        {!collapsed && <div>OpsEdge360 · GA</div>}
+        {collapsed && <div className="text-center">GA</div>}
       </div>
     </>
   );

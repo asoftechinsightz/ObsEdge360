@@ -1,12 +1,21 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import type { Request } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { CurrentTenant } from '../auth/current-tenant.decorator';
-import type { JwtPayload } from '../auth/auth.service';
+import { Public } from '../auth/public.decorator';
+import { authRateLimitOk } from '../auth/auth-rate-limit';
+import { AuthService, type JwtPayload } from '../auth/auth.service';
 import type { TenantContext } from '../auth/authorization.guard';
 import { query } from '@opsedge360/shared-db';
-import { EDE_DEMO_EMAIL, EDE_ORG, EDE_SLUG, EdeSeedService } from './ede-seed.service';
+import {
+  EDE_DEMO_EMAIL,
+  EDE_DEMO_PASSWORD,
+  EDE_ORG,
+  EDE_SLUG,
+  EdeSeedService,
+} from './ede-seed.service';
 
 class EdeLoadDto {
   @IsOptional()
@@ -18,11 +27,19 @@ class EdeLoadDto {
   organizationName?: string;
 }
 
+function canManageDemo(role?: string): boolean {
+  const r = (role || '').toLowerCase();
+  return r === 'admin' || r === 'owner' || r === 'platform_admin';
+}
+
 @ApiTags('demo-ede')
 @ApiBearerAuth()
 @Controller('demo/ede')
 export class EdeController {
-  constructor(private ede: EdeSeedService) {}
+  constructor(
+    private ede: EdeSeedService,
+    private authService: AuthService,
+  ) {}
 
   @Get('status')
   @ApiOperation({ summary: 'Enterprise Demo Experience pack status for current tenant' })
@@ -96,6 +113,24 @@ export class EdeController {
     };
   }
 
+  @Public()
+  @Post('enter')
+  @ApiOperation({
+    summary: 'Provision Global Bank demo tenant if needed, ensure pack is loaded, return JWT for demo CIO',
+  })
+  async enter(@Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+    if (!authRateLimitOk(`${ip}:ede-enter`)) {
+      throw new UnauthorizedException('Too many demo entry attempts. Try again later.');
+    }
+    const provisioned = await this.ede.ensureDemoTenant();
+    const status = await this.ede.status(provisioned.tenantId);
+    if (!status.loaded) {
+      await this.ede.loadPack(provisioned.tenantId);
+    }
+    return this.authService.login(EDE_DEMO_EMAIL, EDE_DEMO_PASSWORD, EDE_SLUG);
+  }
+
   @Post('load')
   @ApiOperation({ summary: 'Load Enterprise Demo pack into current tenant (or provision dedicated demo org)' })
   async load(
@@ -103,7 +138,7 @@ export class EdeController {
     @CurrentTenant() tenant: TenantContext | undefined,
     @Body() body: EdeLoadDto,
   ) {
-    if (user.role !== 'admin') {
+    if (!canManageDemo(user.role)) {
       return { ok: false, error: 'Admin role required to load demo pack' };
     }
     let tenantId = tenant?.id ?? user.tenantId;
@@ -119,7 +154,7 @@ export class EdeController {
   @Post('reset')
   @ApiOperation({ summary: 'One-click reset: clear tour progress and reload EDE pack' })
   async reset(@CurrentUser() user: JwtPayload, @CurrentTenant() tenant?: TenantContext) {
-    if (user.role !== 'admin') {
+    if (!canManageDemo(user.role)) {
       return { ok: false, error: 'Admin role required to reset demo pack' };
     }
     const tenantId = tenant?.id ?? user.tenantId;
@@ -130,7 +165,7 @@ export class EdeController {
   @Post('provision')
   @ApiOperation({ summary: 'Provision Asoftech Global Bank demo tenant and load pack' })
   async provision(@CurrentUser() user: JwtPayload) {
-    if (user.role !== 'admin') {
+    if (!canManageDemo(user.role)) {
       return { ok: false, error: 'Admin role required' };
     }
     const provisioned = await this.ede.ensureDemoTenant();

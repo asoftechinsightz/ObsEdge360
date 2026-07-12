@@ -75,6 +75,23 @@ export async function loginRequest(email: string, password: string, tenantId?: s
   return data;
 }
 
+/** One-click entry into the dedicated Global Bank demo tenant (provisions + loads pack if needed). */
+export async function enterDemoRequest(): Promise<LoginApiResult> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/api/v1/demo/ede/enter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+  } catch {
+    throw new Error('Cannot reach API. Start the gateway: npm run dev (port 4000).');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(parseApiError(data, 'Demo entry failed'));
+  return data;
+}
+
 export async function mfaVerifyRequest(mfaToken: string, code: string): Promise<AuthResponse> {
   let res: Response;
   try {

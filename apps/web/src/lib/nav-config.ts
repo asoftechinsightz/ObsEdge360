@@ -1,5 +1,6 @@
 /**
  * Shared navigation config — sidebar + command palette (UX-1A).
+ * Primary surfaces stay short; long-tail lives under More (collapsed by default).
  * Internal/RC routes are excluded from default nav; available in Debug Mode.
  */
 import type { LucideIcon } from 'lucide-react';
@@ -42,6 +43,8 @@ export type NavSection = {
   id: string;
   label: string;
   items: NavItem[];
+  /** When true, section starts collapsed in the sidebar. */
+  defaultCollapsed?: boolean;
 };
 
 function bankingEnabled(): boolean {
@@ -50,95 +53,76 @@ function bankingEnabled(): boolean {
   return raw !== 'false' && raw !== '0';
 }
 
-/** Business-facing navigation (default). */
+/** Business-facing navigation (default) — enterprise primary + overflow. */
 export function getNavSections(): NavSection[] {
-  const industry: NavItem[] = [
+  const assurance: NavItem[] = [
+    { href: '/security', label: 'Security', icon: Shield },
+    { href: '/itsm', label: 'ITSM', icon: CheckCircle },
+    { href: '/aiops', label: 'AIOps / RCA', icon: BrainCircuit },
+  ];
+  if (bankingEnabled()) {
+    assurance.splice(2, 0, { href: '/banking360', label: 'Banking360', icon: Building2 });
+  }
+
+  const more: NavItem[] = [
+    { href: '/dashboards', label: 'Ops Dashboards', icon: LayoutDashboard },
+    { href: '/discovery-ops', label: 'Discovery Ops', icon: Radar },
+    { href: '/cmdb/drift', label: 'CMDB Drift', icon: Database },
+    { href: '/transactions', label: 'Transactions', icon: GitBranch },
+    { href: '/observability', label: 'Observability', icon: Activity },
+    { href: '/synthetics', label: 'Synthetics', icon: Activity },
+    { href: '/fleet', label: 'Universal Agents', icon: Server },
+    { href: '/apm', label: 'APM', icon: Waypoints },
+    { href: '/network', label: 'Network', icon: Radio },
+    { href: '/ot', label: 'OT / Industrial', icon: Factory },
+    { href: '/agents', label: 'AI Agents', icon: Bot },
     { href: '/compliance', label: 'Compliance', icon: CheckCircle },
+    { href: '/governance', label: 'Governance / HA-DR', icon: Globe },
     { href: '/sustainability', label: 'Sustainability', icon: Leaf },
     { href: '/analytics', label: 'Predictive Analytics', icon: TrendingUp },
     { href: '/marketplace', label: 'Marketplace', icon: Globe },
     { href: '/quantum', label: 'Quantum Ready', icon: Atom },
+    { href: '/admin', label: 'Enterprise Admin', icon: Building2 },
+    { href: '/commercial', label: 'License & Trial', icon: Building2 },
+    { href: '/preferences', label: 'Preferences', icon: User },
+    { href: '/settings/sso', label: 'SSO settings', icon: KeyRound },
+    { href: '/demo/guided', label: 'Guided Evaluation', icon: Sparkles },
+    { href: '/demo', label: 'Demo Controls', icon: Sparkles },
+    { href: '/help', label: 'Help Center', icon: HelpCircle },
+    { href: '/about', label: 'About', icon: BookOpen },
+    { href: '/developer', label: 'Developer Mode', icon: Code2 },
   ];
-  if (bankingEnabled()) {
-    industry.unshift({ href: '/banking360', label: 'Banking360', icon: Building2 });
-  }
 
   return [
     {
-      id: 'executive',
-      label: 'Executive',
+      id: 'overview',
+      label: 'Overview',
       items: [
         { href: '/dashboard', label: 'Executive Home', icon: LayoutDashboard },
-        { href: '/reports', label: 'Executive Reports', icon: TrendingUp },
+        { href: '/ops-intelligence', label: 'Ops Intelligence', icon: Bot },
+        { href: '/reports', label: 'Reports', icon: TrendingUp },
       ],
     },
     {
-      id: 'operations',
-      label: 'Operations',
+      id: 'estate',
+      label: 'Estate',
       items: [
-        { href: '/ops-intelligence', label: 'Ops Intelligence', icon: Bot },
-        { href: '/dashboards', label: 'Ops Dashboards', icon: LayoutDashboard },
         { href: '/discovery', label: 'Discovery', icon: Radar },
-        { href: '/discovery-ops', label: 'Discovery Ops', icon: Radar },
+        { href: '/cmdb', label: 'CMDB', icon: Database },
         { href: '/twin', label: 'Digital Twin', icon: Network },
         { href: '/topology', label: 'Topology', icon: Waypoints },
-        { href: '/cmdb', label: 'CMDB', icon: Database },
-        { href: '/cmdb/drift', label: 'CMDB Drift', icon: Database },
-        { href: '/transactions', label: 'Transactions', icon: GitBranch },
-        { href: '/observability', label: 'Observability', icon: Activity },
-        { href: '/synthetics', label: 'Synthetics', icon: Activity },
-        { href: '/fleet', label: 'Universal Agents', icon: Server },
-        { href: '/apm', label: 'APM', icon: Waypoints },
-        { href: '/network', label: 'Network', icon: Radio },
-        { href: '/ot', label: 'OT / Industrial', icon: Factory },
       ],
     },
     {
-      id: 'ai',
-      label: 'AI & Automation',
-      items: [
-        { href: '/aiops', label: 'AIOps / RCA', icon: BrainCircuit },
-        { href: '/agents', label: 'AI Agents', icon: Bot },
-      ],
+      id: 'assurance',
+      label: 'Assurance',
+      items: assurance,
     },
     {
-      id: 'itsm',
-      label: 'ITSM',
-      items: [{ href: '/itsm', label: 'ITSM Center', icon: CheckCircle }],
-    },
-    {
-      id: 'industry',
-      label: 'Industry Solutions',
-      items: industry,
-    },
-    {
-      id: 'security',
-      label: 'Security',
-      items: [
-        { href: '/security', label: 'Security Center', icon: Shield },
-        { href: '/governance', label: 'Governance / HA-DR', icon: Globe },
-      ],
-    },
-    {
-      id: 'admin',
-      label: 'Administration',
-      items: [
-        { href: '/admin', label: 'Enterprise Admin', icon: Building2 },
-        { href: '/commercial', label: 'License & Trial', icon: Building2 },
-        { href: '/preferences', label: 'Preferences', icon: User },
-        { href: '/settings/sso', label: 'SSO settings', icon: KeyRound },
-      ],
-    },
-    {
-      id: 'help',
-      label: 'Help',
-      items: [
-        { href: '/help', label: 'Help Center', icon: HelpCircle },
-        { href: '/demo', label: 'Executive Demo', icon: Sparkles },
-        { href: '/demo/guided', label: 'Guided Evaluation', icon: Sparkles },
-        { href: '/about', label: 'About', icon: BookOpen },
-        { href: '/developer', label: 'Developer Mode', icon: Code2 },
-      ],
+      id: 'more',
+      label: 'More',
+      defaultCollapsed: true,
+      items: more,
     },
   ];
 }
