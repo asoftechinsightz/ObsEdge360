@@ -7,10 +7,37 @@
   --accent: #8b5cf6;
   --surface: #0f172a;
   --surface-elevated: #1e293b;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #334155;
+}
+
+html[data-theme='light'] {
+  --surface: #f8fafc;
+  --surface-elevated: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
 }
 
 body {
-  @apply bg-surface text-slate-100 antialiased;
+  @apply antialiased;
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-theme='light'] .nav-link {
+  @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+}
+html[data-theme='light'] .nav-link-active {
+  @apply bg-slate-200 text-slate-900;
+}
+html[data-theme='light'] .kpi-card {
+  @apply border-slate-200 bg-white;
+}
+html[data-theme='light'] aside,
+html[data-theme='light'] header {
+  border-color: var(--border) !important;
 }
 
 @layer components {

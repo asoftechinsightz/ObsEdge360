@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Network, Database, GitBranch, Activity,
-  Shield, CheckCircle, Bot, Search, Bell, User, Radio, Leaf, Factory,
+  Shield, CheckCircle, Bot, Search, User, Radio, Leaf, Factory,
   TrendingUp, Atom, Globe, LogOut, Radar, Waypoints, Building2, KeyRound, Server,
   BrainCircuit,
 } from 'lucide-react';
@@ -14,9 +14,13 @@ import { AUTH_COOKIE, logout } from '@/lib/auth';
 import { CopilotPanel } from '@/components/CopilotPanel';
 import { EnvironmentBanner } from '@/components/EnvironmentBanner';
 import { CommandPalette } from '@/components/CommandPalette';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { apiClient } from '@/lib/api-client';
 
 const CORE_NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Executive Home' },
+  { href: '/reports', icon: TrendingUp, label: 'Executive Reports' },
   { href: '/discovery', icon: Radar, label: 'Discovery' },
   { href: '/discovery-ops', icon: Radar, label: 'Discovery Ops' },
   { href: '/twin', icon: Network, label: 'Digital Twin' },
@@ -26,6 +30,7 @@ const CORE_NAV = [
   { href: '/aiops', icon: BrainCircuit, label: 'AIOps / LLM RCA' },
   { href: '/cmdb', icon: Database, label: 'CMDB' },
   { href: '/cmdb/drift', icon: Database, label: 'CMDB Drift' },
+  { href: '/itsm', icon: CheckCircle, label: 'ITSM' },
   { href: '/transactions', icon: GitBranch, label: 'Transactions' },
   { href: '/observability', icon: Activity, label: 'Observability' },
   { href: '/synthetics', icon: Activity, label: 'Synthetics' },
@@ -37,9 +42,11 @@ const CORE_NAV = [
   { href: '/compliance', icon: CheckCircle, label: 'Compliance' },
   { href: '/sustainability', icon: Leaf, label: 'Sustainability' },
   { href: '/analytics', icon: TrendingUp, label: 'Predictive Analytics' },
+  { href: '/marketplace', icon: Globe, label: 'Marketplace' },
   { href: '/quantum', icon: Atom, label: 'Quantum Ready' },
   { href: '/governance', icon: Globe, label: 'Governance / HA-DR' },
   { href: '/admin', icon: Building2, label: 'Enterprise Admin' },
+  { href: '/preferences', icon: User, label: 'Preferences' },
   { href: '/agents', icon: Bot, label: 'AI Agents' },
   { href: '/settings/sso', icon: KeyRound, label: 'SSO settings' },
 ];
@@ -86,6 +93,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setUserLabel(readUserLabel());
+    apiClient<{ theme?: string }>('/me/preferences')
+      .then((p) => {
+        const theme = p.theme === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      })
+      .catch(() => undefined);
   }, []);
 
   return (
@@ -146,16 +159,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <Bot size={16} />
               Copilot
             </button>
-            <button type="button" className="relative text-slate-400 hover:text-white" aria-label="Notifications">
-              <Bell size={20} />
-            </button>
+            <NotificationCenter />
             <div className="flex items-center gap-2 text-sm text-slate-400">
               <User size={18} />
               {userLabel}
             </div>
           </div>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          <Breadcrumbs />
+          {children}
+        </main>
       </div>
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />

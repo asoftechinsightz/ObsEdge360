@@ -65,6 +65,10 @@ async function bootstrap() {
       .addTag('general-availability')
       .addTag('synthetics')
       .addTag('phase2')
+      .addTag('phase3')
+      .addTag('itsm')
+      .addTag('marketplace')
+      .addTag('reports')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

@@ -45,6 +45,14 @@ const GROUPS: { title: string; links: { href: string; label: string; exact?: boo
     ],
   },
   {
+    title: 'ITSM',
+    links: [
+      { href: '/itsm', label: 'ITSM Center' },
+      { href: '/admin/runbooks', label: 'Runbooks' },
+      { href: '/admin/approvals', label: 'Approvals' },
+    ],
+  },
+  {
     title: 'Automation',
     links: [
       { href: '/admin/automation-dashboard', label: 'Dashboard' },

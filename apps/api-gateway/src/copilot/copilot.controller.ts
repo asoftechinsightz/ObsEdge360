@@ -40,7 +40,7 @@ export class CopilotController {
   @Post('chat')
   @ApiOperation({ summary: 'Unified AI copilot chat' })
   chat(@CurrentUser() user: JwtPayload, @Body() body: ChatDto) {
-    return this.copilot.chat(user.tenantId, body.messages as CopilotMessage[]);
+    return this.copilot.chat(user.tenantId, body.messages as CopilotMessage[], user.sub);
   }
 
   @Post('rca')

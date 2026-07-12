@@ -60,6 +60,8 @@ import { Wave9Service } from './admin/wave9.service';
 import { SyntheticsController } from './synthetics/synthetics.controller';
 import { SyntheticsService } from './synthetics/synthetics.service';
 import { Phase2Controller } from './phase2/phase2.controller';
+import { Phase3Controller } from './phase3/phase3.controller';
+import { Phase3Service } from './phase3/phase3.service';
 
 @Module({
   controllers: [
@@ -84,6 +86,7 @@ import { Phase2Controller } from './phase2/phase2.controller';
     GovernanceController,
     PlatformController,
     Phase2Controller,
+    Phase3Controller,
     SyntheticsController,
     AuditController,
     SecretsController,
@@ -121,6 +124,7 @@ import { Phase2Controller } from './phase2/phase2.controller';
     Wave8Service,
     Wave9Service,
     SyntheticsService,
+    Phase3Service,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

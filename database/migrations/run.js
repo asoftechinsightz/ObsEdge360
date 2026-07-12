@@ -362,6 +362,14 @@ async function main() {
     console.log('042_phase2_enterprise_maturity.sql already applied.');
   }
 
+  const p3 = await tableExists(client, 'marketplace_extensions');
+  if (!p3) {
+    const s43 = path.join(migrationsDir, '043_phase3_enterprise_excellence.sql');
+    if (fs.existsSync(s43)) await runSqlFile(client, s43);
+  } else {
+    console.log('043_phase3_enterprise_excellence.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

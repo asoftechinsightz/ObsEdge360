@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 
 const ROUTES = [
   { href: '/dashboard', label: 'Executive Home' },
+  { href: '/reports', label: 'Executive Reports' },
   { href: '/synthetics', label: 'Synthetic Monitoring' },
+  { href: '/itsm', label: 'ITSM' },
+  { href: '/marketplace', label: 'Marketplace' },
+  { href: '/preferences', label: 'Preferences' },
   { href: '/observability', label: 'Observability' },
   { href: '/ops-intelligence', label: 'Ops Intelligence' },
   { href: '/cmdb', label: 'CMDB' },
@@ -13,6 +17,7 @@ const ROUTES = [
   { href: '/aiops', label: 'AIOps' },
   { href: '/security', label: 'Security' },
   { href: '/compliance', label: 'Compliance' },
+  { href: '/banking360', label: 'Banking360' },
   { href: '/admin', label: 'Enterprise Admin' },
   { href: '/admin/automation-dashboard', label: 'Automation Dashboard' },
   { href: '/admin/system/ga', label: 'General Availability' },

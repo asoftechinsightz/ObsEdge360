@@ -21,17 +21,48 @@ export interface Recommendation {
 export class CopilotService {
   constructor(private proxy: ProxyService) {}
 
-  async chat(tenantId: string, messages: CopilotMessage[]): Promise<{
+  async chat(tenantId: string, messages: CopilotMessage[], userId?: string): Promise<{
     reply: string;
     recommendations: Recommendation[];
     agentRun?: unknown;
     sources: string[];
     model?: string;
     mode?: string;
+    structured: {
+      confirmed: string[];
+      correlations: string[];
+      recommendations: string[];
+      disclaimer: string;
+    };
+    sessionId?: string;
   }> {
     const lastUser = [...messages].reverse().find((m) => m.role === 'user');
     const prompt = (lastUser?.content ?? '').toLowerCase();
     const sources: string[] = [];
+    const wrap = async (base: {
+      reply: string;
+      recommendations: Recommendation[];
+      agentRun?: unknown;
+      sources: string[];
+      model?: string;
+      mode?: string;
+    }) => {
+      const structured = this.structureReply(base.reply, base.recommendations, base.sources);
+      let sessionId: string | undefined;
+      try {
+        if (userId && tenantId) {
+          const session = await this.ensureSession(tenantId, userId, lastUser?.content);
+          sessionId = session?.id;
+          if (sessionId) {
+            await this.persistMessage(sessionId, tenantId, 'user', lastUser?.content ?? '', {});
+            await this.persistMessage(sessionId, tenantId, 'assistant', base.reply, structured, base.sources);
+          }
+        }
+      } catch {
+        /* persistence optional */
+      }
+      return { ...base, structured, sessionId };
+    };
 
     // Phase 4: prefer grounded AI Copilot / RCA via LLM gateway
     if (this.matches(prompt, ['rca', 'root cause', 'why is', 'what caused', 'incident', 'outage', 'latency spike', 'blast radius', 'degraded'])) {
@@ -44,22 +75,47 @@ export class CopilotService {
       );
       if (grounded?.summary) {
         sources.push('llm-rca', 'rag', 'ops-intelligence', 'topology');
-        return {
+        return wrap({
           reply: grounded.summary,
           recommendations: await this.getRecommendations(tenantId),
           sources,
           model: grounded.model,
           mode: grounded.mode,
-        };
+        });
       }
       const rca = await this.runRca(tenantId, { question: lastUser?.content ?? '' });
       sources.push('rca', 'observability', 'cmdb');
-      return {
+      return wrap({
         reply: rca.summary,
         recommendations: rca.recommendations,
         agentRun: rca.agentRun,
         sources,
-      };
+      });
+    }
+
+    // Explain alerts / summarize
+    if (this.matches(prompt, ['explain alert', 'summarize alert', 'what does this alert', 'alert mean'])) {
+      const alerts = await this.safeJson(this.proxy.observability('/alert-events', { tenantId }));
+      const recent = (alerts?.events ?? []).slice(0, 5);
+      sources.push('alert-events');
+      const confirmed = recent.map((a: { title?: string; severity?: string }) => `${a.severity ?? 'info'}: ${a.title ?? 'alert'}`);
+      return wrap({
+        reply: confirmed.length
+          ? `Recent alerts (confirmed from alert_events):\n${confirmed.map((c: string) => `- ${c}`).join('\n')}\n\nRecommendation: triage high/critical first; correlate with synthetics and topology before remediating.`
+          : 'No recent alert events found for this tenant. Confirmed empty result — not an absence of risk elsewhere.',
+        recommendations: await this.getRecommendations(tenantId),
+        sources,
+      });
+    }
+
+    if (this.matches(prompt, ['executive summary', 'ops summary', 'health summary', 'status summary'])) {
+      const overview = await this.buildOverview(tenantId);
+      sources.push('overview', 'executive');
+      return wrap({
+        reply: `Executive operational summary (confirmed telemetry snapshot):\n${overview}\n\nCorrelations should be validated in Ops Intelligence before change windows.`,
+        recommendations: await this.getRecommendations(tenantId),
+        sources,
+      });
     }
 
     // General NL via Phase 4 Copilot
@@ -73,24 +129,24 @@ export class CopilotService {
       );
       if (ai?.reply) {
         sources.push(...(ai.sources ?? ['ai-copilot']));
-        return {
+        return wrap({
           reply: ai.reply,
           recommendations: await this.getRecommendations(tenantId),
           sources,
           model: ai.model,
           mode: ai.mode,
-        };
+        });
       }
     }
 
-    if (this.matches(prompt, ['recommend', 'suggestion', 'what should', 'improve', 'optimize', 'next step'])) {
+    if (this.matches(prompt, ['recommend', 'suggestion', 'what should', 'improve', 'optimize', 'next step', 'runbook'])) {
       const recs = await this.getRecommendations(tenantId);
       sources.push('recommendations');
-      return {
+      return wrap({
         reply: this.formatRecommendationsReply(recs),
         recommendations: recs,
         sources,
-      };
+      });
     }
 
     if (this.matches(prompt, ['compliance', 'rbi', 'pci', 'banking', 'control'])) {
@@ -98,21 +154,21 @@ export class CopilotService {
       sources.push('banking360', 'compliance');
       const enabled = banking?.enabled ? 'active' : 'inactive';
       const score = banking?.bankingScore ?? 0;
-      return {
+      return wrap({
         reply: `Banking360 is ${enabled}. Combined RBI/PCI score is ${score}%. RBI: ${banking?.frameworks?.rbi?.score ?? 0}%, PCI: ${banking?.frameworks?.pci?.score ?? 0}%. ${score < 80 ? 'Run validation and remediate failed controls.' : 'Compliance posture looks healthy.'}`,
         recommendations: await this.getRecommendations(tenantId),
         sources,
-      };
+      });
     }
 
     if (this.matches(prompt, ['transaction', 'upi', 'slo', 'payment'])) {
       const slos = await this.safeJson(this.proxy.transactions('/transactions/slos', { tenantId }));
       sources.push('transactions');
-      return {
+      return wrap({
         reply: `Payment/transaction SLOs: ${slos?.met ?? 0}/${slos?.totalSlos ?? 0} met (${slos?.compliancePct ?? 0}% compliance). ${slos?.breached ? `${slos.breached} breached — review latency on /transactions.` : 'All tracked SLOs are within target.'}`,
         recommendations: await this.getRecommendations(tenantId),
         sources,
-      };
+      });
     }
 
     // Default: overview + try agent
@@ -138,12 +194,50 @@ export class CopilotService {
     }
 
     const recs = await this.getRecommendations(tenantId);
-    return {
-      reply: `${overview}\n\nAsk me about RCA, recommendations, compliance, or payment SLOs.`,
+    return wrap({
+      reply: `${overview}\n\nAsk me about RCA, alert explanations, executive summaries, recommendations, compliance, or payment SLOs.`,
       recommendations: recs.slice(0, 3),
       agentRun,
       sources,
+    });
+  }
+
+  private structureReply(reply: string, recommendations: Recommendation[], sources: string[]) {
+    return {
+      confirmed: sources.length ? [`Sources consulted: ${sources.join(', ')}`] : [],
+      correlations: sources.includes('llm-rca') || sources.includes('rca') ? ['RCA path used — treat links as correlations until verified'] : [],
+      recommendations: recommendations.slice(0, 5).map((r) => `${r.title}: ${r.description}`),
+      disclaimer: 'Confirmed findings come from live APIs/DB. Correlations and recommendations are advisory — do not treat as automatic remediation approval.',
+      replyPreview: reply.slice(0, 280),
     };
+  }
+
+  private async ensureSession(tenantId: string, userId: string, title?: string) {
+    const { queryOne } = await import('@opsedge360/shared-db');
+    return queryOne(
+      `INSERT INTO copilot_sessions (tenant_id, user_id, title)
+       SELECT t.id, $2, $3 FROM tenants t
+       WHERE t.id::text = $1 OR t.slug = $1
+       RETURNING id`,
+      [tenantId, userId, (title || 'Copilot session').slice(0, 120)],
+    );
+  }
+
+  private async persistMessage(
+    sessionId: string,
+    tenantId: string,
+    role: string,
+    content: string,
+    structured: Record<string, unknown>,
+    sources: string[] = [],
+  ) {
+    const { query } = await import('@opsedge360/shared-db');
+    await query(
+      `INSERT INTO copilot_messages (session_id, tenant_id, role, content, structured, sources)
+       SELECT $1, t.id, $3, $4, $5::jsonb, $6 FROM tenants t
+       WHERE t.id::text = $2 OR t.slug = $2`,
+      [sessionId, tenantId, role, content, JSON.stringify(structured), sources],
+    );
   }
 
   async runRca(tenantId: string, context: { question?: string; ciName?: string } = {}) {

@@ -28,6 +28,8 @@ interface CopilotPanelProps {
 
 const SUGGESTIONS = [
   'What is the root cause of current latency?',
+  'Explain recent alerts',
+  'Give me an executive summary',
   'Give me recommendations',
   'How is Banking360 compliance?',
   'Are payment SLOs healthy?',
@@ -70,11 +72,17 @@ export function CopilotPanel({ open, onClose }: CopilotPanelProps) {
       const result = await apiClient<{
         reply: string;
         recommendations: Recommendation[];
+        structured?: { confirmed?: string[]; correlations?: string[]; recommendations?: string[]; disclaimer?: string };
       }>('/copilot/chat', {
         method: 'POST',
         body: JSON.stringify({ messages: nextMessages }),
       });
-      setMessages((m) => [...m, { role: 'assistant', content: result.reply }]);
+      let content = result.reply;
+      if (result.structured) {
+        const s = result.structured;
+        content += `\n\n—\nConfirmed: ${(s.confirmed || []).join('; ') || 'n/a'}\nCorrelations: ${(s.correlations || []).join('; ') || 'n/a'}\nRecommendations: ${(s.recommendations || []).slice(0, 3).join(' | ') || 'n/a'}\n${s.disclaimer || ''}`;
+      }
+      setMessages((m) => [...m, { role: 'assistant', content }]);
       if (result.recommendations?.length) setRecs(result.recommendations.slice(0, 4));
     } catch (err) {
       setMessages((m) => [
