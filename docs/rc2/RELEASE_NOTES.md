@@ -23,4 +23,11 @@
 
 ## Validation
 
-See [RC2_VALIDATION.md](./RC2_VALIDATION.md). Token: `RC2_PILOT_VALIDATION_OK` after green production run.
+| Field | Value |
+|-------|-------|
+| Date | 2026-07-12 |
+| SHA | `a2d7e44ec25dbd2eb9ae11255282d6b60f086f6f` |
+| Result | pass=31 fail=0 |
+| Token | `RC2_PILOT_VALIDATION_OK` |
+
+See [RC2_VALIDATION.md](./RC2_VALIDATION.md).
