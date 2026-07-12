@@ -234,18 +234,14 @@ export class EdeSeedService {
       const name = SERVICE_NAMES[i];
       const tier = i < 8 ? 1 : i < 16 ? 2 : 3;
       const revenue = tier === 1 ? 180000 - i * 4000 : tier === 2 ? 45000 : 12000;
+      const sla = tier === 1 ? 99.95 : 99.5;
       await query(
         `INSERT INTO business_services (tenant_id, name, description, tier, sla_target, revenue_per_hour)
-         SELECT $1, $2, $3, $4, $5, $6
-         WHERE NOT EXISTS (SELECT 1 FROM business_services b WHERE b.tenant_id=$1 AND b.name=$2)`,
-        [
-          tenantId,
-          name,
-          `Illustrative Demo Data — ${name} journey for Asoftech Global Bank`,
-          tier,
-          tier === 1 ? 99.95 : 99.5,
-          revenue,
-        ],
+         SELECT $1::uuid, $2::text, $3::text, $4::int, $5::numeric, $6::numeric
+         WHERE NOT EXISTS (
+           SELECT 1 FROM business_services b WHERE b.tenant_id=$1::uuid AND b.name=$2::text
+         )`,
+        [tenantId, name, `Illustrative Demo Data — ${name} journey for Asoftech Global Bank`, tier, sla, revenue],
       );
     }
   }
