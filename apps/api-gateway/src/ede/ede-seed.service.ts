@@ -322,11 +322,13 @@ export class EdeSeedService {
            tenant_id, external_id, name, ci_type, status, health_score, compliance_score, risk_score,
            ai_confidence_score, attributes, tags, discovered_at, last_seen_at
          )
-         SELECT $1, $2, $3, $4::ci_type, 'active', 94, 96, 18, 92,
-                $5::jsonb || '{"ede":true,"illustrative":true,"label":"Illustrative Demo Data"}'::jsonb,
-                ARRAY[$6,'illustrative-demo','demo','graph-core'],
+         SELECT $1::uuid, $2::text, $3::text, $4::ci_type, 'active', 94, 96, 18, 92,
+                ($5::jsonb || '{"ede":true,"illustrative":true,"label":"Illustrative Demo Data"}'::jsonb),
+                ARRAY[$6::text,'illustrative-demo','demo','graph-core'],
                 NOW() - interval '60 days', NOW()
-         WHERE NOT EXISTS (SELECT 1 FROM configuration_items c WHERE c.tenant_id=$1 AND c.external_id=$2)`,
+         WHERE NOT EXISTS (
+           SELECT 1 FROM configuration_items c WHERE c.tenant_id=$1::uuid AND c.external_id=$2::text
+         )`,
         [tenantId, a.ext, a.name, a.type, JSON.stringify(a.attrs), EDE_TAG],
       );
     }
@@ -358,14 +360,14 @@ export class EdeSeedService {
     for (const [src, tgt, rel] of pairs) {
       await query(
         `INSERT INTO relationships (tenant_id, source_ci_id, target_ci_id, relationship_type, strength, discovered_by, ai_confidence_score, metadata)
-         SELECT $1, s.id, t.id, $4::relationship_type, 'critical', 'ede-seed', 95,
+         SELECT $1::uuid, s.id, t.id, $4::relationship_type, 'critical', 'ede-seed', 95,
                 '{"illustrative":true,"label":"Illustrative Demo Data"}'::jsonb
          FROM configuration_items s
-         JOIN configuration_items t ON t.tenant_id=s.tenant_id AND t.external_id=$3
-         WHERE s.tenant_id=$1 AND s.external_id=$2
+         JOIN configuration_items t ON t.tenant_id=s.tenant_id AND t.external_id=$3::text
+         WHERE s.tenant_id=$1::uuid AND s.external_id=$2::text
            AND NOT EXISTS (
              SELECT 1 FROM relationships r
-             WHERE r.tenant_id=$1 AND r.source_ci_id=s.id AND r.target_ci_id=t.id AND r.relationship_type=$4::relationship_type
+             WHERE r.tenant_id=$1::uuid AND r.source_ci_id=s.id AND r.target_ci_id=t.id AND r.relationship_type=$4::relationship_type
            )`,
         [tenantId, src, tgt, rel],
       );
@@ -374,15 +376,15 @@ export class EdeSeedService {
     // Fan-out: first 40 apps depend on API gateway
     await query(
       `INSERT INTO relationships (tenant_id, source_ci_id, target_ci_id, relationship_type, strength, discovered_by, metadata)
-       SELECT $1, a.id, g.id, 'depends_on', 'normal', 'ede-seed',
+       SELECT $1::uuid, a.id, g.id, 'depends_on', 'normal', 'ede-seed',
               '{"illustrative":true}'::jsonb
        FROM configuration_items a
        CROSS JOIN configuration_items g
-       WHERE a.tenant_id=$1 AND a.external_id LIKE 'ede-app-%'
-         AND g.tenant_id=$1 AND g.external_id='ede-core-api-gw'
+       WHERE a.tenant_id=$1::uuid AND a.external_id LIKE 'ede-app-%'
+         AND g.tenant_id=$1::uuid AND g.external_id='ede-core-api-gw'
          AND substring(a.external_id from 'ede-app-([0-9]+)')::int <= 40
          AND NOT EXISTS (
-           SELECT 1 FROM relationships r WHERE r.tenant_id=$1 AND r.source_ci_id=a.id AND r.target_ci_id=g.id
+           SELECT 1 FROM relationships r WHERE r.tenant_id=$1::uuid AND r.source_ci_id=a.id AND r.target_ci_id=g.id
          )`,
       [tenantId],
     );
@@ -461,11 +463,11 @@ export class EdeSeedService {
     for (const d of drifts) {
       await query(
         `INSERT INTO drift_events (tenant_id, ci_id, drift_type, severity, summary, details, detected_at)
-         SELECT $1, c.id, $2, $3, $4, $5::jsonb, NOW() - ($6 || ' hours')::interval
+         SELECT $1::uuid, c.id, $2::text, $3::text, $4::text, $5::jsonb, NOW() - ($6::text || ' hours')::interval
          FROM configuration_items c
-         WHERE c.tenant_id=$1 AND c.external_id=$7
+         WHERE c.tenant_id=$1::uuid AND c.external_id=$7::text
            AND NOT EXISTS (
-             SELECT 1 FROM drift_events e WHERE e.tenant_id=$1 AND e.ci_id=c.id AND e.drift_type=$2 AND e.resolved_at IS NULL
+             SELECT 1 FROM drift_events e WHERE e.tenant_id=$1::uuid AND e.ci_id=c.id AND e.drift_type=$2::text AND e.resolved_at IS NULL
            )`,
         [
           tenantId,
@@ -496,8 +498,8 @@ export class EdeSeedService {
     for (const [name, protocol, cfg] of connectors) {
       await query(
         `INSERT INTO discovery_connectors (tenant_id, name, protocol, config, enabled, last_run_at)
-         SELECT $1, $2, $3, $4::jsonb, true, NOW() - interval '2 hours'
-         WHERE NOT EXISTS (SELECT 1 FROM discovery_connectors d WHERE d.tenant_id=$1 AND d.name=$2)`,
+         SELECT $1::uuid, $2::text, $3::text, $4::jsonb, true, NOW() - interval '2 hours'
+         WHERE NOT EXISTS (SELECT 1 FROM discovery_connectors d WHERE d.tenant_id=$1::uuid AND d.name=$2::text)`,
         [
           tenantId,
           name,
@@ -537,10 +539,10 @@ export class EdeSeedService {
         `INSERT INTO ops_incidents (
            tenant_id, title, severity, status, window_start, window_end, correlation_key, signal_counts, blast_summary
          )
-         SELECT $1, $2, $3, $4, NOW() - interval '6 hours', NOW() + interval '2 hours', $5,
+         SELECT $1::uuid, $2::text, $3::text, $4::text, NOW() - interval '6 hours', NOW() + interval '2 hours', $5::text,
                 '{"alerts":12,"traces":4,"logs":28}'::jsonb,
                 '{"illustrative":true,"services":["UPI Payments","Payment Gateway"],"label":"Illustrative Demo Data"}'::jsonb
-         WHERE NOT EXISTS (SELECT 1 FROM ops_incidents o WHERE o.tenant_id=$1 AND o.correlation_key=$5)`,
+         WHERE NOT EXISTS (SELECT 1 FROM ops_incidents o WHERE o.tenant_id=$1::uuid AND o.correlation_key=$5::text)`,
         [tenantId, title, severity, status, `ede-inc-${i + 1}`],
       );
     }
