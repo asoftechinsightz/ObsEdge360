@@ -1,6 +1,6 @@
 # Enterprise Product Audit — OpsEdge360 RC2
 
-**Scope:** Waves 1–9 + Phases 1–4 (RC1)  
+**Scope:** Waves 1–9 + Phases 1–4 (RC1) + RC2 hardening  
 **Date:** 2026-07-12  
 **Method:** Architecture, UX, API, DB, security, performance, docs, a11y, i18n readiness, debt review  
 **Principle:** Prioritize high-impact fixes; do not auto-remediate everything.
@@ -15,8 +15,8 @@
 | A-02 | Login failures not in queryable history | Medium | S | **Fixed** — `login_history` |
 | A-03 | Session revoke UX buried in Wave6 admin | Medium | S | **Fixed** — Security Center + revoke APIs |
 | A-04 | No customer pilot package | High | M | **Fixed** — docs/rc2 pilot pack |
-| A-05 | Capacity guidance not customer-facing | Medium | M | **Fixed** — benchmark profiles API + report |
-| A-06 | Demo reset not one-click | Medium | S | **Fixed** — `/demo/reset` |
+| A-05 | Capacity guidance not customer-facing | Medium | M | **Fixed** — modeled profiles API + report (Wave7 for live soak) |
+| A-06 | Demo reset not one-click | Medium | S | **Fixed** — `/demo/reset` + confirmation UX |
 | A-07 | Branding: historical `trinetra360` DB alias | Low | S | **Documented** — branding API note; no DB rename |
 | A-08 | Browser synthetics = sim, not Chromium | Medium | L | Deferred (known limitation) |
 | A-09 | SMS connector planned | Low | L | Deferred |
@@ -26,75 +26,50 @@
 | A-13 | JWT default secret string still mentions legacy name | Low | S | Documented; production requires strong secret |
 | A-14 | Duplicate admin security surfaces (Wave6 vs RC2) | Low | M | RC2 aggregates; Wave6 preserved |
 | A-15 | PDF report binary missing | Medium | M | Deferred; CSV/JSON live |
-| A-16 | Error/empty/loading inconsistent on older pages | Medium | M | Partial — new pages + shared UiStates |
+| A-16 | Error/empty/loading inconsistent on older pages | Medium | M | Partial — RC2 pages + shared UiStates |
 | A-17 | npm audit high vulns in gateway deps | Medium | M | Monitored; Trivy CI continues |
-| A-18 | Air-gap docs need clean-env dry-run evidence | Medium | S | Validated via artifact presence + guide |
+| A-18 | Air-gap docs need clean-env dry-run evidence | Medium | S | Commands documented in DEPLOYMENT_VALIDATION |
+| A-19 | MFA not enforced at password login | High | M | **Fixed** — challenge + `POST /auth/mfa/verify` when policy=`required` and factor active |
+| A-20 | Lab challenge codes accepted in production path | High | S | **Fixed** — gated behind `OPS_MFA_LAB_CODES` (default off) |
+| A-21 | Session revoke does not invalidate JWTs | Medium | L | **Accepted residual** — inventory revoke until JWT TTL |
+| A-22 | TOTP secrets stored plaintext (`secret_enc` misnomer) | Medium | M | **Accepted residual** — encrypt-at-rest backlog |
+| A-23 | Device management label-only | Low | M | **Accepted residual** — `device_label='web'` |
 
 ---
 
-## Detailed findings
+## Detailed findings (RC2 deltas)
 
-### A-01 — MFA lab path insufficient for security review
+### A-19 — MFA not enforced at authentication
 - **Severity:** High  
-- **Business impact:** Blocks security / procurement reviews for pilots.  
-- **Technical impact:** Authenticator apps could not verify RC1 challenge codes as real TOTP.  
-- **Recommended action:** Implement RFC 6238 TOTP + backup codes; keep lab fallback for automation.  
-- **Estimated effort:** M (2–3 days)  
-- **RC2 status:** Done (`/me/mfa/enroll-totp`, `/me/mfa/verify-totp`)
+- **Business impact:** Security reviews reject “MFA available but not required at login.”  
+- **Technical impact:** JWT issued after password only.  
+- **Recommended action:** Challenge token + TOTP/backup verify before access token.  
+- **Estimated effort:** M  
+- **RC2 status:** Done (`mfaRequired` + `/auth/mfa/verify`)
 
-### A-02 — Login history gap
-- **Severity:** Medium  
-- **Business impact:** SOC teams cannot evidence access attempts.  
-- **Technical impact:** Lockouts existed without durable event stream.  
-- **Recommended action:** Persist login success/failure with risk score.  
-- **Estimated effort:** S  
-- **RC2 status:** Done
-
-### A-03 — Session management discoverability
-- **Severity:** Medium  
-- **Business impact:** Hard to revoke devices during incidents.  
-- **Technical impact:** `user_sessions` existed; UX incomplete.  
-- **Recommended action:** Security Center + revoke-all.  
-- **Estimated effort:** S  
-- **RC2 status:** Done
-
-### A-04 — Pilot packaging incomplete
+### A-20 — Lab codes on production verify path
 - **Severity:** High  
-- **Business impact:** Sales/CS cannot run structured pilots.  
-- **Technical impact:** Docs fragmented across phase folders.  
-- **Recommended action:** Dedicated pilot package under `docs/rc2/`.  
-- **Estimated effort:** M  
+- **Business impact:** Weak second factor if left enabled.  
+- **Technical impact:** Deterministic SHA256 challenge accepted as TOTP.  
+- **Recommended action:** Gate with `OPS_MFA_LAB_CODES=1` for automation only.  
+- **Estimated effort:** S  
 - **RC2 status:** Done
 
-### A-05 — Performance storytelling for enterprises
-- **Severity:** Medium  
-- **Business impact:** Architecture reviews ask for 100–10k user guidance.  
-- **Technical impact:** Wave7 soak is gated; no customer-facing profile pack.  
-- **Recommended action:** Modeled capacity benchmarks + report; live soak remains staging.  
-- **Estimated effort:** M  
-- **RC2 status:** Done (modeled; live CERT still Wave7)
-
-### A-07 — Legacy naming in DB/docs
-- **Severity:** Low  
-- **Business impact:** Brand confusion in reviews.  
-- **Technical impact:** Production DB name `trinetra360` is frozen alias.  
-- **Recommended action:** Canonical branding API; do **not** rename DB.  
-- **Estimated effort:** S  
-- **RC2 status:** Documented
-
-### A-08 / A-09 / A-15 — Known product gaps
-Deferred with explicit known issues; not blockers for pilot if disclosed.
+### A-21 / A-22 — Accepted residuals for pilot disclosure
+Documented in KNOWN_LIMITATIONS and SECURITY_ASSESSMENT. Not blockers if disclosed to the pilot customer.
 
 ---
 
 ## Architecture quality verdict
 
-Stable DDD modular gateway + services. No rewrite required. RC2 correctly extends productization surfaces.
+Stable DDD modular gateway + services. No rewrite required. RC2 correctly extends productization and auth enforcement without breaking RC1 surfaces.
 
 ## Priority backlog (post-RC2)
 
-1. Real Chromium browser worker (optional feature flag)  
-2. Native PDF rendering for reports  
-3. Full WCAG 2.2 AA audit pass  
-4. Expand Helm to full microservice set  
-5. SMS connector + risk-based step-up enforcement hooks
+1. Session-bound JWT / `jti` denylist on revoke  
+2. Encrypt MFA secrets at rest  
+3. Real Chromium browser worker (optional feature flag)  
+4. Native PDF rendering for reports  
+5. Full WCAG 2.2 AA audit pass  
+6. Expand Helm to full microservice set  
+7. SMS connector + risk-based step-up enforcement hooks  

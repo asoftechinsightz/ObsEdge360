@@ -12,6 +12,8 @@ import {
   generateBackupCodes,
   generateTotpSecret,
   hashBackupCode,
+  labChallengeCode,
+  labCodesEnabled,
   otpauthUrl,
   verifyTotp,
 } from './totp.util';
@@ -193,10 +195,8 @@ export class Rc2Service {
 
     const asBackup = await this.tryConsumeBackupCode(user.sub, body.code);
     const totpOk = /^\d{6}$/.test(body.code) && verifyTotp(factor.secret_enc, body.code, 1);
-    // Lab fallback: deterministic challenge from secret hash (RC1 path)
-    const lab = createHash('sha256').update(factor.secret_enc).digest().readUInt32BE(0) % 1000000;
-    const labCode = lab.toString().padStart(6, '0');
-    const labOk = body.code === labCode;
+    // Lab fallback only when OPS_MFA_LAB_CODES=1 (automation); off by default in production
+    const labOk = labCodesEnabled() && body.code === labChallengeCode(factor.secret_enc);
 
     if (!totpOk && !asBackup && !labOk) {
       await query(
@@ -364,12 +364,21 @@ export class Rc2Service {
     requireAdmin(user);
     const tid = requireTenant(tenantId);
     await query(`DELETE FROM demo_tour_progress WHERE tenant_id=$1`, [tid]);
+    // Re-enable industry tours and clear soft-disabled presentation flags (additive; no customer CI wipe)
+    await query(`UPDATE demo_tours SET enabled=true WHERE enabled=false`).catch(() => undefined);
     const tours = await queryOne<{ c: string }>(`SELECT COUNT(*)::text AS c FROM demo_tours WHERE enabled=true`);
+    const openIncidents = await queryOne<{ c: string }>(
+      `SELECT COUNT(*)::text AS c FROM ops_incidents WHERE tenant_id=$1 AND status IN ('open','investigating','acknowledged')`,
+      [tid],
+    ).catch(() => ({ c: '0' }));
     const summary = {
       tourProgressCleared: true,
+      toursReenabled: true,
       availableTours: Number(tours?.c ?? 0),
+      openIncidentsForTalkTrack: Number(openIncidents?.c ?? 0),
       presentationMode: getPlatformConfig().appEnv === 'demo',
-      tip: 'Re-run industry tours from /demo. Outbound integrations remain kill-switched on demo plane.',
+      tip: 'Re-run industry tours from /demo. Walkthrough links Banking360, synthetics, Copilot, and ITSM. Outbound integrations remain kill-switched on demo plane.',
+      destinations: ['/dashboard', '/demo', '/synthetics', '/itsm', '/copilot', '/banking360', '/security'],
     };
     const run = await queryOne(
       `INSERT INTO demo_reset_runs (tenant_id, requested_by, status, summary)
@@ -386,12 +395,23 @@ export class Rc2Service {
         { order: 1, path: '/dashboard', title: 'Executive Home', talkTrack: 'Single pane for risk, availability, and business impact.' },
         { order: 2, path: '/demo', title: 'Industry Tour', talkTrack: 'Pick Banking / Healthcare / Manufacturing / Retail / Government.' },
         { order: 3, path: '/synthetics', title: 'Synthetic Monitoring', talkTrack: 'Show HTTP/DNS/SSL and browser journey probes.' },
-        { order: 4, path: '/itsm', title: 'ITSM', talkTrack: 'Incidents, CAB, SLA — enterprise ops language.' },
+        { order: 4, path: '/itsm', title: 'ITSM & Incident Simulation', talkTrack: 'Open an incident, walk severity/SLA, show CAB language — reuse live ITSM data, no separate simulator.' },
         { order: 5, path: '/copilot', title: 'AI Copilot', talkTrack: 'Ask for RCA summary and executive briefing.' },
-        { order: 6, path: '/reports', title: 'Executive Reports', talkTrack: 'Export CSV/JSON; schedule via reports UI.' },
-        { order: 7, path: '/security', title: 'Security Posture', talkTrack: 'MFA, sessions, login history, alerts.' },
-        { order: 8, path: '/about', title: 'About & Version', talkTrack: 'Brand, channel, support links.' },
+        { order: 6, path: '/banking360', title: 'Banking360', talkTrack: 'Controls and transaction SLO story for regulated industries.' },
+        { order: 7, path: '/reports', title: 'Executive Reports', talkTrack: 'Export CSV/JSON; schedule via reports UI.' },
+        { order: 8, path: '/security', title: 'Security Posture', talkTrack: 'MFA, sessions, login history, alerts.' },
+        { order: 9, path: '/about', title: 'About & Version', talkTrack: 'Brand, channel, support links.' },
       ],
+      incidentSimulation: {
+        approach: 'talk-track',
+        path: '/itsm',
+        script: [
+          'Open ITSM → pick or create a Sev-2 incident',
+          'Show assignment, timeline, and linked CIs',
+          'Ask Copilot for a one-paragraph RCA draft',
+          'Return to dashboard to show blast-radius framing',
+        ],
+      },
     };
   }
 

@@ -10,6 +10,29 @@ check() {
   else echo "FAIL $name expected=$expect got=$got"; FAIL=$((FAIL+1)); fi
 }
 
+totp_code() {
+  local secret="$1"
+  python3 - <<PY
+import hmac, hashlib, struct, time
+BASE32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+s='${secret}'.upper().replace('=','').replace(' ','')
+bits=0; val=0; out=bytearray()
+for ch in s:
+    idx=BASE32.find(ch)
+    if idx<0: continue
+    val=(val<<5)|idx; bits+=5
+    if bits>=8:
+        out.append((val>>(bits-8))&255); bits-=8
+secret=bytes(out)
+counter=int(time.time())//30
+msg=struct.pack('>Q', counter)
+digest=hmac.new(secret, msg, hashlib.sha1).digest()
+o=digest[-1]&0x0f
+code=((digest[o]&0x7f)<<24)|((digest[o+1]&0xff)<<16)|((digest[o+2]&0xff)<<8)|(digest[o+3]&0xff)
+print(str(code%1000000).zfill(6))
+PY
+}
+
 echo "=== RC2 Pilot Production Readiness @ $API ==="
 echo "git: $(cd "$ROOT" && git log -1 --oneline)"
 
@@ -18,6 +41,10 @@ check health 200 "$(curl -sk -o /dev/null -w '%{http_code}' "$API/health")"
 TAB=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -tAc \
   "SELECT COUNT(*) FROM information_schema.tables WHERE table_name='rc2_readiness';" | tr -d '[:space:]')
 check migration_045 1 "${TAB:-0}"
+
+CHK=$(docker exec opsedge360-postgres-1 psql -U trinetra -d trinetra360 -tAc \
+  "SELECT CASE WHEN pg_get_constraintdef(oid) LIKE '%mfa_challenge%' THEN 1 ELSE 0 END FROM pg_constraint WHERE conname='login_history_event_chk' LIMIT 1;" | tr -d '[:space:]')
+check migration_046_mfa_challenge 1 "${CHK:-0}"
 
 DOCS_OK=1
 for f in README.md ENTERPRISE_PRODUCT_AUDIT.md PERFORMANCE_BENCHMARK_REPORT.md SECURITY_ASSESSMENT.md \
@@ -29,10 +56,10 @@ done
 if [ "$DOCS_OK" = "1" ]; then echo "PASS rc2_docs"; PASS=$((PASS+1)); else echo "FAIL rc2_docs"; FAIL=$((FAIL+1)); fi
 
 check branding 200 "$(curl -sk -o /dev/null -w '%{http_code}' "$API/branding")"
-python3 - <<'PY'
+python3 - <<PY
 import json,urllib.request,ssl
 ctx=ssl._create_unverified_context()
-d=json.load(urllib.request.urlopen('https://api.observability360.asoftechinsightz.com/api/v1/branding', context=ctx))
+d=json.load(urllib.request.urlopen('${API}/branding', context=ctx))
 assert d.get('product')=='OpsEdge360'
 print('PASS branding_product')
 PY
@@ -41,9 +68,11 @@ PASS=$((PASS+1))
 check walkthrough 200 "$(curl -sk -o /dev/null -w '%{http_code}' "$API/demo/walkthrough")"
 
 SUFFIX=$(date +%s)
+PASSWORD="Rc2Pilot!${SUFFIX}Aa"
+EMAIL="rc2.admin.${SUFFIX}@opsedge360.internal"
 SIGN=$(curl -sk -o /tmp/rc2_signup.json -w '%{http_code}' -X POST "$API/auth/signup" \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"rc2.admin.${SUFFIX}@opsedge360.internal\",\"password\":\"Rc2Pilot!${SUFFIX}Aa\",\"name\":\"RC2 Admin\",\"organizationName\":\"RC2 Org ${SUFFIX}\"}")
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"name\":\"RC2 Admin\",\"organizationName\":\"RC2 Org ${SUFFIX}\"}")
 if [ "$SIGN" = "201" ] || [ "$SIGN" = "200" ]; then echo "PASS signup ($SIGN)"; PASS=$((PASS+1)); else echo "FAIL signup"; FAIL=$((FAIL+1)); fi
 TOKEN=$(python3 -c "import json;print(json.load(open('/tmp/rc2_signup.json')).get('accessToken') or '')")
 [ -n "$TOKEN" ] || { echo FAIL token; exit 1; }
@@ -53,15 +82,7 @@ ENR=$(curl -sk -o /tmp/rc2_enr.json -w '%{http_code}' -X POST "$API/me/mfa/enrol
 if [ "$ENR" = "200" ] || [ "$ENR" = "201" ]; then echo "PASS mfa_enroll_totp"; PASS=$((PASS+1)); else echo "FAIL mfa_enroll_totp"; cat /tmp/rc2_enr.json; FAIL=$((FAIL+1)); fi
 FID=$(python3 -c "import json;d=json.load(open('/tmp/rc2_enr.json'));print((d.get('factor') or {}).get('id') or '')")
 SECRET=$(python3 -c "import json;print(json.load(open('/tmp/rc2_enr.json')).get('secret') or '')")
-# Use lab challenge (sha256) OR compute TOTP via python hmac
-CODE=$(python3 - <<PY
-import hashlib,hmac,struct,time,base64
-secret="$SECRET"
-# lab code path (same as gateway demoTotp/lab):
-lab=int.from_bytes(hashlib.sha256(secret.encode()).digest()[:4],'big')%1000000
-print(str(lab).zfill(6))
-PY
-)
+CODE=$(totp_code "$SECRET")
 VER=$(curl -sk -o /tmp/rc2_ver.json -w '%{http_code}' -X POST "$API/me/mfa/verify-totp" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d "{\"factorId\":\"$FID\",\"code\":\"$CODE\"}")
@@ -73,6 +94,32 @@ assert d.get('backupCodes') and len(d['backupCodes'])>=8
 print('PASS backup_codes')
 PY
 PASS=$((PASS+1))
+
+# Require MFA at login for this tenant
+POL=$(curl -sk -o /tmp/rc2_pol.json -w '%{http_code}' -X PUT "$API/security/mfa-policy" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"mode":"required","graceDays":14}')
+if [ "$POL" = "200" ] || [ "$POL" = "201" ]; then echo "PASS mfa_policy_required"; PASS=$((PASS+1)); else echo "FAIL mfa_policy_required"; cat /tmp/rc2_pol.json; FAIL=$((FAIL+1)); fi
+
+LOGIN=$(curl -sk -o /tmp/rc2_login.json -w '%{http_code}' -X POST "$API/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
+if [ "$LOGIN" = "200" ] || [ "$LOGIN" = "201" ]; then echo "PASS login_mfa_challenge_http"; PASS=$((PASS+1)); else echo "FAIL login_mfa_challenge_http"; FAIL=$((FAIL+1)); fi
+python3 - <<'PY'
+import json
+d=json.load(open('/tmp/rc2_login.json'))
+assert d.get('mfaRequired') is True and d.get('mfaToken'), d
+print('PASS login_mfa_required_body')
+PY
+PASS=$((PASS+1))
+MFA_TOKEN=$(python3 -c "import json;print(json.load(open('/tmp/rc2_login.json')).get('mfaToken') or '')")
+CODE2=$(totp_code "$SECRET")
+MFV=$(curl -sk -o /tmp/rc2_mfv.json -w '%{http_code}' -X POST "$API/auth/mfa/verify" \
+  -H 'Content-Type: application/json' \
+  -d "{\"mfaToken\":\"$MFA_TOKEN\",\"code\":\"$CODE2\"}")
+if [ "$MFV" = "200" ] || [ "$MFV" = "201" ]; then echo "PASS auth_mfa_verify"; PASS=$((PASS+1)); else echo "FAIL auth_mfa_verify"; cat /tmp/rc2_mfv.json; FAIL=$((FAIL+1)); fi
+TOKEN=$(python3 -c "import json;print(json.load(open('/tmp/rc2_mfv.json')).get('accessToken') or '')")
+[ -n "$TOKEN" ] || { echo FAIL post_mfa_token; FAIL=$((FAIL+1)); }
 
 check security_dashboard 200 "$(curl -sk -o /dev/null -w '%{http_code}' "$API/security/dashboard" -H "Authorization: Bearer $TOKEN")"
 check login_history 200 "$(curl -sk -o /dev/null -w '%{http_code}' "$API/security/login-history" -H "Authorization: Bearer $TOKEN")"

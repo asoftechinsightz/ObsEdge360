@@ -1,21 +1,32 @@
 # Pilot Feedback Template
 
-**Customer:**  
-**Date:**  
-**Environment:** PoC / Pilot / Production-like  
+**Organization:** _____________  
+**Date:** _____________  
+**Participants:** _____________
 
-## What worked well
--
+## Value
 
-## Gaps / friction
--
+1. What problem did OpsEdge360 clarify most clearly in the first 15 minutes?  
+2. Which module was most relevant to your operations?  
+3. What was confusing or incomplete?
 
-## Must-have before production
--
+## Security & ops
 
-## Nice-to-have
--
+4. Is MFA/login flow acceptable for your security review?  
+5. Any gaps vs your architecture / procurement checklist?
 
-## NPS (0–10):  
+## Scoring (1–5)
 
-## Would recommend for production architecture review? Yes / No
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Ease of deploy | | |
+| Demo clarity | | |
+| Security posture | | |
+| Ops readiness | | |
+| Overall | | |
+
+## Next step preference
+
+☐ Expand pilot ☐ Formal PoC SOW ☐ Pause ☐ Decline  
+
+**Additional comments:**

@@ -38,7 +38,10 @@ CREATE TABLE IF NOT EXISTS login_history (
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT login_history_event_chk CHECK (
-    event IN ('login','login_failed','logout','mfa_success','mfa_failed','session_revoke','password_change','token_create','token_revoke','backup_code_used')
+    event IN (
+      'login','login_failed','logout','mfa_challenge','mfa_success','mfa_failed',
+      'session_revoke','password_change','token_create','token_revoke','backup_code_used'
+    )
   )
 );
 CREATE INDEX IF NOT EXISTS idx_login_history_tenant ON login_history(tenant_id, created_at DESC);

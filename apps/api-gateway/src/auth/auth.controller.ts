@@ -57,6 +57,16 @@ class ResetPasswordDto {
   password!: string;
 }
 
+class MfaVerifyDto {
+  @IsString()
+  @MinLength(10)
+  mfaToken!: string;
+
+  @IsString()
+  @MinLength(4)
+  code!: string;
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -64,10 +74,18 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @ApiOperation({ summary: 'Sign in and receive JWT' })
+  @ApiOperation({ summary: 'Sign in and receive JWT (or MFA challenge when required)' })
   login(@Body() dto: LoginDto, @Req() req: Request) {
     this.assertAuthRateLimit(req, dto.email);
     return this.authService.login(dto.email, dto.password, dto.tenantId);
+  }
+
+  @Public()
+  @Post('mfa/verify')
+  @ApiOperation({ summary: 'Complete MFA challenge after password login' })
+  mfaVerify(@Body() dto: MfaVerifyDto, @Req() req: Request) {
+    this.assertAuthRateLimit(req, dto.mfaToken.slice(0, 24));
+    return this.authService.verifyMfaLogin(dto.mfaToken, dto.code);
   }
 
   @Public()

@@ -12,6 +12,22 @@ export interface AuthUser {
 export interface AuthResponse {
   accessToken: string;
   user: AuthUser;
+  passwordMustRotate?: boolean;
+  mustEnrollMfa?: boolean;
+}
+
+export interface MfaChallengeResponse {
+  mfaRequired: true;
+  mfaToken: string;
+  user: { email: string; tenantId: string; name?: string };
+  methods: string[];
+  passwordMustRotate?: boolean;
+}
+
+export type LoginApiResult = AuthResponse | MfaChallengeResponse;
+
+export function isMfaChallenge(r: LoginApiResult): r is MfaChallengeResponse {
+  return (r as MfaChallengeResponse).mfaRequired === true;
 }
 
 function parseApiError(data: unknown, fallback: string): string {
@@ -43,7 +59,7 @@ export function getAuthTokenFromDocument(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-export async function loginRequest(email: string, password: string, tenantId?: string): Promise<AuthResponse> {
+export async function loginRequest(email: string, password: string, tenantId?: string): Promise<LoginApiResult> {
   let res: Response;
   try {
     res = await fetch(`${API_URL}/api/v1/auth/login`, {
@@ -56,6 +72,22 @@ export async function loginRequest(email: string, password: string, tenantId?: s
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(parseApiError(data, 'Login failed'));
+  return data;
+}
+
+export async function mfaVerifyRequest(mfaToken: string, code: string): Promise<AuthResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/api/v1/auth/mfa/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mfaToken, code }),
+    });
+  } catch {
+    throw new Error('Cannot reach API to complete MFA.');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(parseApiError(data, 'MFA verification failed'));
   return data;
 }
 

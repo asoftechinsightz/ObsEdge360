@@ -386,6 +386,31 @@ async function main() {
     console.log('045_rc2_pilot_production_readiness.sql already applied.');
   }
 
+  // 046: additive CHECK constraint update for mfa_challenge events (idempotent)
+  {
+    const s46 = path.join(migrationsDir, '046_rc2_mfa_login_challenge.sql');
+    if (fs.existsSync(s46)) {
+      const chk = await client.query(
+        `SELECT 1 FROM information_schema.check_constraints
+         WHERE constraint_name = 'login_history_event_chk' AND check_clause LIKE '%mfa_challenge%'
+         LIMIT 1`,
+      ).catch(() => ({ rows: [] }));
+      // Fallback: always run (DROP IF EXISTS + ADD is safe); skip only if already mentions mfa_challenge via pg_get_constraintdef
+      let hasChallenge = (chk.rows || []).length > 0;
+      if (!hasChallenge) {
+        const def = await client.query(
+          `SELECT pg_get_constraintdef(oid) AS def FROM pg_constraint WHERE conname = 'login_history_event_chk' LIMIT 1`,
+        ).catch(() => ({ rows: [] }));
+        hasChallenge = String(def.rows?.[0]?.def || '').includes('mfa_challenge');
+      }
+      if (!hasChallenge) {
+        await runSqlFile(client, s46);
+      } else {
+        console.log('046_rc2_mfa_login_challenge.sql already applied.');
+      }
+    }
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

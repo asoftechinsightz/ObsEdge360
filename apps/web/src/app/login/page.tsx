@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useEffect, useState, Suspense } from 'react';
-import { getApiUrl, loginRequest, setAuthCookie } from '@/lib/auth';
+import {
+  getApiUrl,
+  isMfaChallenge,
+  loginRequest,
+  mfaVerifyRequest,
+  setAuthCookie,
+} from '@/lib/auth';
 
 interface SsoProvider {
   id: string;
@@ -22,6 +28,9 @@ function LoginForm() {
   const [globalOidc, setGlobalOidc] = useState(false);
   const [error, setError] = useState(searchParams.get('error') || '');
   const [loading, setLoading] = useState(false);
+  const [mfaToken, setMfaToken] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     if (!orgSlug.trim()) {
@@ -50,15 +59,42 @@ function LoginForm() {
       .catch(() => undefined);
   }, []);
 
+  async function finishSession(accessToken: string, extras?: { passwordMustRotate?: boolean; mustEnrollMfa?: boolean }) {
+    setAuthCookie(accessToken);
+    if (extras?.mustEnrollMfa) {
+      router.push('/security?enroll=1');
+    } else if (extras?.passwordMustRotate) {
+      router.push('/security?rotate=1');
+    } else {
+      router.push(redirect);
+    }
+    router.refresh();
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+    setNotice('');
     setLoading(true);
     try {
-      const { accessToken } = await loginRequest(email, password, orgSlug || undefined);
-      setAuthCookie(accessToken);
-      router.push(redirect);
-      router.refresh();
+      if (mfaToken) {
+        const result = await mfaVerifyRequest(mfaToken, mfaCode);
+        await finishSession(result.accessToken, {
+          passwordMustRotate: result.passwordMustRotate,
+          mustEnrollMfa: result.mustEnrollMfa,
+        });
+        return;
+      }
+      const result = await loginRequest(email, password, orgSlug || undefined);
+      if (isMfaChallenge(result)) {
+        setMfaToken(result.mfaToken);
+        setNotice('Enter the 6-digit code from your authenticator app (or a backup code).');
+        return;
+      }
+      await finishSession(result.accessToken, {
+        passwordMustRotate: result.passwordMustRotate,
+        mustEnrollMfa: result.mustEnrollMfa,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -94,7 +130,9 @@ function LoginForm() {
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary font-bold text-white">O</div>
           <div>
             <h1 className="text-lg font-semibold">OpsEdge360</h1>
-            <p className="text-sm text-slate-400">Sign in to your organization</p>
+            <p className="text-sm text-slate-400">
+              {mfaToken ? 'Multi-factor authentication' : 'Sign in to your organization'}
+            </p>
           </div>
         </div>
 
@@ -104,48 +142,82 @@ function LoginForm() {
               {error}
             </div>
           )}
-          <div>
-            <label className="mb-1 block text-sm text-slate-400" htmlFor="org">Organization slug (for SSO)</label>
-            <input
-              id="org"
-              value={orgSlug}
-              onChange={(e) => setOrgSlug(e.target.value)}
-              placeholder="acme"
-              className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-slate-400" htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-slate-400" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-          </div>
+          {notice && (
+            <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-sm text-sky-100">
+              {notice}
+            </div>
+          )}
+          {!mfaToken ? (
+            <>
+              <div>
+                <label className="mb-1 block text-sm text-slate-400" htmlFor="org">Organization slug (for SSO)</label>
+                <input
+                  id="org"
+                  value={orgSlug}
+                  onChange={(e) => setOrgSlug(e.target.value)}
+                  placeholder="acme"
+                  className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm text-slate-400" htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm text-slate-400" htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </div>
+            </>
+          ) : (
+            <div>
+              <label className="mb-1 block text-sm text-slate-400" htmlFor="mfa">Authenticator or backup code</label>
+              <input
+                id="mfa"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value)}
+                placeholder="6-digit code"
+                className="w-full rounded-lg border border-slate-600 bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                className="mt-2 text-xs text-slate-400 underline"
+                onClick={() => {
+                  setMfaToken('');
+                  setMfaCode('');
+                  setNotice('');
+                }}
+              >
+                Back to password
+              </button>
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Please wait…' : mfaToken ? 'Verify MFA' : 'Sign in'}
           </button>
         </form>
 
-        {(providers.length > 0 || globalOidc) && (
+        {!mfaToken && (providers.length > 0 || globalOidc) && (
           <div className="mt-6 space-y-2 border-t border-slate-700 pt-6">
             <p className="text-center text-xs text-slate-500">Or continue with SSO</p>
             {globalOidc && (

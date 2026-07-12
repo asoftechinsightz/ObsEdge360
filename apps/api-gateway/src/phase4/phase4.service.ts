@@ -8,7 +8,7 @@ import { createHash, randomBytes } from 'crypto';
 import { getPlatformConfig } from '@opsedge360/platform-config';
 import { query, queryOne } from '@opsedge360/shared-db';
 import type { JwtPayload } from '../auth/auth.service';
-import { verifyTotp as verifyTotpCode } from '../rc2/totp.util';
+import { verifyTotp as verifyTotpCode, labChallengeCode, labCodesEnabled } from '../rc2/totp.util';
 
 function requireAdmin(user: JwtPayload) {
   if (user.role !== 'admin') throw new ForbiddenException('Admin role required');
@@ -167,9 +167,11 @@ export class Phase4Service {
     return {
       factor: row,
       secret,
-      challengeCode: this.demoTotpCode(secret),
+      challengeCode: labCodesEnabled() ? labChallengeCode(secret) : undefined,
       otpauthUrl: `otpauth://totp/OpsEdge360:${encodeURIComponent(user.email || user.sub)}?secret=${secret}&issuer=OpsEdge360`,
-      note: 'Enter challengeCode via POST /me/mfa/verify (RC1 lab path). Production should use authenticator TOTP. WebAuthn deferred.',
+      note: labCodesEnabled()
+        ? 'Lab codes enabled (OPS_MFA_LAB_CODES). Prefer authenticator TOTP in production pilots.'
+        : 'Scan otpauthUrl with an authenticator app, then POST /me/mfa/verify with a 6-digit TOTP. Lab challenge codes are disabled.',
     };
   }
 
@@ -181,23 +183,20 @@ export class Phase4Service {
     );
     if (!factor) throw new NotFoundException('factor not found');
     const totpOk = verifyTotpCode(factor.secret_enc, body.code, 1);
-    const expected = this.demoTotpCode(factor.secret_enc);
+    const labOk = labCodesEnabled() && body.code === labChallengeCode(factor.secret_enc);
     const acceptAny = process.env.MFA_RC1_ACCEPT_ANY === 'true';
-    if (!acceptAny && !totpOk && body.code !== expected) {
-      throw new BadRequestException('Invalid MFA code — use authenticator TOTP or enrollment challenge code');
+    if (!acceptAny && !totpOk && !labOk) {
+      throw new BadRequestException(
+        labCodesEnabled()
+          ? 'Invalid MFA code — use authenticator TOTP or enrollment challenge code'
+          : 'Invalid MFA code — use authenticator TOTP (lab codes disabled; set OPS_MFA_LAB_CODES=1 for automation)',
+      );
     }
     return queryOne(
       `UPDATE mfa_factors SET status='active', verified_at=NOW() WHERE id=$1 AND user_id=$2
        RETURNING id, factor_type, status, verified_at`,
       [body.factorId, user.sub],
     );
-  }
-
-  private demoTotpCode(secret: string) {
-    // Deterministic 6-digit from secret for lab verification without clock sync libs
-    const h = createHash('sha256').update(secret).digest();
-    const n = h.readUInt32BE(0) % 1000000;
-    return n.toString().padStart(6, '0');
   }
 
   async mfaStatusEnriched(user: JwtPayload, tenantId?: string) {

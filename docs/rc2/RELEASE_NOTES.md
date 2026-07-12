@@ -1,14 +1,26 @@
-# Release Notes — OpsEdge360 RC2 (Customer Pilot)
+# Release Notes — OpsEdge360 RC2 (`v1.0.0-rc2-pilot`)
 
-## Summary
+## Highlights
 
-RC2 hardens OpsEdge360 for enterprise customer pilots: production TOTP MFA, backup codes, session revocation, login history, security dashboard, capacity benchmarks, demo reset/walkthrough, branding API, and a complete pilot documentation package.
-
-## Added
-- Migration 045
-- RC2 APIs under security / MFA / performance / demo / pilot / rc2
-- UI: Security Center, Pilot Package, RC2 page
-- Docs pack `docs/rc2/`
+- Production RFC 6238 TOTP MFA with hashed backup codes  
+- MFA enforced at login when tenant policy is `required`  
+- Lab MFA challenge codes gated (`OPS_MFA_LAB_CODES`, default off)  
+- Security Center UX for sessions, login history, alerts, rotation  
+- Demo reset + executive walkthrough (incl. incident talk-track)  
+- Modeled capacity profiles (100–10k) with honest Wave7 linkage  
+- Customer pilot documentation package under `docs/rc2/`  
 
 ## Compatibility
-Waves 1–9 and Phases 1–4 RC1 remain intact.
+
+- Additive APIs and migrations 045/046  
+- Rollback app to RC1 SHA `ac6c6ba` without reversing DB  
+
+## Security residuals (disclosed)
+
+- Session revoke does not immediately invalidate JWTs  
+- TOTP secrets not encrypted at rest  
+- RBA framework-only  
+
+## Validation
+
+See [RC2_VALIDATION.md](./RC2_VALIDATION.md). Token: `RC2_PILOT_VALIDATION_OK` after green production run.

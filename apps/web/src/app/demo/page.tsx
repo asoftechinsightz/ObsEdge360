@@ -4,22 +4,29 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
-import { EmptyState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
+import { EmptyState, ErrorState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
 
 type Tour = { code: string; title: string; industry: string; steps: { path: string; title: string }[] };
+type Walkthrough = {
+  durationMinutes?: string;
+  steps?: { order?: number; path?: string; title: string; talkTrack: string }[];
+  incidentSimulation?: { approach?: string; path?: string; script?: string[] };
+};
 
 export default function DemoTourPage() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [active, setActive] = useState<Tour | null>(null);
   const [step, setStep] = useState(0);
   const [msg, setMsg] = useState('');
-  const [walkthrough, setWalkthrough] = useState<{ steps?: { title: string; talkTrack: string }[] } | null>(null);
+  const [err, setErr] = useState('');
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [walkthrough, setWalkthrough] = useState<Walkthrough | null>(null);
 
   useEffect(() => {
     apiClient<{ tours: Tour[] }>('/demo/tours')
       .then((d) => setTours(d.tours || []))
-      .catch(() => undefined);
-    apiClient<{ steps?: { title: string; talkTrack: string }[] }>('/demo/walkthrough')
+      .catch((e: Error) => setErr(e.message));
+    apiClient<Walkthrough>('/demo/walkthrough')
       .then(setWalkthrough)
       .catch(() => undefined);
   }, []);
@@ -28,8 +35,10 @@ export default function DemoTourPage() {
     await apiClient('/demo/reset', { method: 'POST', body: '{}' });
     setActive(null);
     setStep(0);
-    setMsg('Demo progress reset — ready for the next walkthrough');
+    setConfirmReset(false);
+    setMsg('Demo reset complete — tours re-enabled and progress cleared for the next walkthrough.');
   };
+
   const start = async (t: Tour) => {
     setActive(t);
     setStep(0);
@@ -56,24 +65,70 @@ export default function DemoTourPage() {
         <strong>Presentation Mode</strong> — guided evaluation tours for Banking, Healthcare, Manufacturing, Retail, and Government.
       </div>
       <h1 className="mb-2 text-2xl font-semibold">Customer Evaluation Tours</h1>
-      <p className="mb-4 text-sm text-slate-400">Understand platform value in under 10–15 minutes.</p>
+      <p className="mb-4 text-sm text-slate-400">
+        Demonstrate platform value in {walkthrough?.durationMinutes || '10–15'} minutes.
+      </p>
       {msg && <SuccessBanner message={msg} />}
-      <button type="button" className="mb-4 rounded border border-white/20 px-3 py-2 text-sm" onClick={() => resetDemo().catch(() => undefined)}>
-        Reset demo progress
-      </button>
+      {err && <ErrorState message={err} />}
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {!confirmReset ? (
+          <button type="button" className="rounded border border-white/20 px-3 py-2 text-sm" onClick={() => setConfirmReset(true)}>
+            Reset demo progress
+          </button>
+        ) : (
+          <>
+            <button type="button" className="rounded bg-amber-700 px-3 py-2 text-sm text-white" onClick={() => resetDemo().catch((e: Error) => setErr(e.message))}>
+              Confirm reset
+            </button>
+            <button type="button" className="rounded border border-white/20 px-3 py-2 text-sm" onClick={() => setConfirmReset(false)}>
+              Cancel
+            </button>
+          </>
+        )}
+        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/banking360">
+          Banking360
+        </Link>
+        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/synthetics">
+          Synthetics
+        </Link>
+        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/copilot">
+          AI Copilot
+        </Link>
+        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/itsm">
+          ITSM
+        </Link>
+      </div>
+
       {walkthrough?.steps && (
         <div className="mb-6 rounded-2xl border border-white/10 bg-slate-900/40 p-4 text-xs text-slate-300">
           <div className="mb-2 font-medium text-slate-100">Executive walkthrough talk track</div>
-          <ol className="list-decimal space-y-1 pl-4">
+          <ol className="list-decimal space-y-2 pl-4">
             {walkthrough.steps.map((s, i) => (
               <li key={i}>
-                <strong>{s.title}</strong> — {s.talkTrack}
+                <strong>{s.title}</strong> — {s.talkTrack}{' '}
+                {s.path && (
+                  <Link className="text-sky-400 underline" href={s.path}>
+                    open
+                  </Link>
+                )}
               </li>
             ))}
           </ol>
+          {walkthrough.incidentSimulation?.script && (
+            <div className="mt-4 border-t border-white/10 pt-3">
+              <div className="mb-1 font-medium text-slate-100">Incident simulation (talk-track)</div>
+              <ul className="list-disc space-y-1 pl-4 text-slate-400">
+                {walkthrough.incidentSimulation.script.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
-      {!tours.length && <LoadingSkeleton />}
+
+      {!tours.length && !err && <LoadingSkeleton />}
       {!active && (
         <div className="grid gap-3 md:grid-cols-2">
           {tours.map((t) => (
@@ -88,7 +143,7 @@ export default function DemoTourPage() {
               <div className="mt-2 text-xs text-slate-400">{t.steps?.length || 0} steps</div>
             </button>
           ))}
-          {!tours.length && <EmptyState title="No tours available" />}
+          {!tours.length && !err && <EmptyState title="No tours available" hint="Run demo seed or check demo_tours migration." />}
         </div>
       )}
       {active && (

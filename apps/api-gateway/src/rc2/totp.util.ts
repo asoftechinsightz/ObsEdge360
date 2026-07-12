@@ -90,3 +90,15 @@ export function generateBackupCodes(count = 10): string[] {
 export function otpauthUrl(email: string, secret: string, issuer = 'OpsEdge360'): string {
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }
+
+/** Deterministic lab challenge code (RC1 automation). Only accept when labCodesEnabled(). */
+export function labChallengeCode(secret: string): string {
+  const n = createHash('sha256').update(secret).digest().readUInt32BE(0) % 1000000;
+  return n.toString().padStart(6, '0');
+}
+
+/** Production default: lab codes off. Set OPS_MFA_LAB_CODES=1 for automation/VPS validate. */
+export function labCodesEnabled(): boolean {
+  const v = (process.env.OPS_MFA_LAB_CODES || '').toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
+}

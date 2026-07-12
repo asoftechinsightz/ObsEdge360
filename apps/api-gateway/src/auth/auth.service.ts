@@ -9,6 +9,7 @@ import { createHash, randomBytes } from 'crypto';
 import { query, queryOne } from '@opsedge360/shared-db';
 import { incSecurityMetric } from '@opsedge360/shared-security';
 import { hashPassword, verifyPassword, slugifyOrg } from './password.util';
+import { hashBackupCode, labChallengeCode, labCodesEnabled, verifyTotp } from '../rc2/totp.util';
 
 export interface JwtPayload {
   sub: string;
@@ -17,6 +18,31 @@ export interface JwtPayload {
   role: string;
   name?: string;
 }
+
+export interface MfaChallengePayload {
+  purpose: 'mfa_challenge';
+  sub: string;
+  email: string;
+  tenantId: string;
+  tenantUuid: string;
+  role: string;
+  name?: string;
+}
+
+export type LoginResult =
+  | {
+      accessToken: string;
+      user: JwtPayload;
+      passwordMustRotate?: boolean;
+      mustEnrollMfa?: boolean;
+    }
+  | {
+      mfaRequired: true;
+      mfaToken: string;
+      user: { email: string; tenantId: string; name?: string };
+      methods: string[];
+      passwordMustRotate?: boolean;
+    };
 
 interface UserRow {
   id: string;
@@ -85,7 +111,7 @@ export class AuthService {
       || (process.env.NODE_ENV !== 'production' && process.env.AUTH_REQUIRED !== 'true');
   }
 
-  async login(email: string, password: string, tenantId?: string): Promise<{ accessToken: string; user: JwtPayload }> {
+  async login(email: string, password: string, tenantId?: string): Promise<LoginResult> {
     const allowDevBypass = this.isDevAuthOptional();
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -124,6 +150,104 @@ export class AuthService {
     }
 
     await query(`DELETE FROM auth_lockouts WHERE email = $1`, [normalizedEmail]).catch(() => undefined);
+
+    const mfaGate = await this.resolveMfaGate(user);
+    if (mfaGate.challenge) {
+      await query(
+        `INSERT INTO login_history (tenant_id, user_id, email, event, success, risk_score, metadata)
+         VALUES ($1,$2,$3,'mfa_challenge',true,10,'{"source":"password"}'::jsonb)`,
+        [user.tenant_id, user.id, normalizedEmail],
+      ).catch(() => undefined);
+      const mfaToken = jwt.sign(
+        {
+          purpose: 'mfa_challenge',
+          sub: user.id,
+          email: user.email,
+          tenantId: user.slug,
+          tenantUuid: user.tenant_id,
+          role: user.role,
+          name: user.name ?? undefined,
+        } satisfies MfaChallengePayload,
+        this.secret,
+        { expiresIn: '5m' },
+      );
+      return {
+        mfaRequired: true,
+        mfaToken,
+        user: { email: user.email, tenantId: user.slug, name: user.name ?? undefined },
+        methods: ['totp', 'backup'],
+        passwordMustRotate: mfaGate.passwordMustRotate,
+      };
+    }
+
+    return this.completeLogin(user, {
+      passwordMustRotate: mfaGate.passwordMustRotate,
+      mustEnrollMfa: mfaGate.mustEnrollMfa,
+      source: 'password',
+    });
+  }
+
+  /** Complete MFA step after password login challenge. */
+  async verifyMfaLogin(mfaToken: string, code: string): Promise<LoginResult> {
+    if (!code?.trim()) throw new BadRequestException('MFA code required');
+    let challenge: MfaChallengePayload;
+    try {
+      const decoded = jwt.verify(mfaToken, this.secret) as MfaChallengePayload;
+      if (decoded.purpose !== 'mfa_challenge' || !decoded.sub) {
+        throw new UnauthorizedException('Invalid MFA challenge');
+      }
+      challenge = decoded;
+    } catch (err) {
+      if (err instanceof UnauthorizedException || err instanceof BadRequestException) throw err;
+      throw new UnauthorizedException('Invalid or expired MFA challenge');
+    }
+
+    const factor = await queryOne<{ id: string; secret_enc: string }>(
+      `SELECT id, secret_enc FROM mfa_factors WHERE user_id=$1 AND status='active' ORDER BY verified_at DESC NULLS LAST LIMIT 1`,
+      [challenge.sub],
+    );
+    if (!factor?.secret_enc) {
+      throw new UnauthorizedException('No active MFA factor — enroll TOTP first');
+    }
+
+    const asBackup = await this.tryConsumeBackupCode(challenge.sub, code);
+    const totpOk = /^\d{6}$/.test(code) && verifyTotp(factor.secret_enc, code, 1);
+    const labOk = labCodesEnabled() && code === labChallengeCode(factor.secret_enc);
+
+    if (!totpOk && !asBackup && !labOk) {
+      await query(
+        `INSERT INTO login_history (tenant_id, user_id, email, event, success, risk_score, metadata)
+         VALUES ($1,$2,$3,'mfa_failed',false,40,$4::jsonb)`,
+        [
+          challenge.tenantUuid,
+          challenge.sub,
+          challenge.email,
+          JSON.stringify({ source: 'login_mfa' }),
+        ],
+      ).catch(() => undefined);
+      throw new UnauthorizedException('Invalid MFA or backup code');
+    }
+
+    const user: UserRow = {
+      id: challenge.sub,
+      tenant_id: challenge.tenantUuid,
+      email: challenge.email,
+      name: challenge.name ?? null,
+      role: challenge.role,
+      password_hash: null,
+      slug: challenge.tenantId,
+    };
+    const rot = await this.passwordMustRotateFlag(challenge.sub);
+    return this.completeLogin(user, {
+      passwordMustRotate: rot,
+      source: asBackup ? 'mfa_backup' : totpOk ? 'mfa_totp' : 'mfa_lab',
+    });
+  }
+
+  private async completeLogin(
+    user: UserRow,
+    opts: { passwordMustRotate?: boolean; mustEnrollMfa?: boolean; source: string },
+  ): Promise<LoginResult> {
     await query(
       `INSERT INTO user_sessions (user_id, tenant_id, device_label, last_seen_at, expires_at)
        VALUES ($1, $2, 'web', NOW(), NOW() + INTERVAL '24 hours')`,
@@ -131,10 +255,64 @@ export class AuthService {
     ).catch(() => undefined);
     await query(
       `INSERT INTO login_history (tenant_id, user_id, email, event, success, risk_score, metadata)
-       VALUES ($1,$2,$3,'login',true,0,'{"source":"password"}'::jsonb)`,
-      [user.tenant_id, user.id, normalizedEmail],
+       VALUES ($1,$2,$3,'login',true,0,$4::jsonb)`,
+      [user.tenant_id, user.id, user.email.toLowerCase(), JSON.stringify({ source: opts.source })],
     ).catch(() => undefined);
-    return this.issueToken(user);
+    const issued = this.issueToken(user);
+    return {
+      ...issued,
+      passwordMustRotate: opts.passwordMustRotate,
+      mustEnrollMfa: opts.mustEnrollMfa,
+    };
+  }
+
+  private async resolveMfaGate(user: UserRow): Promise<{
+    challenge: boolean;
+    mustEnrollMfa: boolean;
+    passwordMustRotate: boolean;
+  }> {
+    const policy = await queryOne<{ mode: string }>(
+      `SELECT mode FROM mfa_policies WHERE tenant_id=$1`,
+      [user.tenant_id],
+    ).catch(() => null);
+    const mode = policy?.mode ?? 'optional';
+    const activeFactor = await queryOne<{ id: string }>(
+      `SELECT id FROM mfa_factors WHERE user_id=$1 AND status='active' LIMIT 1`,
+      [user.id],
+    ).catch(() => null);
+    const passwordMustRotate = await this.passwordMustRotateFlag(user.id);
+    const required = mode === 'required';
+    return {
+      challenge: required && !!activeFactor,
+      mustEnrollMfa: required && !activeFactor,
+      passwordMustRotate,
+    };
+  }
+
+  private async passwordMustRotateFlag(userId: string): Promise<boolean> {
+    const row = await queryOne<{ password_changed_at: string | null; password_must_rotate: boolean }>(
+      `SELECT password_changed_at, password_must_rotate FROM users WHERE id=$1`,
+      [userId],
+    ).catch(() => null);
+    if (!row) return false;
+    if (row.password_must_rotate) return true;
+    const maxDays = Number(process.env.PASSWORD_MAX_AGE_DAYS || 90);
+    if (row.password_changed_at) {
+      const ageDays = (Date.now() - new Date(row.password_changed_at).getTime()) / 86400000;
+      if (ageDays > maxDays) return true;
+    }
+    return false;
+  }
+
+  private async tryConsumeBackupCode(userId: string, code: string): Promise<boolean> {
+    const hash = hashBackupCode(code);
+    const row = await queryOne<{ id: string }>(
+      `SELECT id FROM mfa_backup_codes WHERE user_id=$1 AND code_hash=$2 AND used_at IS NULL LIMIT 1`,
+      [userId, hash],
+    );
+    if (!row) return false;
+    await query(`UPDATE mfa_backup_codes SET used_at=NOW() WHERE id=$1`, [row.id]);
+    return true;
   }
 
   async signup(
