@@ -370,6 +370,14 @@ async function main() {
     console.log('043_phase3_enterprise_excellence.sql already applied.');
   }
 
+  const p4 = await tableExists(client, 'rc1_readiness');
+  if (!p4) {
+    const s44 = path.join(migrationsDir, '044_phase4_rc1_market_readiness.sql');
+    if (fs.existsSync(s44)) await runSqlFile(client, s44);
+  } else {
+    console.log('044_phase4_rc1_market_readiness.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();

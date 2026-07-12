@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 const ROUTES = [
   { href: '/dashboard', label: 'Executive Home' },
   { href: '/reports', label: 'Executive Reports' },
+  { href: '/demo', label: 'Evaluation Tours' },
+  { href: '/commercial', label: 'License & Trial' },
+  { href: '/rc1', label: 'RC1 Readiness' },
+  { href: '/about', label: 'About' },
   { href: '/synthetics', label: 'Synthetic Monitoring' },
   { href: '/itsm', label: 'ITSM' },
   { href: '/marketplace', label: 'Marketplace' },

@@ -69,6 +69,8 @@ async function bootstrap() {
       .addTag('itsm')
       .addTag('marketplace')
       .addTag('reports')
+      .addTag('phase4-rc1')
+      .addTag('commercial')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

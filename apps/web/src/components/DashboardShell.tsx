@@ -21,6 +21,10 @@ import { apiClient } from '@/lib/api-client';
 const CORE_NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Executive Home' },
   { href: '/reports', icon: TrendingUp, label: 'Executive Reports' },
+  { href: '/demo', icon: Globe, label: 'Evaluation Tours' },
+  { href: '/commercial', icon: Building2, label: 'License & Trial' },
+  { href: '/rc1', icon: CheckCircle, label: 'RC1 Readiness' },
+  { href: '/about', icon: Globe, label: 'About' },
   { href: '/discovery', icon: Radar, label: 'Discovery' },
   { href: '/discovery-ops', icon: Radar, label: 'Discovery Ops' },
   { href: '/twin', icon: Network, label: 'Digital Twin' },
