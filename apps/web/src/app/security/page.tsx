@@ -6,6 +6,10 @@ import { Suspense } from 'react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 import { EmptyState, ErrorState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { InlineAiAssist } from '@/components/apex/InlineAiAssist';
+import { ExecutiveNarrative } from '@/components/apex/ExecutiveNarrative';
+import { PageHeader } from '@/components/eig/primitives';
 
 type Dash = {
   mfaPolicy?: { mode?: string; grace_days?: number };
@@ -103,10 +107,39 @@ function SecurityCenterInner() {
 
   return (
     <DashboardShell>
-      <h1 className="mb-2 text-2xl font-semibold">Security Center</h1>
-      <p className="mb-4 text-sm text-slate-400">
-        MFA, sessions, login history, and alerts — OpsEdge360 RC2 enterprise posture.
-      </p>
+      <PageHeader
+        title="Security Center"
+        purpose="MFA, sessions, login risk, and security alerts — CISO-ready posture without engineering clutter."
+      />
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness={data ? 'live' : 'unknown'}
+        dataSource="Security dashboard APIs"
+        coverageLabel={`${data?.counts?.activeMfaFactors ?? 0} MFA factors · ${data?.counts?.activeSessions ?? 0} sessions`}
+        integrationHealth={data ? 'healthy' : 'unknown'}
+      />
+      {data && (
+        <ExecutiveNarrative
+          happening={`MFA policy is ${data.mfaPolicy?.mode || 'optional'} with ${data.openAlerts?.length ?? 0} open alert(s)`}
+          whyItMatters="Identity posture and session hygiene are the first controls buyers and auditors ask about."
+          affectedService="Tenant identity plane"
+          impact={`${data.counts?.activeSessions ?? 0} active sessions · ${data.counts?.activeApiTokens ?? 0} API tokens`}
+          nextAction={{
+            label: (data.openAlerts?.length ?? 0) > 0 ? 'Review open security alerts below' : 'Review MFA enrollment',
+            href: '/security',
+          }}
+          aiConfidence={80}
+        />
+      )}
+      {data && (data.openAlerts?.length ?? 0) > 0 && (
+        <div className="mb-4">
+          <InlineAiAssist
+            title="Explain top security alert"
+            prompt="Explain this security alert for a CISO. Include risk, likely cause, and recommended response."
+            context={JSON.stringify(data.openAlerts?.[0] ?? {})}
+          />
+        </div>
+      )}
       {msg && <SuccessBanner message={msg} />}
       {err && <ErrorState message={err} onRetry={() => load().catch((e: Error) => setErr(e.message))} />}
       {!data && !err && <LoadingSkeleton rows={5} />}

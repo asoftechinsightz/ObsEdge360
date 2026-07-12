@@ -28,6 +28,7 @@ import {
   HelpCircle,
   Code2,
   BookOpen,
+  Sparkles,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -133,6 +134,7 @@ export function getNavSections(): NavSection[] {
       label: 'Help',
       items: [
         { href: '/help', label: 'Help Center', icon: HelpCircle },
+        { href: '/demo', label: 'Executive Demo', icon: Sparkles },
         { href: '/about', label: 'About', icon: BookOpen },
         { href: '/developer', label: 'Developer Mode', icon: Code2 },
       ],
@@ -142,7 +144,6 @@ export function getNavSections(): NavSection[] {
 
 /** Internal engineering / release surfaces — Debug Mode only in nav. */
 export const INTERNAL_NAV: NavItem[] = [
-  { href: '/demo', label: 'Evaluation Tours', icon: Globe },
   { href: '/pilot', label: 'Pilot Package', icon: Building2 },
   { href: '/rc1', label: 'RC1 Readiness', icon: CheckCircle },
   { href: '/rc2', label: 'RC2 Readiness', icon: CheckCircle },

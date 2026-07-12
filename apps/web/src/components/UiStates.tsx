@@ -4,7 +4,7 @@ export function LoadingSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="animate-pulse space-y-3" aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="h-10 rounded-lg bg-white/5" />
+        <div key={i} className="eig-shimmer h-10 rounded-[var(--eig-radius-md)] bg-white/5" />
       ))}
     </div>
   );

@@ -211,3 +211,8 @@ html[data-theme='light'] header {
     }
   }
 }
+
+/* APEX presentation mode — reduce chrome noise */
+html[data-apex-presentation='1'] .apex-hide-in-presentation {
+  display: none !important;
+}

@@ -23,9 +23,11 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { UserMenu } from '@/components/UserMenu';
 import { PageTransition } from '@/components/PageTransition';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
+import { ApexModeControls } from '@/components/apex/ApexModeControls';
 import { apiClient } from '@/lib/api-client';
 import { getNavSections, INTERNAL_NAV, type NavSection } from '@/lib/nav-config';
 import { isDebugMode } from '@/lib/debug-mode';
+import { isPresentationMode, syncApexDomFlags } from '@/lib/apex-mode';
 
 const COLLAPSE_KEY = 'oe360_nav_collapsed';
 const OPEN_SECTIONS_KEY = 'oe360_nav_sections';
@@ -56,12 +58,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [debug, setDebug] = useState(false);
+  const [presentation, setPresentation] = useState(false);
   const [sections, setSections] = useState<NavSection[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setUserLabel(readUserLabel());
     setDebug(isDebugMode());
+    syncApexDomFlags();
+    setPresentation(isPresentationMode());
     setSections(getNavSections());
     try {
       setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
@@ -77,8 +82,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       })
       .catch(() => undefined);
     const onDebug = () => setDebug(isDebugMode());
+    const onApex = () => setPresentation(isPresentationMode());
     window.addEventListener('opsedge:debug-mode', onDebug);
-    return () => window.removeEventListener('opsedge:debug-mode', onDebug);
+    window.addEventListener('opsedge:apex-mode', onApex);
+    return () => {
+      window.removeEventListener('opsedge:debug-mode', onDebug);
+      window.removeEventListener('opsedge:apex-mode', onApex);
+    };
   }, []);
 
   useEffect(() => {
@@ -168,7 +178,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           );
         })}
 
-        {debug && (
+        {debug && !presentation && (
           <div>
             {!collapsed && (
               <div className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-amber-500/80">
@@ -259,6 +269,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <ApexModeControls />
             <button
               type="button"
               onClick={() => setCopilotOpen(true)}
@@ -267,12 +278,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <Bot size={16} aria-hidden />
               <span className="hidden sm:inline">Copilot</span>
             </button>
-            <NotificationCenter />
+            {!presentation && <NotificationCenter />}
             <UserMenu label={userLabel} />
           </div>
         </header>
         <main id="main-content" className="flex-1 p-4 sm:p-6">
-          <Breadcrumbs />
+          {!presentation && <Breadcrumbs />}
+          {presentation && (
+            <div className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-violet-300/80">
+              Presentation mode · Ctrl+Shift+P to exit
+            </div>
+          )}
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

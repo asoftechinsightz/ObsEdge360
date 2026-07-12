@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 import { EmptyState, ErrorState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
+import { PageHeader } from '@/components/eig/primitives';
+import { setExecutiveDemoMode, setPresentationMode } from '@/lib/apex-mode';
+import { TrustBar } from '@/components/apex/TrustBar';
 
 type Tour = { code: string; title: string; industry: string; steps: { path: string; title: string }[] };
 type Walkthrough = {
@@ -61,10 +64,33 @@ export default function DemoTourPage() {
 
   return (
     <DashboardShell>
+      <PageHeader
+        title="Executive Demo Mode"
+        purpose="Boardroom-safe guided tours. Engineering gates stay in Developer Mode — not on this path."
+        actions={
+          <button
+            type="button"
+            className="rounded-[var(--eig-radius-sm)] bg-violet-600 px-3 py-2 text-sm text-white"
+            onClick={() => {
+              setExecutiveDemoMode(true);
+              setPresentationMode(true);
+              setMsg('Presentation + Executive Demo modes enabled (Ctrl+Shift+P toggles presentation).');
+            }}
+          >
+            Enter presentation mode
+          </button>
+        }
+      />
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness="live"
+        dataSource="Demo tour APIs"
+        coverageLabel={`${tours.length} industry tours`}
+        integrationHealth="healthy"
+      />
       <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
-        <strong>Presentation Mode</strong> — guided evaluation tours for Banking, Healthcare, Manufacturing, Retail, and Government.
+        <strong>Demo excellence</strong> — Banking, Healthcare, Manufacturing, Retail, and Government flows. Reset between sessions.
       </div>
-      <h1 className="mb-2 text-2xl font-semibold">Customer Evaluation Tours</h1>
       <p className="mb-4 text-sm text-slate-400">
         Demonstrate platform value in {walkthrough?.durationMinutes || '10–15'} minutes.
       </p>
@@ -86,14 +112,17 @@ export default function DemoTourPage() {
             </button>
           </>
         )}
+        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/dashboard">
+          Executive Home
+        </Link>
         <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/banking360">
           Banking360
         </Link>
         <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/synthetics">
           Synthetics
         </Link>
-        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/copilot">
-          AI Copilot
+        <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/ops-intelligence">
+          Ops Intelligence
         </Link>
         <Link className="rounded border border-sky-500/40 px-3 py-2 text-sm text-sky-100" href="/itsm">
           ITSM

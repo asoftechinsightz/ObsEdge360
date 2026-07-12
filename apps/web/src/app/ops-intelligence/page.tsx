@@ -7,6 +7,10 @@ import {
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 import clsx from 'clsx';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { ExecutiveNarrative } from '@/components/apex/ExecutiveNarrative';
+import { InlineAiAssist } from '@/components/apex/InlineAiAssist';
+import { LoadingSkeleton } from '@/components/UiStates';
 
 interface Health {
   openIncidents: number;
@@ -282,6 +286,34 @@ export default function OpsIntelligencePage() {
           <div className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-300">{message}</div>
         )}
 
+        <TrustBar
+          lastUpdated={new Date()}
+          freshness={loading ? 'unknown' : 'live'}
+          dataSource="Ops Intelligence APIs"
+          coverageLabel={`${health?.signals24h ?? 0} signals / 24h`}
+          integrationHealth={loading ? 'unknown' : 'healthy'}
+          aiConfidence={rca?.confidencePct ?? (selected ? 70 : null)}
+        />
+
+        <ExecutiveNarrative
+          happening={
+            (health?.openIncidents ?? 0) > 0
+              ? `${health?.openIncidents} open correlated incident(s)`
+              : 'No open correlated incidents in the current window'
+          }
+          whyItMatters="Correlated incidents are the fastest path from noise to owned operational action."
+          affectedService={selected?.title || 'Select an incident for service context'}
+          impact={`${health?.openAnomalies ?? 0} anomalies · ${health?.pendingRemediation ?? 0} remediations pending`}
+          nextAction={
+            selected
+              ? { label: 'Open AIOps for deeper RCA', href: '/aiops' }
+              : { label: 'Open Synthetics coverage', href: '/synthetics' }
+          }
+          aiConfidence={rca?.confidencePct ?? null}
+        />
+
+        {loading && <LoadingSkeleton rows={4} />}
+
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
           {[
             { label: 'Open incidents', value: health?.openIncidents, icon: AlertTriangle },
@@ -328,16 +360,23 @@ export default function OpsIntelligencePage() {
               ))}
             </div>
             {selected && (
-              <div className="mt-3 flex gap-2">
-                <button type="button" onClick={() => void runRca(selected)} className="rounded-md bg-sky-700 px-2 py-1 text-xs text-white">
-                  RCA this
-                </button>
-                <button type="button" onClick={() => void requestRemediation('dry_run')} className="rounded-md bg-rose-700/80 px-2 py-1 text-xs text-white">
-                  Request dry-run
-                </button>
-                <button type="button" onClick={() => void requestRemediation('live')} className="rounded-md bg-orange-800/80 px-2 py-1 text-xs text-white">
-                  Request live
-                </button>
+              <div className="mt-3 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => void runRca(selected)} className="rounded-md bg-sky-700 px-2 py-1 text-xs text-white">
+                    RCA this
+                  </button>
+                  <button type="button" onClick={() => void requestRemediation('dry_run')} className="rounded-md bg-rose-700/80 px-2 py-1 text-xs text-white">
+                    Request dry-run
+                  </button>
+                  <button type="button" onClick={() => void requestRemediation('live')} className="rounded-md bg-orange-800/80 px-2 py-1 text-xs text-white">
+                    Request live
+                  </button>
+                </div>
+                <InlineAiAssist
+                  title="Explain this incident"
+                  prompt="Explain this incident for an SRE and an executive. Include likely blast radius, SLA risk, and next actions."
+                  context={`Title: ${selected.title}\nSeverity: ${selected.severity}\nStatus: ${selected.status}\nSignals: ${selected.signalCounts?.total ?? 0}`}
+                />
               </div>
             )}
           </div>

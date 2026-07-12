@@ -6,6 +6,8 @@ import { apiClient } from '@/lib/api-client';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/UiStates';
 import { PageHeader, DataTable, JsonViewer, StatusBadge } from '@/components/eig/primitives';
 import { isDebugMode } from '@/lib/debug-mode';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { InlineAiAssist } from '@/components/apex/InlineAiAssist';
 
 function asRows(data: unknown): Array<Record<string, unknown>> {
   if (!data) return [];
@@ -95,6 +97,20 @@ export default function ReportsPage() {
         }
       />
       {msg && <p className="mb-3 text-sm text-sky-200">{msg}</p>}
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness={loading ? 'unknown' : 'recent'}
+        dataSource="Reporting APIs"
+        coverageLabel="SLA · availability · incidents · MTTR · compliance"
+        integrationHealth={err ? 'degraded' : 'healthy'}
+      />
+      <div className="mb-4">
+        <InlineAiAssist
+          title="Summarize latest reports for executives"
+          prompt="Summarize the reporting posture for a CIO. Highlight SLA risk and recommended actions."
+          context={typeof reports === 'object' ? JSON.stringify(reports).slice(0, 2000) : String(reports)}
+        />
+      </div>
       {err && <ErrorState message={err} onRetry={() => load()} />}
       {loading && <LoadingSkeleton rows={5} />}
       {!loading && !err && (
