@@ -22,6 +22,11 @@
 | [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) | Leadership / product |
 | [SBOM.md](./SBOM.md) | Security / procurement |
 
+## Go-to-market kit
+
+Enterprise Sales & Customer Success Kit: [`docs/gtm/`](../gtm/README.md)  
+(Sales, CS, Procurement, Partners, Marketing, business milestones, platform freeze)
+
 ## Scripts
 
 | Script | Purpose |
@@ -35,3 +40,5 @@
 ## Strong recommendation
 
 Do **not** build SecureEdge360, CloudEdge360, AgentEdge360, or QuantumShield360 yet. Secure 3–5 enterprise pilots, 2–3 production deployments, testimonials, and reference architectures first.
+
+Measure business milestones in [`docs/gtm/BUSINESS_MILESTONES.md`](../gtm/BUSINESS_MILESTONES.md). Keep the platform freeze in [`docs/gtm/PLATFORM_FREEZE.md`](../gtm/PLATFORM_FREEZE.md).

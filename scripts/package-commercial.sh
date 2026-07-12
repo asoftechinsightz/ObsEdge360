@@ -19,6 +19,7 @@ cp -a "$ROOT/infra/helm/opsedge360" "$PKG/helm/" 2>/dev/null || true
 
 # Docs — commercial first, then pilot/rc lineage
 cp -a "$ROOT/docs/commercial" "$PKG/docs/" 2>/dev/null || true
+cp -a "$ROOT/docs/gtm" "$PKG/docs/" 2>/dev/null || true
 cp -a "$ROOT/docs/pilot" "$PKG/docs/" 2>/dev/null || true
 cp -a "$ROOT/docs/rc3" "$PKG/docs/" 2>/dev/null || true
 cp -a "$ROOT/docs/rc2" "$PKG/docs/" 2>/dev/null || true
