@@ -341,9 +341,9 @@ export class Rc2Service {
     const tid = requireTenant(tenantId);
     if (!body.title) throw new BadRequestException('title required');
     return queryOne(
-      `INSERT INTO security_alerts (tenant_id, severity, title, detail)
-       VALUES ($1,$2,$3,$4) RETURNING *`,
-      [tid, body.severity || 'info', body.title, body.detail ?? null],
+      `INSERT INTO security_alerts (tenant_id, title, severity, status, summary)
+       VALUES ($1,$2,$3,'open',$4) RETURNING id, title, severity, status, summary, created_at`,
+      [tid, body.title, body.severity || 'info', body.detail ?? null],
     );
   }
 
@@ -352,7 +352,8 @@ export class Rc2Service {
     const tid = requireTenant(tenantId);
     return {
       alerts: await query(
-        `SELECT * FROM security_alerts WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 100`,
+        `SELECT id, title, severity, status, summary, created_at, acked_at
+         FROM security_alerts WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 100`,
         [tid],
       ),
     };

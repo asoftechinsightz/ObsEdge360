@@ -44,19 +44,8 @@ CREATE TABLE IF NOT EXISTS login_history (
 CREATE INDEX IF NOT EXISTS idx_login_history_tenant ON login_history(tenant_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_login_history_user ON login_history(user_id, created_at DESC);
 
--- Security alerts (operator-facing)
-CREATE TABLE IF NOT EXISTS security_alerts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
-  severity VARCHAR(16) NOT NULL DEFAULT 'info',
-  title VARCHAR(255) NOT NULL,
-  detail TEXT,
-  status VARCHAR(16) NOT NULL DEFAULT 'open',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  resolved_at TIMESTAMPTZ,
-  CONSTRAINT security_alerts_sev_chk CHECK (severity IN ('info','low','medium','high','critical')),
-  CONSTRAINT security_alerts_status_chk CHECK (status IN ('open','ack','resolved'))
-);
+-- Security alerts: reuse existing security_alerts from 020_security_observability.sql
+-- (title, severity, status, summary). Do not recreate.
 
 -- Password rotation tracking (policy already in wave6; this records due/rotated)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
