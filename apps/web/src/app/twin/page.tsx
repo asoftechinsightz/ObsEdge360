@@ -343,8 +343,21 @@ export default function DigitalTwinPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 relative">
           {loading && <p className="mb-2 text-sm text-slate-400">Loading topology…</p>}
+          {!loading && nodes.length === 0 && (
+            <div className="mb-3 rounded-[var(--eig-radius-lg)] border border-dashed border-white/15 bg-slate-900/40 px-6 py-8 text-center">
+              <div className="text-sm font-medium text-slate-200">No digital twin graph yet</div>
+              <p className="mt-2 text-xs text-slate-500">
+                The twin is built from discovered assets and CMDB relationships. Without discovery data, the canvas stays empty.
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
+                <a href="/discovery" className="text-sky-400 hover:underline">Set up Discovery →</a>
+                <a href="/cmdb" className="text-sky-400 hover:underline">Open CMDB →</a>
+                <a href="/developer" className="text-sky-400 hover:underline">Developer Mode / demo →</a>
+              </div>
+            </div>
+          )}
           <div ref={containerRef} className="h-[560px] rounded-xl border border-slate-700 bg-surface-elevated" />
           {selected && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-700 bg-surface-elevated p-4 text-sm">

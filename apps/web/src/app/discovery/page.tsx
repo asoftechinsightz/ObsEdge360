@@ -298,7 +298,17 @@ export default function DiscoveryPage() {
                   </tr>
                 ))}
                 {connectors.length === 0 && !loading && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No connectors — add K8s, AWS, or SNMP</td></tr>
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8">
+                      <div className="mx-auto max-w-lg text-center">
+                        <div className="text-sm font-medium text-slate-200">No discovery connectors yet</div>
+                        <p className="mt-2 text-xs text-slate-500">
+                          Connectors find assets that feed CMDB, Digital Twin, and Topology. Add Kubernetes, cloud, or SNMP to begin.
+                        </p>
+                        <p className="mt-2 text-xs text-slate-500">Use “Add connector” above — guided setup walks you through credentials safely.</p>
+                      </div>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

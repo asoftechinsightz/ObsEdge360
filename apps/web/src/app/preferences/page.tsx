@@ -3,14 +3,20 @@
 import { useEffect, useState } from 'react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
+import { PageHeader, DescriptionList, JsonViewer, StatusBadge } from '@/components/eig/primitives';
+import { SuccessBanner } from '@/components/UiStates';
+import { isDebugMode } from '@/lib/debug-mode';
 
 export default function PreferencesPage() {
   const [theme, setTheme] = useState('dark');
   const [landing, setLanding] = useState('/dashboard');
-  const [mfa, setMfa] = useState<unknown>(null);
+  const [roleHint, setRoleHint] = useState('cio');
+  const [mfa, setMfa] = useState<Record<string, unknown> | null>(null);
   const [msg, setMsg] = useState('');
+  const [debug, setDebug] = useState(false);
 
   useEffect(() => {
+    setDebug(isDebugMode());
     apiClient<{ theme?: string; landing_path?: string }>('/me/preferences')
       .then((p) => {
         setTheme(p.theme || 'dark');
@@ -18,7 +24,9 @@ export default function PreferencesPage() {
         document.documentElement.setAttribute('data-theme', p.theme === 'light' ? 'light' : 'dark');
       })
       .catch(() => undefined);
-    apiClient('/me/mfa').then(setMfa).catch(() => undefined);
+    apiClient<Record<string, unknown>>('/me/mfa')
+      .then(setMfa)
+      .catch(() => undefined);
   }, []);
 
   const save = async () => {
@@ -27,38 +35,89 @@ export default function PreferencesPage() {
       body: JSON.stringify({ theme, landingPath: landing }),
     });
     document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
-    setMsg('Saved');
+    try {
+      localStorage.setItem('oe360_role_hint', roleHint);
+    } catch {
+      /* ignore */
+    }
+    setMsg('Saved — landing path applies on next login');
   };
+
+  const mfaEnabled = Boolean(mfa && (mfa.enabled === true || mfa.enrolled === true || mfa.status === 'enabled'));
 
   return (
     <DashboardShell>
-      <h1 className="mb-2 text-2xl font-semibold">User Preferences</h1>
-      <p className="mb-4 text-sm text-slate-400">Theme, landing page, MFA readiness framework.</p>
-      {msg && <p className="mb-2 text-sm text-sky-200">{msg}</p>}
-      <div className="max-w-lg space-y-3 rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+      <PageHeader title="User Preferences" purpose="Theme, landing page, and security readiness for your account." />
+      {msg && <SuccessBanner message={msg} />}
+      <div className="max-w-lg space-y-3 eig-panel p-4">
         <label className="block text-sm">
           Theme
-          <select className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-3 py-2" value={theme} onChange={(e) => setTheme(e.target.value)}>
+          <select
+            className="mt-1 w-full rounded-[var(--eig-radius-sm)] border border-slate-600 bg-slate-950 px-3 py-2"
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+          >
             <option value="dark">Dark</option>
             <option value="light">Light</option>
           </select>
         </label>
         <label className="block text-sm">
-          Landing path
-          <select className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-3 py-2" value={landing} onChange={(e) => setLanding(e.target.value)}>
-            <option value="/dashboard">Executive Home</option>
-            <option value="/ops-intelligence">Ops Intelligence</option>
+          Landing page
+          <select
+            className="mt-1 w-full rounded-[var(--eig-radius-sm)] border border-slate-600 bg-slate-950 px-3 py-2"
+            value={landing}
+            onChange={(e) => setLanding(e.target.value)}
+          >
+            <option value="/dashboard">Executive Home (CIO / Business)</option>
+            <option value="/ops-intelligence">Ops Intelligence (NOC / SRE / CTO)</option>
+            <option value="/security">Security Center (CISO)</option>
+            <option value="/admin">Enterprise Admin (Platform / Admin)</option>
             <option value="/reports">Executive Reports</option>
             <option value="/itsm">ITSM</option>
             <option value="/synthetics">Synthetics</option>
+            <option value="/observability">Observability</option>
+            <option value="/apm">APM</option>
           </select>
         </label>
-        <button type="button" className="rounded bg-sky-600 px-4 py-2 text-sm text-white" onClick={() => save().catch((e: Error) => setMsg(e.message))}>
+        <label className="block text-sm">
+          Role hint (local UX emphasis)
+          <select
+            className="mt-1 w-full rounded-[var(--eig-radius-sm)] border border-slate-600 bg-slate-950 px-3 py-2"
+            value={roleHint}
+            onChange={(e) => setRoleHint(e.target.value)}
+          >
+            <option value="cio">CIO / Business Executive</option>
+            <option value="cto">CTO</option>
+            <option value="ciso">CISO</option>
+            <option value="noc">NOC Engineer</option>
+            <option value="sre">SRE</option>
+            <option value="platform">Platform Engineer</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          className="rounded-[var(--eig-radius-sm)] bg-sky-600 px-4 py-2 text-sm text-white"
+          onClick={() => save().catch((e: Error) => setMsg(e.message))}
+        >
           Save
         </button>
       </div>
-      <h2 className="mb-2 mt-6 text-lg font-medium">MFA framework</h2>
-      <pre className="overflow-auto rounded-2xl border border-white/10 bg-slate-900/60 p-4 text-xs">{JSON.stringify(mfa, null, 2)}</pre>
+      <h2 className="mb-2 mt-6 text-lg font-medium">MFA status</h2>
+      <DescriptionList
+        items={[
+          {
+            label: 'Multi-factor authentication',
+            value: (
+              <span className="inline-flex items-center gap-2">
+                <StatusBadge status={mfaEnabled ? 'success' : 'warning'} />
+                {mfaEnabled ? 'Enabled' : 'Not enabled — open Security Center to enroll'}
+              </span>
+            ),
+          },
+        ]}
+      />
+      {debug && mfa && <JsonViewer data={mfa} title="MFA API payload" />}
     </DashboardShell>
   );
 }

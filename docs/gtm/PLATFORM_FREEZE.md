@@ -1,8 +1,16 @@
 # Platform Freeze Policy
 
-## Freeze
+**Canonical status:** [`docs/ENGINEERING_FREEZE.md`](../ENGINEERING_FREEZE.md)
 
-Core OpsEdge360 feature development is **frozen** except:
+## OpsEdge360 v1.0 Enterprise Platform
+
+| Field | Value |
+|-------|--------|
+| Status | **Engineering Freeze** |
+| Allowed | Critical bugs · Security updates · Performance improvements · Customer-requested enhancements |
+| Everything else | **Requires Product Approval** |
+
+## Freeze allow-list
 
 | Allowed | Examples |
 |---------|----------|

@@ -41,4 +41,6 @@ Enterprise Sales & Customer Success Kit: [`docs/gtm/`](../gtm/README.md)
 
 Do **not** build SecureEdge360, CloudEdge360, AgentEdge360, or QuantumShield360 yet. Secure 3–5 enterprise pilots, 2–3 production deployments, testimonials, and reference architectures first.
 
-Measure business milestones in [`docs/gtm/BUSINESS_MILESTONES.md`](../gtm/BUSINESS_MILESTONES.md). Keep the platform freeze in [`docs/gtm/PLATFORM_FREEZE.md`](../gtm/PLATFORM_FREEZE.md).
+**Engineering Freeze** is in effect: [`docs/ENGINEERING_FREEZE.md`](../ENGINEERING_FREEZE.md).  
+Measure business milestones in [`docs/gtm/BUSINESS_MILESTONES.md`](../gtm/BUSINESS_MILESTONES.md).  
+Enterprise UX audit (Gartner-Leader standard): [`docs/ux-audit/`](../ux-audit/README.md).

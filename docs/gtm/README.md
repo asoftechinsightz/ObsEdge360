@@ -1,9 +1,9 @@
 # OpsEdge360 — Enterprise Sales & Customer Success Kit
 
 **Owner:** AsoftechInsightz GTM  
-**Product:** OpsEdge360 (flagship)  
+**Product:** OpsEdge360 v1.0 Enterprise Platform (flagship)  
 **Platform baseline:** RC3 EPP + Commercial Launch Prep  
-**Rule:** Freeze core platform except critical bugs, security, performance, and customer-requested enhancements.
+**Status:** [Engineering Freeze](../ENGINEERING_FREEZE.md) — only critical bugs, security, performance, and customer-requested enhancements; everything else needs Product Approval.
 
 | Area | Path |
 |------|------|

@@ -4,7 +4,10 @@
 
 OpsEdge360 unifies IT, OT, network, cloud, security, business transactions, digital twin, CMDB, compliance, and AI-assisted operations — **separate from LeadEdge360 and RetailEdge360**.
 
-**Version:** 1.0.0 (GA)
+**Version:** 1.0.0 (GA) — **Engineering Freeze**
+
+> Only critical bugs, security updates, performance improvements, and customer-requested enhancements are allowed. Everything else requires Product Approval.  
+> See [docs/ENGINEERING_FREEZE.md](docs/ENGINEERING_FREEZE.md).
 
 See [docs/PRODUCT_IDENTITY.md](docs/PRODUCT_IDENTITY.md) for product boundaries.  
 Release notes: [docs/RELEASE-NOTES-1.0.0.md](docs/RELEASE-NOTES-1.0.0.md).  

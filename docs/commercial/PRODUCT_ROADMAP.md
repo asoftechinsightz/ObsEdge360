@@ -1,5 +1,12 @@
 # Product Roadmap — Releases (not engineering phases)
 
+## Current status
+
+**OpsEdge360 v1.0 Enterprise Platform — Engineering Freeze**
+
+Allowed without Product Approval: critical bugs · security updates · performance improvements · customer-requested enhancements.  
+Everything else requires Product Approval. See [`docs/ENGINEERING_FREEZE.md`](../ENGINEERING_FREEZE.md).
+
 ## Completed release line
 
 ```
@@ -8,6 +15,7 @@ v1.0.0 GA
   → RC2 Pilot Ready (RC2_PILOT_VALIDATION_OK)
   → RC3 Enterprise Pilot (RC3_EPP_VALIDATION_OK)
   → Commercial Launch Preparation (this pack)
+  → Engineering Freeze (v1.0)
 ```
 
 ## Forward roadmap

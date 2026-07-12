@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import { fetchApi } from '@/lib/api';
+import { EmptyState } from '@/components/UiStates';
 
 interface Risk {
   id: string;
@@ -23,22 +25,29 @@ export async function RiskList() {
   }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-surface-elevated">
-      <div className="border-b border-slate-700 px-5 py-4">
-        <h2 className="font-semibold">Top Enterprise Risks</h2>
+    <div className="eig-glass overflow-hidden">
+      <div className="border-b border-[var(--eig-border)] px-5 py-4">
+        <h2 className="font-semibold">Top enterprise risks</h2>
       </div>
       <div className="space-y-3 p-4">
-        {risks.map((risk) => (
-          <div key={risk.id} className={`rounded-lg border p-3 ${SEVERITY_COLORS[risk.severity] ?? ''}`}>
-            <div className="text-sm font-medium">{risk.title}</div>
-            <div className="mt-1 text-xs text-slate-400">{risk.affectedService}</div>
-            {risk.revenueAtRisk > 0 && (
-              <div className="mt-1 text-xs text-amber-400">
-                Revenue at risk: ₹{(risk.revenueAtRisk / 1000).toFixed(0)}K/hr
-              </div>
-            )}
-          </div>
-        ))}
+        {!risks.length ? (
+          <EmptyState title="No elevated risks right now" hint="Risks appear when services or incidents cross impact thresholds." />
+        ) : (
+          risks.map((risk) => (
+            <div key={risk.id} className={`rounded-[var(--eig-radius-sm)] border p-3 ${SEVERITY_COLORS[risk.severity] ?? ''}`}>
+              <div className="text-sm font-medium">{risk.title}</div>
+              <div className="mt-1 text-xs text-slate-400">{risk.affectedService}</div>
+              {risk.revenueAtRisk > 0 && (
+                <div className="mt-1 text-xs text-amber-400">
+                  Revenue at risk: ₹{(risk.revenueAtRisk / 1000).toFixed(0)}K/hr
+                </div>
+              )}
+              <Link href="/ops-intelligence" className="mt-2 inline-block text-xs text-sky-400 hover:underline">
+                Recommended: investigate in Ops Intelligence →
+              </Link>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

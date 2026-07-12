@@ -10,6 +10,8 @@ import {
   mfaVerifyRequest,
   setAuthCookie,
 } from '@/lib/auth';
+import { resolveLandingPath, roleDefaultLanding } from '@/lib/landing';
+import { apiClient } from '@/lib/api-client';
 
 interface SsoProvider {
   id: string;
@@ -59,14 +61,35 @@ function LoginForm() {
       .catch(() => undefined);
   }, []);
 
-  async function finishSession(accessToken: string, extras?: { passwordMustRotate?: boolean; mustEnrollMfa?: boolean }) {
+  async function finishSession(
+    accessToken: string,
+    extras?: { passwordMustRotate?: boolean; mustEnrollMfa?: boolean; role?: string },
+  ) {
     setAuthCookie(accessToken);
     if (extras?.mustEnrollMfa) {
       router.push('/security?enroll=1');
     } else if (extras?.passwordMustRotate) {
       router.push('/security?rotate=1');
     } else {
-      router.push(redirect);
+      let savedLanding: string | null = null;
+      try {
+        const prefs = await apiClient<{ landing_path?: string; landingPath?: string }>('/me/preferences');
+        savedLanding = prefs.landing_path || prefs.landingPath || null;
+      } catch {
+        /* preferences optional at login */
+      }
+      let roleHint = extras?.role;
+      try {
+        roleHint = roleHint || localStorage.getItem('oe360_role_hint') || undefined;
+      } catch {
+        /* ignore */
+      }
+      const dest = resolveLandingPath({
+        redirectParam: redirect,
+        savedLanding,
+        role: roleHint || roleDefaultLanding(extras?.role),
+      });
+      router.push(dest);
     }
     router.refresh();
   }
@@ -82,6 +105,7 @@ function LoginForm() {
         await finishSession(result.accessToken, {
           passwordMustRotate: result.passwordMustRotate,
           mustEnrollMfa: result.mustEnrollMfa,
+          role: result.user?.role,
         });
         return;
       }
@@ -94,6 +118,7 @@ function LoginForm() {
       await finishSession(result.accessToken, {
         passwordMustRotate: result.passwordMustRotate,
         mustEnrollMfa: result.mustEnrollMfa,
+        role: result.user?.role,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');

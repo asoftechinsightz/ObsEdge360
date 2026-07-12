@@ -40,7 +40,9 @@ export default function Rc3Page() {
   return (
     <DashboardShell>
       <h1 className="mb-2 text-2xl font-semibold">RC3 — Enterprise Pilot Program</h1>
-      <p className="mb-4 text-sm text-slate-400">Security hardening, pilot toolkit, and release readiness.</p>
+      <p className="mb-4 text-sm text-slate-400">
+        Internal EPP gate (Developer Mode). Security posture summarized without tokens or SHA strings.
+      </p>
       {msg && <SuccessBanner message={msg} />}
       {err && <ErrorState message={err} onRetry={() => load().catch((e: Error) => setErr(e.message))} />}
       {!data && !err && <LoadingSkeleton rows={3} />}

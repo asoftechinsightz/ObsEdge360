@@ -3,18 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-
-const LABELS: Record<string, string> = {
-  dashboard: 'Executive Home',
-  synthetics: 'Synthetics',
-  itsm: 'ITSM',
-  reports: 'Executive Reports',
-  marketplace: 'Marketplace',
-  admin: 'Admin',
-  observability: 'Observability',
-  banking360: 'Banking360',
-  preferences: 'Preferences',
-};
+import { BREADCRUMB_LABELS } from '@/lib/nav-config';
 
 export function Breadcrumbs() {
   const pathname = usePathname() || '/';
@@ -28,11 +17,12 @@ export function Breadcrumbs() {
       </Link>
       {parts.map((p) => {
         href += `/${p}`;
+        const label = BREADCRUMB_LABELS[p] || p.replace(/-/g, ' ');
         return (
           <span key={href} className="flex items-center gap-1">
-            <ChevronRight size={12} />
-            <Link href={href} className="hover:text-slate-300">
-              {LABELS[p] || p}
+            <ChevronRight size={12} aria-hidden />
+            <Link href={href} className="capitalize hover:text-slate-300">
+              {label}
             </Link>
           </span>
         );

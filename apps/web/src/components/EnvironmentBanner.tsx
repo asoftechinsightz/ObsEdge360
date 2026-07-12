@@ -35,7 +35,7 @@ export function EnvironmentBanner() {
       <strong>{env.environmentLabel || env.appEnv}</strong>
       {demo && ' — demonstration data only. External notifications and production webhooks are disabled.'}
       {!demo && env.outboundDisabled ? ' — outbound integrations restricted.' : null}
-      {!demo && !env.outboundDisabled ? ` — APP_ENV=${env.appEnv}` : null}
+      {!demo && !env.outboundDisabled ? ' — non-production environment' : null}
     </div>
   );
 }

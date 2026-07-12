@@ -2,23 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Enterprise Intelligence Glass (EIG) — design tokens
+ * Canonical principles: docs/ux-audit/16_EIG_DESIGN_PRINCIPLES.md
+ * Measure every change: docs/ux-audit/17_UX_PERFORMANCE_MEASUREMENT.md
+ */
+
 :root {
+  /* Brand / accent */
   --primary: #0ea5e9;
   --accent: #38bdf8;
+  --eig-accent: #0ea5e9;
+  --eig-accent-soft: rgba(14, 165, 233, 0.16);
+
+  /* Surfaces */
   --surface: #070b14;
   --surface-elevated: rgba(15, 23, 42, 0.72);
+  --eig-glass-bg: rgba(15, 23, 42, 0.62);
+  --eig-glass-bg-strong: rgba(15, 23, 42, 0.82);
   --text: #e2e8f0;
   --muted: #94a3b8;
   --border: rgba(148, 163, 184, 0.18);
+  --eig-border: rgba(148, 163, 184, 0.16);
   --glass: blur(14px);
+  --eig-glass-blur: 12px;
+
+  /* Radius — 8–12px */
+  --eig-radius-sm: 8px;
+  --eig-radius-md: 10px;
+  --eig-radius-lg: 12px;
+
+  /* 8px spacing scale */
+  --eig-space-1: 8px;
+  --eig-space-2: 16px;
+  --eig-space-3: 24px;
+  --eig-space-4: 32px;
+  --eig-space-5: 40px;
+  --eig-space-6: 48px;
+
+  /* Elevation */
+  --eig-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(148, 163, 184, 0.06);
+  --eig-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(148, 163, 184, 0.08);
+  --eig-shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(14, 165, 233, 0.18);
+
+  /* Motion — 150–250ms */
+  --eig-motion-fast: 150ms;
+  --eig-motion-base: 200ms;
+  --eig-motion-emphasis: 250ms;
+  --eig-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Status */
+  --eig-success: #34d399;
+  --eig-warning: #fbbf24;
+  --eig-danger: #f87171;
+  --eig-info: #38bdf8;
 }
 
 html[data-theme='light'] {
   --surface: #f1f5f9;
   --surface-elevated: rgba(255, 255, 255, 0.85);
+  --eig-glass-bg: rgba(255, 255, 255, 0.72);
+  --eig-glass-bg-strong: rgba(255, 255, 255, 0.92);
   --text: #0f172a;
   --muted: #64748b;
   --border: rgba(15, 23, 42, 0.1);
+  --eig-border: rgba(15, 23, 42, 0.1);
+  --eig-accent-soft: rgba(14, 165, 233, 0.1);
+  --eig-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  --eig-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --eig-shadow-hover: 0 12px 28px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(14, 165, 233, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --eig-motion-fast: 0ms;
+    --eig-motion-base: 0ms;
+    --eig-motion-emphasis: 0ms;
+  }
 }
 
 body {
@@ -45,13 +105,109 @@ html[data-theme='light'] header {
 }
 
 @layer components {
+  .eig-glass {
+    background: var(--eig-glass-bg);
+    border: 1px solid var(--eig-border);
+    border-radius: var(--eig-radius-lg);
+    box-shadow: var(--eig-shadow-sm);
+    backdrop-filter: blur(var(--eig-glass-blur));
+    -webkit-backdrop-filter: blur(var(--eig-glass-blur));
+    transition:
+      box-shadow var(--eig-motion-base) var(--eig-ease),
+      border-color var(--eig-motion-base) var(--eig-ease),
+      transform var(--eig-motion-fast) var(--eig-ease);
+  }
+
+  .eig-glass:hover {
+    box-shadow: var(--eig-shadow-hover);
+  }
+
+  .eig-panel {
+    background: var(--eig-glass-bg-strong);
+    border: 1px solid var(--eig-border);
+    border-radius: var(--eig-radius-md);
+    box-shadow: var(--eig-shadow-sm);
+  }
+
+  .eig-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.06) 0%,
+      rgba(148, 163, 184, 0.14) 50%,
+      rgba(148, 163, 184, 0.06) 100%
+    );
+    background-size: 200% 100%;
+    animation: eig-shimmer var(--eig-motion-emphasis) ease-in-out infinite;
+    animation-duration: 1.2s;
+  }
+
+  @keyframes eig-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eig-shimmer {
+      animation: none;
+    }
+  }
+
   .kpi-card {
-    @apply rounded-xl border border-slate-700 bg-surface-elevated p-5;
+    @apply border p-5;
+    border-color: var(--eig-border);
+    background: var(--eig-glass-bg);
+    border-radius: var(--eig-radius-lg);
+    box-shadow: var(--eig-shadow-sm);
+    backdrop-filter: blur(var(--eig-glass-blur));
+    -webkit-backdrop-filter: blur(var(--eig-glass-blur));
+    transition:
+      box-shadow var(--eig-motion-base) var(--eig-ease),
+      border-color var(--eig-motion-base) var(--eig-ease);
   }
+
+  .kpi-card:hover {
+    box-shadow: var(--eig-shadow-hover);
+  }
+
   .nav-link {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-white;
+    @apply flex items-center gap-3 px-3 py-2 text-sm text-slate-400;
+    border-radius: var(--eig-radius-sm);
+    transition:
+      background-color var(--eig-motion-fast) var(--eig-ease),
+      color var(--eig-motion-fast) var(--eig-ease);
   }
+
+  .nav-link:hover {
+    @apply bg-slate-800 text-white;
+  }
+
   .nav-link-active {
     @apply bg-slate-800 text-white;
+    box-shadow: inset 0 0 0 1px var(--eig-accent-soft);
+  }
+
+  .eig-page-enter {
+    animation: eig-page-enter var(--eig-motion-base) var(--eig-ease);
+  }
+
+  @keyframes eig-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eig-page-enter {
+      animation: none;
+    }
   }
 }

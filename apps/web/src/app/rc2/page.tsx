@@ -47,26 +47,31 @@ export default function Rc2Page() {
   return (
     <DashboardShell>
       <h1 className="mb-2 text-2xl font-semibold">RC2 Pilot Readiness</h1>
-      <p className="mb-4 text-sm text-slate-400">Customer pilot & enterprise production readiness gate.</p>
+      <p className="mb-4 text-sm text-slate-400">
+        Internal release gate (Developer Mode). Validation tokens and commit SHAs stay out of the standard UI.
+      </p>
       {msg && <SuccessBanner message={msg} />}
       {err && <ErrorState message={err} onRetry={() => load().catch((e: Error) => setErr(e.message))} />}
       {!data && !err && <LoadingSkeleton rows={4} />}
 
       {data && (
         <div className="mb-6 grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-4">
+          <div className="eig-glass p-4">
             <div className="text-xs uppercase text-slate-500">Product</div>
             <div className="mt-1 font-medium">{data.branding?.product || 'OpsEdge360'}</div>
             <div className="text-xs text-slate-400">{data.branding?.channel}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-4">
+          <div className="eig-glass p-4">
             <div className="text-xs uppercase text-slate-500">Gate status</div>
-            <div className="mt-1 font-medium">{data.release?.status || 'pending'}</div>
+            <div className="mt-1 font-medium capitalize">{data.release?.status || 'pending'}</div>
             <div className="text-xs text-slate-400">{data.release?.version}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-4">
-            <div className="text-xs uppercase text-slate-500">Production SHA</div>
-            <div className="mt-1 break-all font-mono text-xs">{data.release?.production_sha || '—'}</div>
+          <div className="eig-glass p-4">
+            <div className="text-xs uppercase text-slate-500">Build attestation</div>
+            <div className="mt-1 text-sm font-medium">
+              {data.release?.production_sha ? 'Recorded (hidden)' : 'Not recorded'}
+            </div>
+            <div className="text-xs text-slate-400">Enable Debug Mode for technical details</div>
           </div>
         </div>
       )}
