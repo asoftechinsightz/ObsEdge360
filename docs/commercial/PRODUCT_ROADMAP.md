@@ -29,19 +29,17 @@ Enterprise Pilot Deployments (3–5 customers)
 
 ## Explicit non-goals until proven production success
 
-Do **not** start:
+Do **not** start SecureEdge360, CloudEdge360, AgentEdge360, QuantumShield360, or broad new industry product families.
 
-- SecureEdge360  
-- CloudEdge360  
-- AgentEdge360  
-- QuantumShield360  
-- Broad new industry product families  
+**Program TITAN** (`docs/titan/`) is the operating program for scale and customer success — not a feature wave.
+
+**Roadmap rule:** no major feature without two independent pilot requests (or critical ops/security/compliance). See `docs/titan/09_ROADMAP_DISCIPLINE.md`.
 
 **First secure:**
 
 1. 3–5 enterprise pilot customers  
 2. 2–3 production deployments  
-3. Customer testimonials  
+3. Customer testimonials / case studies  
 4. Reference architectures  
 5. Proven operational success  
 

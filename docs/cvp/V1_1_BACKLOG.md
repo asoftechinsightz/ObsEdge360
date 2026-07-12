@@ -21,8 +21,10 @@
 ## Intake path
 
 1. Capture in `/admin/cvp/feedback`  
-2. Promote via `/admin/cvp/governance` (requires customer)  
-3. Schedule in `/admin/cvp/releases` with evidence notes  
-4. Only then consider Engineering Freeze allow-list work for v1.1  
+2. Promote via `/admin/cvp/feature-board` (requires customer)  
+3. Apply **TITAN dual-customer rule** (`docs/titan/09_ROADMAP_DISCIPLINE.md`)  
+4. Schedule in `/admin/cvp/releases` with evidence notes  
+5. Only then consider Engineering Freeze allow-list work for v1.1  
 
-Without a named customer → **Future Consideration**.
+Without a named customer → **Future Consideration**.  
+Without a second independent request (unless critical ops/security/compliance) → **not major roadmap**.

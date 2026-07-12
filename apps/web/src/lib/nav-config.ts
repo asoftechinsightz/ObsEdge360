@@ -194,6 +194,7 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
   quantum: 'Quantum Ready',
   governance: 'Governance / HA-DR',
   admin: 'Enterprise Admin',
+  titan: 'Program TITAN',
   cvp: 'Customer Validation',
   pilots: 'Pilots',
   feedback: 'Feedback',

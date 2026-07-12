@@ -56,6 +56,9 @@ export default function CvpGovernancePage() {
       {msg && <SuccessBanner message={msg} />}
       <div className="mb-4 eig-panel p-3 text-xs text-slate-400">
         Every enhancement must answer: customer · industry · justification · ROI · effort · risk · target release.
+        <br />
+        <strong className="text-slate-200">TITAN rule:</strong> major features need two independent pilot requests (or
+        critical ops/security/compliance). See <code>docs/titan/09_ROADMAP_DISCIPLINE.md</code>.
       </div>
       <div className="mb-6 eig-panel grid gap-2 p-4 md:grid-cols-2">
         {(

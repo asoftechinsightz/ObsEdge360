@@ -90,6 +90,7 @@ const GROUPS: { title: string; links: { href: string; label: string; exact?: boo
       { href: '/admin/cvp/success', label: 'Success' },
       { href: '/admin/cvp/analytics', label: 'Analytics' },
       { href: '/admin/cvp/releases', label: 'Releases' },
+      { href: '/admin/titan', label: 'TITAN Hub' },
     ],
   },
 ];

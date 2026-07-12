@@ -45,4 +45,5 @@ Do **not** build SecureEdge360, CloudEdge360, AgentEdge360, or QuantumShield360 
 Measure business milestones in [`docs/gtm/BUSINESS_MILESTONES.md`](../gtm/BUSINESS_MILESTONES.md).  
 Enterprise UX audit: [`docs/ux-audit/`](../ux-audit/README.md).  
 Project APEX (product excellence): [`docs/apex/`](../apex/README.md).  
-Customer Validation Program: [`docs/cvp/`](../cvp/README.md).
+Customer Validation Program: [`docs/cvp/`](../cvp/README.md).  
+Program TITAN (scale & customer success): [`docs/titan/`](../titan/README.md).

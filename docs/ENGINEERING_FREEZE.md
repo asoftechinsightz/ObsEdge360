@@ -41,13 +41,13 @@ Requires **Product Approval** (written), including but not limited to:
 1. AsoftechInsightz brand and GTM  
 2. Landing enterprise pilots  
 3. Sales, CS, procurement, and partner assets ([`docs/gtm/`](./gtm/README.md))  
-4. Customer feedback loops  
-5. Enterprise UX polish per [`docs/ux-audit/`](./ux-audit/README.md) and APEX [`docs/apex/`](./apex/README.md)  
-6. Customer Validation Program [`docs/cvp/`](./cvp/README.md) — pilots, feedback, evidence-driven v1.1  
-7. v1.1 only from real-world usage  
+4. Customer feedback loops via [`docs/cvp/`](./cvp/README.md)  
+5. Enterprise UX polish ([`docs/ux-audit/`](./ux-audit/README.md), [`docs/apex/`](./apex/README.md))  
+6. **Program TITAN** — scale & customer success ([`docs/titan/`](./titan/README.md))  
+7. v1.1 only from real-world usage (dual-customer roadmap rule)
 
 ## Unfreeze criteria
 
-Major R&D unfreezes only against [business milestones](./gtm/BUSINESS_MILESTONES.md) — not engineering wave completion.
+Major R&D unfreezes only against [business milestones](./gtm/BUSINESS_MILESTONES.md) and [TITAN roadmap discipline](./titan/09_ROADMAP_DISCIPLINE.md) — not engineering wave completion.
 
 Related: [Platform freeze (GTM)](./gtm/PLATFORM_FREEZE.md) · [Commercial roadmap](./commercial/PRODUCT_ROADMAP.md)
