@@ -354,7 +354,7 @@ async function main() {
     console.log('041_wave9_ga.sql already applied.');
   }
 
-  const platformEnvs = await tableExists(client, 'platform_environments');
+  const platformEnvs = await tableExists(client, 'itsm_service_catalog_items');
   if (!platformEnvs) {
     const s42 = path.join(migrationsDir, '042_phase2_enterprise_maturity.sql');
     if (fs.existsSync(s42)) await runSqlFile(client, s42);
