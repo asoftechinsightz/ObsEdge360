@@ -109,11 +109,12 @@ CREATE TABLE IF NOT EXISTS demo_organizations (
 );
 
 INSERT INTO demo_organizations (industry, name, slug, metadata)
-SELECT * FROM (VALUES
-  ('banking', 'Asoftech National Bank', 'demo-banking', '{"region":"APAC"}'::text),
-  ('healthcare', 'Insightz Health Systems', 'demo-healthcare', '{"region":"APAC"}'::text),
-  ('manufacturing', 'EdgeForge Industries', 'demo-manufacturing', '{"region":"EMEA"}'::text),
-  ('retail', 'OmniCart Retail Group', 'demo-retail', '{"region":"AMER"}'::text)
+SELECT v.industry, v.name, v.slug, v.metadata::jsonb
+FROM (VALUES
+  ('banking', 'Asoftech National Bank', 'demo-banking', '{"region":"APAC"}'),
+  ('healthcare', 'Insightz Health Systems', 'demo-healthcare', '{"region":"APAC"}'),
+  ('manufacturing', 'EdgeForge Industries', 'demo-manufacturing', '{"region":"EMEA"}'),
+  ('retail', 'OmniCart Retail Group', 'demo-retail', '{"region":"AMER"}')
 ) AS v(industry, name, slug, metadata)
 WHERE NOT EXISTS (SELECT 1 FROM demo_organizations d WHERE d.slug = v.slug);
 
@@ -142,14 +143,15 @@ CREATE TABLE IF NOT EXISTS industry_pack_framework (
 );
 
 INSERT INTO industry_pack_framework (code, title, status, capabilities)
-SELECT * FROM (VALUES
-  ('banking360', 'Banking360', 'active', '["compliance","payments","dashboards"]'::text),
-  ('healthcare360', 'Healthcare360', 'planned', '["hipaa","clinical-ops"]'::text),
-  ('manufacturing360', 'Manufacturing360', 'planned', '["ot","oee"]'::text),
-  ('retail360', 'Retail360', 'planned', '["pos","omnichannel"]'::text),
-  ('government360', 'Government360', 'planned', '["citizen","compliance"]'::text),
-  ('telecom360', 'Telecom360', 'planned', '["network","oss-bss"]'::text),
-  ('cloud360', 'Cloud360', 'planned', '["multi-cloud","finops"]'::text)
+SELECT v.code, v.title, v.status, v.capabilities::jsonb
+FROM (VALUES
+  ('banking360', 'Banking360', 'active', '["compliance","payments","dashboards"]'),
+  ('healthcare360', 'Healthcare360', 'planned', '["hipaa","clinical-ops"]'),
+  ('manufacturing360', 'Manufacturing360', 'planned', '["ot","oee"]'),
+  ('retail360', 'Retail360', 'planned', '["pos","omnichannel"]'),
+  ('government360', 'Government360', 'planned', '["citizen","compliance"]'),
+  ('telecom360', 'Telecom360', 'planned', '["network","oss-bss"]'),
+  ('cloud360', 'Cloud360', 'planned', '["multi-cloud","finops"]')
 ) AS v(code, title, status, capabilities)
 WHERE NOT EXISTS (SELECT 1 FROM industry_pack_framework i WHERE i.code = v.code);
 
