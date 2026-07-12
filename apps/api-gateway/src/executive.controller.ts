@@ -41,38 +41,61 @@ export class ExecutiveController {
         [tid],
       ).catch(() => null);
 
-      const [statsRes, complianceRes] = await Promise.all([
-        this.proxy.cmdb('/stats', { tenantId: tid }),
-        this.proxy.compliance('/score', { tenantId: tid }),
-      ]);
-      const stats = statsRes.data as { totalAssets?: number; avgHealth?: number; openAlerts?: number };
-      const compliance = complianceRes.data as { overallScore?: number };
+      let totalAssets = 0;
+      try {
+        const statsRes = await this.proxy.cmdb('/stats', { tenantId: tid });
+        const stats = statsRes.data as { totalAssets?: number };
+        totalAssets = stats.totalAssets ?? 0;
+      } catch {
+        totalAssets = 0;
+      }
 
       if (latest) {
         return {
           availability: Number(latest.availability),
           revenueAtRisk: Number(latest.revenue_at_risk),
           complianceScore: Number(latest.compliance_score),
-          securityPosture: 'medium',
+          securityPosture: 'medium' as const,
           sustainabilityScore: Number(latest.sustainability_score),
           activeIncidents: latest.active_incidents,
-          totalAssets: stats.totalAssets ?? 0,
+          totalAssets,
           openAlerts: latest.open_alerts,
           illustrative: ede?.illustrative ?? true,
           label: 'Illustrative Demo Data',
         };
       }
 
-      return {
-        availability: stats.avgHealth ? (stats.avgHealth / 100) * 99.99 : 99.94,
-        revenueAtRisk: 240000,
-        complianceScore: compliance.overallScore ?? 87,
-        securityPosture: 'medium',
-        sustainabilityScore: 72,
-        activeIncidents: Math.min(stats.openAlerts ?? 0, 10),
-        totalAssets: stats.totalAssets ?? 0,
-        openAlerts: stats.openAlerts ?? 0,
-      };
+      try {
+        const [statsRes, complianceRes] = await Promise.all([
+          this.proxy.cmdb('/stats', { tenantId: tid }),
+          this.proxy.compliance('/score', { tenantId: tid }),
+        ]);
+        const stats = statsRes.data as { totalAssets?: number; avgHealth?: number; openAlerts?: number };
+        const compliance = complianceRes.data as { overallScore?: number };
+        return {
+          availability: stats.avgHealth ? (stats.avgHealth / 100) * 99.99 : 99.94,
+          revenueAtRisk: 240000,
+          complianceScore: compliance.overallScore ?? 87,
+          securityPosture: 'medium' as const,
+          sustainabilityScore: 72,
+          activeIncidents: Math.min(stats.openAlerts ?? 0, 10),
+          totalAssets: stats.totalAssets ?? 0,
+          openAlerts: stats.openAlerts ?? 0,
+        };
+      } catch {
+        return {
+          availability: 99.97,
+          revenueAtRisk: 180000,
+          complianceScore: 94,
+          securityPosture: 'medium' as const,
+          sustainabilityScore: 82,
+          activeIncidents: 12,
+          totalAssets: 0,
+          openAlerts: 147,
+          illustrative: true,
+          label: 'Illustrative Demo Data',
+        };
+      }
     });
   }
 

@@ -1,0 +1,91 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+CMDB
+Drift
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+CMDB Drift
+
+Detect configuration changes against the trusted CMDB baseline — distinct from inventory itself.
+
+Refresh
+Updated 7/12/2026, 3:35:45 PM
+Freshness: Recent
+Source: CMDB drift APIs
+Integrations: degraded
+Coverage: 0 open drift events
+Drift signals are unavailable. Load Illustrative Demo Data to evaluate this module.
+Open drift
+
+Severity · detection time · business impact · recommended action · approval
+
+No open drift events
+
+CMDB Drift shows change detection — not the inventory list. Load demo data to see firewall, cert, K8s, and IAM examples.
+
+Load Illustrative Demo Data
+Guided setup
+Documentation
+15-min evaluation
+CI context
+
+Inventory lives in CMDB. Drift is the change lens.
+
+Select a drift event to inspect related CI history.
+
+Sample assets (0)

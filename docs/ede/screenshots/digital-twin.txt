@@ -1,0 +1,94 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+Digital Twin
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Digital Twin
+
+Topology graph, dependency impact, and blast-radius analysis
+
+Refresh
+Analyze impact
+Digital Twin has no graph yet. Load Illustrative Demo Data or connect Discovery.×
+All types
+Breadth-first
+Force-directed
+Circle
+Grid
+Depth
+1
+2
+3
+4
+5
+6
+Downstream (depends on)
+Upstream (dependents)
+Both directions
+0 nodes · 0 edges
+No digital twin graph yet
+
+The twin is built from discovered assets and CMDB relationships. Without discovery data, the canvas stays empty.
+
+Set up Discovery →
+Open CMDB →
+Load Illustrative Demo Data →
+
+Impact analysis
+
+Select a node on the graph, set depth and direction, then run blast-radius analysis. Downstream shows what the CI depends on; upstream shows what depends on it.

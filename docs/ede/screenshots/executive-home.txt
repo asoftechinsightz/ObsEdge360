@@ -1,0 +1,135 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+Executive Home
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Enterprise command center
+
+What is happening, why it matters, impact, and the next action — in under 30 seconds.
+
+Drill: Incidents
+Drill: Reports
+Drill: Compliance
+Updated 7/12/2026, 3:35:36 PM
+Freshness: Stale
+Source: Executive KPI APIs
+Integrations: degraded
+Coverage: Enterprise services
+AI confidence: 88%
+EXECUTIVE NARRATIVE · 30-SECOND BRIEF
+What is happening
+Platform operating within normal executive thresholds
+Why it matters
+Stable posture supports board-level confidence and continuous service delivery.
+Affected service
+See Business service health below
+Financial / SLA impact
+Availability —% · compliance —/100
+What to do next
+Review executive reports →
+AI confidence
+88% · guidance
+AI executive brief
+Explain
+Executive KPIs are temporarily unavailable.
+Business service health
+View journeys
+Service	Tier	Availability	SLA Target	Owner	Status	Action
+UPI Payments	Tier 1	99.98%	99.95%	Unassigned	Healthy	Investigate
+Digital Banking	Tier 1	99.92%	99.9%	Unassigned	Degraded	Investigate
+Loan Processing	Tier 2	99.99%	99.5%	Unassigned	Healthy	Investigate
+Merchant Payments	Tier 1	99.87%	99.95%	Unassigned	At Risk	Investigate
+Core Banking	Tier 1	99.96%	99.99%	Unassigned	Healthy	Investigate
+Top enterprise risks
+DB connection pool exhaustion
+UPI Payments
+Revenue at risk: ₹120K/hr
+Recommended: investigate in Ops Intelligence →
+Certificate expiry in 7 days
+API Gateway
+Recommended: investigate in Ops Intelligence →
+OT sensor latency spike
+Manufacturing Line 3
+Revenue at risk: ₹45K/hr
+Recommended: investigate in Ops Intelligence →
+Recommended actions
+GUIDANCE · MEDIUM CONFIDENCE
+Review open revenue-impacting incidents
+
+Active incidents may be driving revenue-at-risk.
+
+Open Ops Intelligence →
+Confirm synthetic coverage on tier-1 journeys
+
+Synthetics reduce blind spots before customers report issues.
+
+View Synthetics →
+Check compliance posture before the next QBR
+
+Control gaps are easier to close before executive reviews.
+
+Open Compliance →
+
+For conversational guidance, open Copilot from the header.
+
+SLA & availability (7 days)
+ILLUSTRATIVE DEMO DATA
+
+Availability vs SLA target. Sample preview until trend API is populated.
+
+Mon

@@ -1,0 +1,101 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+PRESENTATION MODE · CTRL+SHIFT+P TO EXIT
+15-minute Guided Evaluation
+
+Executive walkthrough of OpsEdge360 value — Discovery through Reports — using Illustrative Demo Data.
+
+Presentation mode
+Load demo pack
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Updated 7/12/2026, 3:36:05 PM
+Freshness: Live
+Source: EDE guided evaluation
+Integrations: healthy
+Coverage: 11 steps
+STEP 1 OF 11
+Executive Home
+
+Business value: See enterprise health, revenue risk, and narrative in under 30 seconds.
+
+Talk track: Open with availability, revenue-at-risk, and the executive narrative. Call out illustrative demo badges.
+
+Open Executive Home
+Previous
+Next
+AI Copilot — suggested prompts
+Summarize today's critical incidents.
+Why is UPI latency increasing?
+Show services at highest business risk.
+Explain yesterday's outage.
+Recommend actions for certificate expiry.
+Predict capacity risks.
+
+Open Copilot from the header and paste any prompt — answers use platform APIs and demo context.
+
+1. Executive Home
+2. Business Service Health
+3. Discovery
+4. CMDB
+5. CMDB Drift
+6. Digital Twin
+7. Live Topology
+8. Banking360
+9. Security Center
+10. AI Copilot
+11. Executive Report

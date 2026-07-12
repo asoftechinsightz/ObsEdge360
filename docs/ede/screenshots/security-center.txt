@@ -1,0 +1,116 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+Security Center
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Security Center
+
+MFA, sessions, login risk, and security alerts — CISO-ready posture without engineering clutter.
+
+Updated 7/12/2026, 3:35:57 PM
+Freshness: Live
+Source: Security dashboard APIs
+Integrations: healthy
+Coverage: 0 MFA factors · 1 sessions
+EXECUTIVE NARRATIVE · 30-SECOND BRIEF
+What is happening
+MFA policy is optional with 0 open alert(s)
+Why it matters
+Identity posture and session hygiene are the first controls buyers and auditors ask about.
+Affected service
+Tenant identity plane
+Financial / SLA impact
+1 active sessions · 0 API tokens
+What to do next
+Review MFA enrollment →
+AI confidence
+80% · guidance
+MFA POLICY
+optional
+Grace 14 days
+ACTIVE SESSIONS
+1
+0 MFA factors
+API TOKENS
+0
+Rotate via admin tokens UI
+MFA enrollment
+
+Compliant: true · Enforced: false
+
+Enroll TOTP
+Revoke all sessions
+Verify TOTP
+No backup codes shown
+
+Backup codes appear once after successful MFA verification.
+
+Password changed: never · Must rotate: false · Max age 90d
+
+Sessions
+Device	Last seen	Status	
+web	7/12/2026, 3:35:56 PM	active	Revoke
+Recent login events
+When	Email	Event	Risk
+7/12/2026, 3:22:45 PM	ede.admin.1783869765@opsedge360.internal	login	0
+Open security alerts
+No open alerts
+
+Alerts can be created via POST /security/alerts.
+
+Risk score recorded on login_history; step-up policies are configurable via MFA mode=required

@@ -1,0 +1,83 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+Discovery
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Discovery Engine
+
+Connectors, agents, scheduled scans, and notifications
+
+Refresh
+Scan all
+Connectors
+Agents
+Schedules
+Notifications
+K8s
+AWS
+SNMP
+Name	Protocol	Status	Last scan	Actions
+EDE AWS Account Scan	aws	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE Azure Subscription	azure	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE Database Discovery	database	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE GCP Project	gcp	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE Kubernetes EKS	kubernetes	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE Linux SSH Estate	linux	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE SNMP Campus	snmp	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE VMware vCenter	vmware	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule
+EDE Windows WinRM	windows	Enabled	7/12/2026, 1:33:05 PM	ScanSchedule

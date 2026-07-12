@@ -1,0 +1,91 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+Topology
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Live Topology
+
+Multi-layer operational graph with trace dependencies, layouts, and blast radius.
+
+Sync Traces
+Layout
+Refresh
+application
+service
+infrastructure
+kubernetes
+cloud
+network
+business-service
+force-directed
+layered
+circular
+grid
+live events +0 · inferred deps 0
+Topology is empty. Load Illustrative Demo Data or run Discovery.
+No topology nodes for this view
+
+Live topology needs discovered CIs or synced traces. Start with Discovery, then refresh this map.
+
+Set up Discovery →
+Load / guided demo →
+APM / service map →
+Layers
+Selection
+
+Select a node

@@ -1,0 +1,95 @@
+Skip to content
+O
+OpsEdge360
+Enterprise Intelligence
+EXECUTIVE
+Executive Home
+Executive Reports
+OPERATIONS
+Ops Intelligence
+Ops Dashboards
+Discovery
+Discovery Ops
+Digital Twin
+Topology
+CMDB
+CMDB Drift
+Transactions
+Observability
+Synthetics
+Universal Agents
+APM
+Network
+OT / Industrial
+AI & AUTOMATION
+AIOps / RCA
+AI Agents
+ITSM
+ITSM Center
+INDUSTRY SOLUTIONS
+Banking360
+Compliance
+Sustainability
+Predictive Analytics
+Marketplace
+Quantum Ready
+SECURITY
+Security Center
+Governance / HA-DR
+ADMINISTRATION
+Enterprise Admin
+License & Trial
+Preferences
+SSO settings
+HELP
+Help Center
+Executive Demo
+Guided Evaluation
+About
+Developer Mode
+v1.0.0 · EIG
+Search / jump…
+Ctrl K
+Copilot
+EDE Admin
+Home
+Banking360
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Reset demo
+Banking360
+
+BFSI industry pack · RBI / PCI compliance · UPI payment monitoring
+
+Refresh
+Activate Banking360
+Status
+Inactive
+Banking score
+0%
+RBI-CSF
+0%
+0/0 passed
+PCI-DSS
+0%
+0/0 passed
+BFSI Pack
+RBI Controls
+PCI-DSS
+UPI / Payments
+BFSI Regulated Pack
+
+RBI-CSF, NPCI, PCI-DSS, SWIFT-CSP for banking and payments
+
+RBI-CSF
+PCI-DSS
+SOC2
+Pack not enabled — activate to enforce RBI/PCI controls
+What activation does
+Enables BFSI industry pack and RBI-CSF / PCI-DSS frameworks
+Seeds payment monitoring for UPI, NEFT, and IMPS flows
+Creates default p99 latency SLOs for payment templates
+Runs initial compliance validation
+
+Payment flows also appear under Business Transactions.
