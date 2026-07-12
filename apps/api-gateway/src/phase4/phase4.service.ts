@@ -8,6 +8,7 @@ import { createHash, randomBytes } from 'crypto';
 import { getPlatformConfig } from '@opsedge360/platform-config';
 import { query, queryOne } from '@opsedge360/shared-db';
 import type { JwtPayload } from '../auth/auth.service';
+import { verifyTotp as verifyTotpCode } from '../rc2/totp.util';
 
 function requireAdmin(user: JwtPayload) {
   if (user.role !== 'admin') throw new ForbiddenException('Admin role required');
@@ -179,10 +180,11 @@ export class Phase4Service {
       [body.factorId, user.sub],
     );
     if (!factor) throw new NotFoundException('factor not found');
+    const totpOk = verifyTotpCode(factor.secret_enc, body.code, 1);
     const expected = this.demoTotpCode(factor.secret_enc);
     const acceptAny = process.env.MFA_RC1_ACCEPT_ANY === 'true';
-    if (!acceptAny && body.code !== expected) {
-      throw new BadRequestException('Invalid MFA code — use the enrollment challenge code for this factor');
+    if (!acceptAny && !totpOk && body.code !== expected) {
+      throw new BadRequestException('Invalid MFA code — use authenticator TOTP or enrollment challenge code');
     }
     return queryOne(
       `UPDATE mfa_factors SET status='active', verified_at=NOW() WHERE id=$1 AND user_id=$2

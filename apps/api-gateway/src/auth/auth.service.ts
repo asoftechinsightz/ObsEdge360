@@ -129,6 +129,11 @@ export class AuthService {
        VALUES ($1, $2, 'web', NOW(), NOW() + INTERVAL '24 hours')`,
       [user.id, user.tenant_id],
     ).catch(() => undefined);
+    await query(
+      `INSERT INTO login_history (tenant_id, user_id, email, event, success, risk_score, metadata)
+       VALUES ($1,$2,$3,'login',true,0,'{"source":"password"}'::jsonb)`,
+      [user.tenant_id, user.id, normalizedEmail],
+    ).catch(() => undefined);
     return this.issueToken(user);
   }
 
@@ -410,6 +415,16 @@ export class AuthService {
           [String(lockMinutes), email],
         );
       }
+      await query(
+        `INSERT INTO login_history (tenant_id, email, event, success, risk_score, metadata)
+         VALUES ($1,$2,'login_failed',false,$3,$4::jsonb)`,
+        [
+          tenantId ?? null,
+          email,
+          Math.min(100, (row?.failure_count ?? 1) * 10),
+          JSON.stringify({ failureCount: row?.failure_count ?? 1 }),
+        ],
+      ).catch(() => undefined);
     } catch {
       /* migration 035 may not be applied yet */
     }

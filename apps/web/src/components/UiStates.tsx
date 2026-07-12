@@ -31,3 +31,11 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
     </div>
   );
 }
+
+export function SuccessBanner({ message }: { message: string }) {
+  return (
+    <div role="status" className="mb-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+      {message}
+    </div>
+  );
+}

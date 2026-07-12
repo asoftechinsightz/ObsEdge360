@@ -70,6 +70,7 @@ async function bootstrap() {
       .addTag('marketplace')
       .addTag('reports')
       .addTag('phase4-rc1')
+      .addTag('rc2-pilot')
       .addTag('commercial')
       .build();
 

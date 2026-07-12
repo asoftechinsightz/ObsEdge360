@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
-import { EmptyState, LoadingSkeleton } from '@/components/UiStates';
+import { EmptyState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
 
 type Tour = { code: string; title: string; industry: string; steps: { path: string; title: string }[] };
 
@@ -12,13 +12,24 @@ export default function DemoTourPage() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [active, setActive] = useState<Tour | null>(null);
   const [step, setStep] = useState(0);
+  const [msg, setMsg] = useState('');
+  const [walkthrough, setWalkthrough] = useState<{ steps?: { title: string; talkTrack: string }[] } | null>(null);
 
   useEffect(() => {
     apiClient<{ tours: Tour[] }>('/demo/tours')
       .then((d) => setTours(d.tours || []))
       .catch(() => undefined);
+    apiClient<{ steps?: { title: string; talkTrack: string }[] }>('/demo/walkthrough')
+      .then(setWalkthrough)
+      .catch(() => undefined);
   }, []);
 
+  const resetDemo = async () => {
+    await apiClient('/demo/reset', { method: 'POST', body: '{}' });
+    setActive(null);
+    setStep(0);
+    setMsg('Demo progress reset — ready for the next walkthrough');
+  };
   const start = async (t: Tour) => {
     setActive(t);
     setStep(0);
@@ -45,7 +56,23 @@ export default function DemoTourPage() {
         <strong>Presentation Mode</strong> — guided evaluation tours for Banking, Healthcare, Manufacturing, Retail, and Government.
       </div>
       <h1 className="mb-2 text-2xl font-semibold">Customer Evaluation Tours</h1>
-      <p className="mb-6 text-sm text-slate-400">Understand platform value in under 10 minutes.</p>
+      <p className="mb-4 text-sm text-slate-400">Understand platform value in under 10–15 minutes.</p>
+      {msg && <SuccessBanner message={msg} />}
+      <button type="button" className="mb-4 rounded border border-white/20 px-3 py-2 text-sm" onClick={() => resetDemo().catch(() => undefined)}>
+        Reset demo progress
+      </button>
+      {walkthrough?.steps && (
+        <div className="mb-6 rounded-2xl border border-white/10 bg-slate-900/40 p-4 text-xs text-slate-300">
+          <div className="mb-2 font-medium text-slate-100">Executive walkthrough talk track</div>
+          <ol className="list-decimal space-y-1 pl-4">
+            {walkthrough.steps.map((s, i) => (
+              <li key={i}>
+                <strong>{s.title}</strong> — {s.talkTrack}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       {!tours.length && <LoadingSkeleton />}
       {!active && (
         <div className="grid gap-3 md:grid-cols-2">
