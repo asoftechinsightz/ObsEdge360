@@ -3,6 +3,9 @@
 **Script:** `scripts/vps-p2-validate.sh`  
 **Token:** `P2_ENTERPRISE_MATURITY_VALIDATION_OK`
 
+**Production result (2026-07-12):** **pass=16 fail=0** at tip `52f79c21`  
+**Output:** `P2_ENTERPRISE_MATURITY_VALIDATION_OK`
+
 ## Checks
 
 - Health

@@ -15,7 +15,7 @@
 | 6 | Enterprise deployment & security hardening (air-gap, Helm, DR cert, System Security UI) | [SDS-5.6](./sds/SDS-5.6-EnterpriseDeploymentSecurity.md) | **Closed** (`v1.0.0-wave6`) |
 | 7 | Enterprise certification & production validation (benchmarks, load, HA/chaos, soak, reports) | [SDS-5.7](./sds/SDS-5.7-EnterpriseCertification.md) | **Closed** (`v1.0.0-wave7`) |
 | 8 | Release Candidate (docs freeze, packaging, pilot, OpenAPI, demo) | [SDS-5.8](./sds/SDS-5.8-ReleaseCandidate.md) | **Closed** (`v1.0.0-rc1`) |
-| 9 | General Availability (final regression, packaging, GA sign-off) | [SDS-5.9](./sds/SDS-5.9-GeneralAvailability.md) | **In progress** (`release/v1.0.0-ga`) |
+| 9 | General Availability (final regression, packaging, GA sign-off) | [SDS-5.9](./sds/SDS-5.9-GeneralAvailability.md) | **Closed** (`v1.0.0`) |
 
 ## Engineering rules
 
