@@ -1,0 +1,141 @@
+{
+  "bomFormat": "OpsEdge360-SBOM-lite",
+  "specVersion": "1.1",
+  "product": "OpsEdge360",
+  "version": "commercial",
+  "generatedAt": "2026-07-12T13:25:23Z",
+  "gitSha": "4aa763635f31a3b02a68bb023143ac96c3d09217",
+  "lockfiles": {
+    "package-lock.json": {
+      "sha256": "960ddc3adc8eecf2dde3ea16e9a2cc1459fea1305d9ff2b0150ee1567f7c561c",
+      "bytes": 289140
+    }
+  },
+  "components": {
+    "workspaces": [
+      {
+        "name": "@opsedge360/agent-framework",
+        "version": "1.0.0",
+        "path": "packages/agent-framework/package.json"
+      },
+      {
+        "name": "@opsedge360/cache",
+        "version": "0.1.0",
+        "path": "packages/cache/package.json"
+      },
+      {
+        "name": "@opsedge360/event-bus",
+        "version": "0.1.0",
+        "path": "packages/event-bus/package.json"
+      },
+      {
+        "name": "@opsedge360/platform-config",
+        "version": "0.1.0",
+        "path": "packages/platform-config/package.json"
+      },
+      {
+        "name": "@opsedge360/plugin-sdk",
+        "version": "1.0.0",
+        "path": "packages/plugin-sdk/package.json"
+      },
+      {
+        "name": "@opsedge360/shared-db",
+        "version": "0.1.0",
+        "path": "packages/shared-db/package.json"
+      },
+      {
+        "name": "@opsedge360/shared-logger",
+        "version": "1.0.0",
+        "path": "packages/shared-logger/package.json"
+      },
+      {
+        "name": "@opsedge360/shared-security",
+        "version": "1.0.0",
+        "path": "packages/shared-security/package.json"
+      },
+      {
+        "name": "@opsedge360/shared-types",
+        "version": "0.1.0",
+        "path": "packages/shared-types/package.json"
+      }
+    ],
+    "apps": [
+      {
+        "name": "@opsedge360/api-gateway",
+        "version": "0.1.0",
+        "path": "apps/api-gateway/package.json"
+      },
+      {
+        "name": "@opsedge360/web",
+        "version": "0.1.0",
+        "path": "apps/web/package.json"
+      }
+    ],
+    "services": [
+      {
+        "name": "@opsedge360/analytics",
+        "version": "0.1.0",
+        "path": "services/analytics/package.json"
+      },
+      {
+        "name": "@opsedge360/cmdb",
+        "version": "0.1.0",
+        "path": "services/cmdb/package.json"
+      },
+      {
+        "name": "@opsedge360/compliance",
+        "version": "0.1.0",
+        "path": "services/compliance/package.json"
+      },
+      {
+        "name": "@opsedge360/config-management",
+        "version": "1.0.0",
+        "path": "services/config-management/package.json"
+      },
+      {
+        "name": "@opsedge360/discovery",
+        "version": "0.1.0",
+        "path": "services/discovery/package.json"
+      },
+      {
+        "name": "@opsedge360/governance",
+        "version": "0.1.0",
+        "path": "services/governance/package.json"
+      },
+      {
+        "name": "@opsedge360/observability",
+        "version": "0.1.0",
+        "path": "services/observability/package.json"
+      },
+      {
+        "name": "@opsedge360/quantum",
+        "version": "0.1.0",
+        "path": "services/quantum/package.json"
+      },
+      {
+        "name": "@opsedge360/remediation",
+        "version": "0.1.0",
+        "path": "services/remediation/package.json"
+      },
+      {
+        "name": "@opsedge360/scheduler",
+        "version": "1.0.0",
+        "path": "services/scheduler/package.json"
+      },
+      {
+        "name": "@opsedge360/security",
+        "version": "0.1.0",
+        "path": "services/security/package.json"
+      },
+      {
+        "name": "@opsedge360/transactions",
+        "version": "0.1.0",
+        "path": "services/transactions/package.json"
+      }
+    ]
+  },
+  "notes": [
+    "Lite inventory for procurement. CI may also emit SPDX via anchore/sbom-action.",
+    "Regenerate before each commercial drop."
+  ]
+}
