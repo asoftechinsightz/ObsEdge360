@@ -267,9 +267,9 @@ export class EdeSeedService {
            tenant_id, external_id, name, ci_type, status, health_score, compliance_score, risk_score,
            ai_confidence_score, attributes, tags, discovered_at, last_seen_at
          )
-         SELECT $1,
-                $2 || '-' || g,
-                $3 || '-' || lpad(g::text, 4, '0'),
+         SELECT $1::uuid,
+                ($2::text || '-' || g),
+                ($3::text || '-' || lpad(g::text, 4, '0')),
                 $4::ci_type,
                 'active',
                 80 + (g % 20),
@@ -281,16 +281,16 @@ export class EdeSeedService {
                   'illustrative', true,
                   'environment', CASE WHEN g % 3 = 0 THEN 'DR' WHEN g % 3 = 1 THEN 'UAT' ELSE 'Prod' END,
                   'region', CASE WHEN g % 4 = 0 THEN 'ap-south-1' WHEN g % 4 = 1 THEN 'ap-south-2' WHEN g % 4 = 2 THEN 'eu-west-1' ELSE 'us-east-1' END,
-                  'kind', $5,
+                  'kind', $5::text,
                   'ownerIndex', 1 + (g % 30),
                   'label', 'Illustrative Demo Data'
                 ),
-                ARRAY[$6, 'illustrative-demo', 'demo'],
+                ARRAY[$6::text, 'illustrative-demo', 'demo'],
                 NOW() - ((g % 45) || ' days')::interval,
                 NOW() - ((g % 12) || ' hours')::interval
-         FROM generate_series(1, $7) g
+         FROM generate_series(1, $7::int) g
          WHERE NOT EXISTS (
-           SELECT 1 FROM configuration_items c WHERE c.tenant_id=$1 AND c.external_id = $2 || '-' || g
+           SELECT 1 FROM configuration_items c WHERE c.tenant_id=$1::uuid AND c.external_id = ($2::text || '-' || g)
          )`,
         [tenantId, s.prefix, s.namePrefix, s.type, s.type, EDE_TAG, s.count],
       );
