@@ -74,7 +74,7 @@ export default function CmdbDriftPage() {
       <div className="space-y-6">
         <PageHeader
           title="CMDB Drift"
-          purpose="Detect configuration changes against the trusted CMDB baseline — distinct from inventory itself."
+          purpose="Unauthorized and pending configuration changes — timeline, business impact, owner action, and approval state."
           actions={
             <button type="button" onClick={() => void load()} className="inline-flex items-center gap-2 rounded border border-white/20 px-3 py-2 text-sm">
               <RefreshCw className="h-4 w-4" /> Refresh
@@ -83,11 +83,30 @@ export default function CmdbDriftPage() {
         />
         <TrustBar
           lastUpdated={new Date()}
-          freshness="recent"
+          freshness={error ? 'unknown' : 'recent'}
           dataSource="CMDB drift APIs"
           coverageLabel={`${events.length} open drift events`}
           integrationHealth={error ? 'degraded' : 'healthy'}
         />
+        {events.length > 0 && (
+          <div className="eig-glass mb-2 p-4">
+            <h2 className="mb-3 text-sm font-medium text-slate-100">Drift timeline</h2>
+            <ol className="relative space-y-4 border-l border-amber-500/30 pl-4">
+              {events.slice(0, 6).map((ev) => (
+                <li key={ev.id} className="relative">
+                  <span className="absolute -left-[1.35rem] mt-1.5 h-2.5 w-2.5 rounded-full bg-amber-400" />
+                  <div className="text-xs text-slate-500">{new Date(ev.detected_at).toLocaleString()} · {ev.severity}</div>
+                  <div className="text-sm font-medium text-slate-100">{ev.summary ?? ev.drift_type}</div>
+                  <div className="mt-1 text-xs text-slate-400">
+                    Impact: {ev.details?.businessImpact ?? 'Enterprise services'} · Action:{' '}
+                    {ev.details?.recommendedAction ?? 'Review and approve'} · Approval:{' '}
+                    {ev.details?.approvalStatus ?? 'pending'}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
         {error && <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-50">{error}</div>}
 
         <div className="grid gap-4 lg:grid-cols-2">

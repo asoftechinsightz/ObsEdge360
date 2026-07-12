@@ -1,17 +1,19 @@
 import { fetchApi } from '@/lib/api';
 import type { ExecutiveKpis } from '@opsedge360/shared-types';
 import { Activity, IndianRupee, Shield, Leaf, AlertTriangle } from 'lucide-react';
-import { ErrorState } from '@/components/UiStates';
 import { DashboardClick } from '@/components/cvp/DashboardClick';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
+
+type KpiPayload = ExecutiveKpis & { illustrative?: boolean; label?: string; coverageLabel?: string };
 
 export async function KpiGrid() {
-  let kpis: ExecutiveKpis | null = null;
-  let err = '';
-  let source: 'live' | 'partial' = 'live';
+  let kpis: KpiPayload | null = null;
+  let source: 'live' | 'partial' | 'illustrative' = 'live';
   const fetchedAt = new Date().toISOString();
 
   try {
-    kpis = await fetchApi<ExecutiveKpis>('/executive/kpis');
+    kpis = await fetchApi<KpiPayload>('/executive/kpis');
+    if (kpis.illustrative) source = 'illustrative';
     try {
       const [compliance, sustainability] = await Promise.all([
         fetchApi<{ overallScore: number }>('/compliance/score'),
@@ -20,23 +22,29 @@ export async function KpiGrid() {
       kpis.complianceScore = compliance.overallScore;
       kpis.sustainabilityScore = Number(sustainability.efficiency_score) || kpis.sustainabilityScore;
     } catch {
-      source = 'partial';
+      if (source === 'live') source = 'partial';
     }
   } catch {
-    err = 'Executive KPIs are temporarily unavailable.';
+    kpis = null;
   }
 
   if (!kpis) {
-    return <ErrorState message={err || 'Unable to load executive KPIs.'} />;
+    return (
+      <DemoAwareEmptyState
+        title="Executive KPIs are not available yet"
+        hint="Load Illustrative Demo Data to populate availability, revenue-at-risk, and incident posture for the board brief."
+        setupHref="/demo/guided"
+      />
+    );
   }
 
   const cards = [
     {
       label: 'Availability',
-      value: `${kpis.availability}%`,
+      value: `${Number(kpis.availability).toFixed(2)}%`,
       icon: Activity,
       color: 'text-emerald-400',
-      trend: 'Live platform availability',
+      trend: 'Enterprise service continuity',
       href: '/observability',
     },
     {
@@ -45,7 +53,7 @@ export async function KpiGrid() {
       icon: IndianRupee,
       color: 'text-amber-400',
       trend: 'Business impact estimate',
-      href: '/ops-intelligence',
+      href: '/banking360',
     },
     {
       label: 'Compliance',
@@ -78,9 +86,16 @@ export async function KpiGrid() {
       <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
         <span>Freshness: {new Date(fetchedAt).toLocaleTimeString()}</span>
         <span>·</span>
-        <span>Source: {source === 'live' ? 'Live APIs' : 'Partial (core KPIs live)'}</span>
+        <span>
+          Source:{' '}
+          {source === 'illustrative'
+            ? kpis.label ?? 'Illustrative Demo Data'
+            : source === 'live'
+              ? 'Live APIs'
+              : 'Partial (core KPIs available)'}
+        </span>
         <span>·</span>
-        <span>Confidence: High (telemetry){source === 'partial' ? ' · Medium on enrichment' : ''}</span>
+        <span>{kpis.coverageLabel ?? `${kpis.totalAssets.toLocaleString()} assets in scope`}</span>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {cards.map((card) => (

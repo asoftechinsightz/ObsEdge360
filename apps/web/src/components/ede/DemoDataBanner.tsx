@@ -56,13 +56,14 @@ export function DemoDataBanner() {
           body: '{}',
         });
         if (res?.ok === false) {
-          setError(res.error || 'Could not auto-load demo pack');
+          // Non-admin workspaces: keep calm CTA without scary auth errors
+          setError('');
         } else {
           await refresh();
           window.dispatchEvent(new Event('opsedge:ede-loaded'));
         }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Could not auto-load demo pack');
+      } catch {
+        setError('');
       } finally {
         setBusy(false);
       }

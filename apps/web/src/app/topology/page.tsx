@@ -7,6 +7,7 @@ import {
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 import { friendlyError } from '@/lib/friendly-error';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
 import cytoscape from 'cytoscape';
 import clsx from 'clsx';
 
@@ -345,18 +346,12 @@ export default function TopologyPage() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           <div className="xl:col-span-3 rounded-lg border border-slate-800 bg-slate-950/80 overflow-hidden relative">
             {!loading && nodes.length === 0 && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/80 p-6">
-                <div className="max-w-md rounded-[var(--eig-radius-lg)] border border-dashed border-white/15 bg-slate-900/80 px-6 py-8 text-center">
-                  <div className="text-sm font-medium text-slate-200">No topology nodes for this view</div>
-                  <p className="mt-2 text-xs text-slate-500">
-                    Live topology needs discovered CIs or synced traces. Start with Discovery, then refresh this map.
-                  </p>
-                  <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
-                    <a href="/discovery" className="text-sky-400 hover:underline">Set up Discovery →</a>
-                    <a href="/demo/guided" className="text-sky-400 hover:underline">Load / guided demo →</a>
-                    <a href="/apm" className="text-sky-400 hover:underline">APM / service map →</a>
-                  </div>
-                </div>
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/90 p-6">
+                <DemoAwareEmptyState
+                  title="No topology nodes for this view"
+                  hint="Hybrid topology (AWS · Azure · VMware · Kubernetes · network · databases) needs discovered CIs. Load Illustrative Demo Data for a keynote-ready map."
+                  setupHref="/discovery"
+                />
               </div>
             )}
             <div ref={containerRef} className="h-[560px] w-full" />

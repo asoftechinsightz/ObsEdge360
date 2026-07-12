@@ -8,6 +8,10 @@ import {
 import { DashboardShell } from '@/components/DashboardShell';
 import { ConnectorWizard, type WizardProtocol } from '@/components/discovery/ConnectorWizard';
 import { apiClient } from '@/lib/api-client';
+import { PageHeader } from '@/components/eig/primitives';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
+import { friendlyError } from '@/lib/friendly-error';
 import clsx from 'clsx';
 
 interface Connector {
@@ -185,25 +189,52 @@ export default function DiscoveryPage() {
 
   return (
     <DashboardShell>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Discovery Engine</h1>
-          <p className="text-sm text-slate-400">Connectors, agents, scheduled scans, and notifications</p>
+      <PageHeader
+        title="Discovery"
+        purpose="Estate coverage across cloud, containers, servers, and network — connector health, scan history, and agent setup."
+        actions={
+          <div className="flex gap-2">
+            <button type="button" onClick={() => load()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+            {connectors.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => runScan()}
+                disabled={!!scanning}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+              >
+                <Play size={16} /> {scanning === 'all' ? 'Scanning…' : 'Scan all'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setWizard('kubernetes')}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+              >
+                <Plus size={16} /> Add connector
+              </button>
+            )}
+          </div>
+        }
+      />
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness={loading ? 'unknown' : 'recent'}
+        dataSource="Discovery connectors & agents"
+        coverageLabel={`${connectors.length} connectors · ${agents.length} agents · ${schedules.length} schedules`}
+        integrationHealth="healthy"
+      />
+
+      {connectors.length === 0 && !loading && (
+        <div className="mb-6">
+          <DemoAwareEmptyState
+            title="No discovery coverage yet"
+            hint="Load Illustrative Demo Data to see AWS, Azure, GCP, VMware, Kubernetes, and SNMP connector health — or add a connector to start live discovery."
+            setupHref="/demo/guided"
+          />
         </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => load()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-          </button>
-          <button
-            type="button"
-            onClick={() => runScan()}
-            disabled={!!scanning}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-          >
-            <Play size={16} /> {scanning === 'all' ? 'Scanning…' : 'Scan all'}
-          </button>
-        </div>
-      </div>
+      )}
 
       {message && (
         <div className="mb-4 rounded-lg border border-slate-600 bg-surface-elevated px-4 py-2 text-sm text-slate-300">
@@ -214,17 +245,19 @@ export default function DiscoveryPage() {
 
       {newAgent && (
         <div className="mb-4 rounded-lg border border-primary/40 bg-primary/10 p-4">
-          <p className="text-sm font-medium text-primary">Host agent registered — save credentials now (key shown once)</p>
-          <p className="mt-1 text-xs text-slate-400">Agent ID: <code className="text-slate-200">{newAgent.id}</code></p>
+          <p className="text-sm font-medium text-primary">Host agent registered — save this one-time install key</p>
+          <p className="mt-1 text-xs text-slate-400">Keep this credential private. It is shown once.</p>
           <div className="mt-2 flex items-center gap-2">
             <code className="flex-1 truncate rounded bg-surface px-2 py-1 text-xs">{newAgent.key}</code>
             <button type="button" onClick={copyKey} className="rounded border border-slate-600 p-2 hover:bg-slate-800">
               {copied ? <CheckCircle2 size={16} className="text-green-400" /> : <Copy size={16} />}
             </button>
           </div>
-          <p className="mt-3 text-xs text-slate-400">Install on target server (`agents/host-agent`), put this in <code>agent.env</code>:</p>
-          <pre className="mt-1 overflow-x-auto rounded bg-surface p-2 text-[11px] text-slate-300">{agentEnvSnippet()}</pre>
-          <p className="mt-2 text-xs text-slate-500">Then: <code className="text-slate-300">node bin/opsedge360-agent.js</code> — metrics appear under Observability → Hosts</p>
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-200">Show install steps (operators)</summary>
+            <pre className="mt-2 overflow-x-auto rounded bg-surface p-2 text-[11px] text-slate-300">{agentEnvSnippet()}</pre>
+            <p className="mt-2 text-xs text-slate-500">Run the host agent with the saved env file — metrics appear under Observability.</p>
+          </details>
           <button type="button" className="mt-2 text-xs text-slate-400 hover:text-white" onClick={() => setNewAgent(null)}>Dismiss</button>
         </div>
       )}
@@ -335,7 +368,11 @@ export default function DiscoveryPage() {
               </div>
             ))}
             {agents.length === 0 && !loading && (
-              <p className="text-slate-500">No agents registered</p>
+              <DemoAwareEmptyState
+                title="No discovery agents registered"
+                hint="Agents extend coverage into private networks. For evaluations, load Illustrative Demo Data to populate connector coverage without installing agents."
+                setupHref="/demo/guided"
+              />
             )}
           </div>
         </div>

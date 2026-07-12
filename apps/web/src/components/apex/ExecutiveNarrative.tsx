@@ -35,7 +35,7 @@ export function ExecutiveNarrative({
           <dd className="mt-1 text-sm text-slate-200">{whyItMatters}</dd>
         </div>
         <div>
-          <dt className="text-[11px] text-slate-500">Affected service</dt>
+          <dt className="text-[11px] text-slate-500">Owner / affected</dt>
           <dd className="mt-1 text-sm text-slate-200">{affectedService || 'Enterprise services (see table)'}</dd>
         </div>
         <div>

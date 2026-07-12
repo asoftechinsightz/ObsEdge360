@@ -51,9 +51,33 @@ export function CopilotPanel({ open, onClose }: CopilotPanelProps) {
   useEffect(() => {
     if (open) {
       bump('copilotOpens');
-      apiClient<{ recommendations: Recommendation[] }>('/copilot/recommendations')
-        .then((d) => setRecs(d.recommendations.slice(0, 4)))
-        .catch(() => undefined);
+      Promise.allSettled([
+        apiClient<{ recommendations: Recommendation[] }>('/copilot/recommendations'),
+        apiClient<{
+          items?: { title: string; reason: string; href: string; action: string; owner?: string }[];
+        }>('/executive/recommendations'),
+      ]).then(([recsRes, execRes]) => {
+        if (recsRes.status === 'fulfilled') {
+          setRecs(recsRes.value.recommendations.slice(0, 4));
+        }
+        const execItems =
+          execRes.status === 'fulfilled' ? execRes.value.items?.slice(0, 3) ?? [] : [];
+        if (execItems.length) {
+          const brief = [
+            "Today's executive brief (proactive):",
+            ...execItems.map(
+              (i, idx) =>
+                `${idx + 1}. ${i.title} — ${i.reason}${i.owner ? ` (Owner: ${i.owner})` : ''} → ${i.action}`,
+            ),
+          ].join('\n');
+          setMessages([
+            {
+              role: 'assistant',
+              content: brief,
+            },
+          ]);
+        }
+      });
     }
   }, [open]);
 

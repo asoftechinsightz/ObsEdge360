@@ -14,27 +14,33 @@ export default function ExecutiveHome() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Enterprise command center</h1>
           <p className="text-sm text-slate-400">
-            What is happening, why it matters, impact, and the next action — in under 30 seconds.
+            What happened, why it matters, business impact, owners, and the next action — in under 30 seconds.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
           <Link
-            href="/ops-intelligence"
+            href="/demo/guided"
+            className="rounded-[var(--eig-radius-sm)] bg-sky-600 px-3 py-1.5 text-white transition hover:bg-sky-500"
+          >
+            15-min guided eval
+          </Link>
+          <Link
+            href="/cmdb/drift"
             className="rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] px-3 py-1.5 text-slate-300 transition hover:border-sky-500/40 hover:bg-white/5"
           >
-            Drill: Incidents
+            Drift risks
+          </Link>
+          <Link
+            href="/banking360"
+            className="rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] px-3 py-1.5 text-slate-300 transition hover:border-sky-500/40 hover:bg-white/5"
+          >
+            Banking360
           </Link>
           <Link
             href="/reports"
             className="rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] px-3 py-1.5 text-slate-300 transition hover:border-sky-500/40 hover:bg-white/5"
           >
-            Drill: Reports
-          </Link>
-          <Link
-            href="/compliance"
-            className="rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] px-3 py-1.5 text-slate-300 transition hover:border-sky-500/40 hover:bg-white/5"
-          >
-            Drill: Compliance
+            Reports
           </Link>
         </div>
       </div>

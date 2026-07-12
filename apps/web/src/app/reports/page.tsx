@@ -8,6 +8,9 @@ import { PageHeader, DataTable, JsonViewer, StatusBadge } from '@/components/eig
 import { isDebugMode } from '@/lib/debug-mode';
 import { TrustBar } from '@/components/apex/TrustBar';
 import { InlineAiAssist } from '@/components/apex/InlineAiAssist';
+import { ExecutiveNarrative } from '@/components/apex/ExecutiveNarrative';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
+import { friendlyError } from '@/lib/friendly-error';
 import { bump } from '@/lib/cvp/analytics';
 
 function asRows(data: unknown): Array<Record<string, unknown>> {
@@ -73,7 +76,7 @@ export default function ReportsPage() {
     <DashboardShell>
       <PageHeader
         title="Executive Reporting"
-        purpose="Generate and review SLA, availability, incident, MTTR, synthetics, and compliance reports."
+        purpose="Board-ready dashboards — availability, revenue risk, incidents, SLA, and compliance summaries with PDF/CSV export."
         actions={
           <div className="flex flex-wrap gap-2">
             <select
@@ -103,8 +106,16 @@ export default function ReportsPage() {
         lastUpdated={new Date()}
         freshness={loading ? 'unknown' : 'recent'}
         dataSource="Reporting APIs"
-        coverageLabel="SLA · availability · incidents · MTTR · compliance"
+        coverageLabel={`${rows.length} reports · SLA · availability · incidents · MTTR · compliance`}
         integrationHealth={err ? 'degraded' : 'healthy'}
+      />
+      <ExecutiveNarrative
+        happening={rows.length ? `${rows.length} executive report(s) available for review` : 'No executive reports generated yet'}
+        whyItMatters="QBR and board packs need a single narrative for availability, revenue-at-risk, and open risks."
+        affectedService="CIO Office · Enterprise Operations"
+        impact="Generate Executive summary for a PDF-ready brief with KPIs and recommended actions."
+        nextAction={{ label: 'Generate executive summary', href: '/reports' }}
+        aiConfidence={82}
       />
       <div className="mb-4">
         <InlineAiAssist
@@ -124,7 +135,14 @@ export default function ReportsPage() {
             { key: 'format', label: 'Format', render: (r) => String(r.format ?? r.exportFormat ?? 'JSON/CSV') },
           ]}
           rows={rows}
-          empty={<EmptyState title="No reports yet" hint="Choose a report type and click Generate." />}
+          empty={
+            <DemoAwareEmptyState
+              title="No reports yet"
+              hint="Generate an Executive summary for a board-ready brief with KPIs, risks, and recommended actions."
+              setupHref="/demo/guided"
+              showLoadDemo={false}
+            />
+          }
         />
       )}
       {debug && reports != null && <JsonViewer data={reports} title="Reports API payload" />}

@@ -141,7 +141,12 @@ function SecurityCenterInner() {
         </div>
       )}
       {msg && <SuccessBanner message={msg} />}
-      {err && <ErrorState message={err} onRetry={() => load().catch((e: Error) => setErr(e.message))} />}
+      {err && (
+        <ErrorState
+          message={/internal server error/i.test(err) ? 'Security signals are temporarily unavailable. Retry or load Illustrative Demo Data.' : err}
+          onRetry={() => load().catch((e: Error) => setErr(e.message))}
+        />
+      )}
       {!data && !err && <LoadingSkeleton rows={5} />}
 
       {data && (
@@ -186,9 +191,13 @@ function SecurityCenterInner() {
           )}
         </div>
         {secret && (
-          <p className="mb-2 break-all text-xs text-slate-400">
-            Secret: <code className="text-slate-200">{secret}</code>
-          </p>
+          <div className="mb-3 rounded-xl border border-sky-500/30 bg-sky-950/30 p-3">
+            <div className="text-xs font-medium text-sky-100">Authenticator setup key</div>
+            <p className="mt-1 break-all font-mono text-sm text-sky-50">{secret}</p>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Add this key in your authenticator app, then enter a 6-digit code to verify. The key clears after verification.
+            </p>
+          </div>
         )}
         <div className="flex flex-wrap gap-2">
           <input
@@ -202,10 +211,35 @@ function SecurityCenterInner() {
           </button>
         </div>
         {backup.length > 0 ? (
-          <pre className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-950/40 p-4 text-xs">{JSON.stringify(backup, null, 2)}</pre>
+          <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-950/40 p-4">
+            <div className="text-sm font-medium text-amber-100">Recovery codes — store securely (shown once)</div>
+            <p className="mt-1 text-xs text-amber-100/70">
+              Each code can be used once if you lose access to your authenticator.
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {backup.map((codeValue) => (
+                <code
+                  key={codeValue}
+                  className="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2 font-mono text-sm text-amber-50"
+                >
+                  {codeValue}
+                </code>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="mt-3 rounded border border-amber-400/40 px-3 py-1.5 text-xs text-amber-50 hover:bg-amber-500/20"
+              onClick={() => {
+                void navigator.clipboard?.writeText(backup.join('\n'));
+                setMsg('Recovery codes copied to clipboard');
+              }}
+            >
+              Copy recovery codes
+            </button>
+          </div>
         ) : (
           <div className="mt-3">
-            <EmptyState title="No backup codes shown" hint="Backup codes appear once after successful MFA verification." />
+            <EmptyState title="No recovery codes shown" hint="Recovery codes appear once after successful MFA verification." />
           </div>
         )}
         {rotation && (

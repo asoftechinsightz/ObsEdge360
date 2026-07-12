@@ -10,15 +10,20 @@ const ALLOWED = new Set([
   '/admin',
   '/observability',
   '/apm',
+  '/demo/guided',
+  '/banking360',
+  '/cmdb/drift',
 ]);
 
 export function roleDefaultLanding(role?: string): string {
   const r = (role || '').toLowerCase();
   if (r.includes('ciso') || r.includes('security')) return '/security';
   if (r.includes('noc') || r.includes('sre') || r.includes('ops')) return '/ops-intelligence';
-  if (r.includes('platform') || r.includes('admin') || r.includes('owner')) return '/admin';
+  if (r.includes('platform_admin')) return '/admin';
   if (r.includes('devops') || r.includes('cloud') || r.includes('cto')) return '/ops-intelligence';
   if (r.includes('cio') || r.includes('executive') || r.includes('business')) return '/dashboard';
+  // Buyer-safe default for org admins / owners (demo CIO included)
+  if (r.includes('admin') || r.includes('owner')) return '/dashboard';
   return '/dashboard';
 }
 

@@ -7,6 +7,11 @@ import {
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 import { EmptyState, ErrorState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
+import { PageHeader } from '@/components/eig/primitives';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { ExecutiveNarrative } from '@/components/apex/ExecutiveNarrative';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
+import { friendlyError } from '@/lib/friendly-error';
 import clsx from 'clsx';
 import Link from 'next/link';
 
@@ -88,7 +93,7 @@ export default function Banking360Page() {
       const dash = await apiClient<Dashboard>('/compliance/banking360');
       setData(dash);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load Banking360');
+      setError(friendlyError(err, 'Banking360 signals are unavailable. Activate the pack or load Illustrative Demo Data.'));
     } finally {
       setLoading(false);
     }
@@ -171,39 +176,61 @@ export default function Banking360Page() {
 
   return (
     <DashboardShell>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Banking360</h1>
-          <p className="text-sm text-slate-400">
-            BFSI industry pack · RBI / PCI compliance · UPI payment monitoring
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => load()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-          </button>
-          {data?.enabled ? (
-            <>
-              <button type="button" disabled={busy} onClick={validate} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-50">
-                <Play size={16} /> Run validation
-              </button>
-              <button type="button" disabled={busy} onClick={deactivate} className="rounded-lg border border-red-500/40 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50">
-                Deactivate
-              </button>
-            </>
-          ) : (
-            <button type="button" disabled={busy} onClick={activate} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-              Activate Banking360
+      <PageHeader
+        title="Banking360"
+        purpose="UPI · IMPS · RTGS · NEFT · CBS · payment gateway · fraud — latency, TPS, revenue, and regulatory posture."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => load()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
             </button>
-          )}
-        </div>
-      </div>
+            {data?.enabled ? (
+              <>
+                <button type="button" disabled={busy} onClick={validate} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-50">
+                  <Play size={16} /> Run validation
+                </button>
+                <button type="button" disabled={busy} onClick={deactivate} className="rounded-lg border border-red-500/40 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50">
+                  Deactivate
+                </button>
+              </>
+            ) : (
+              <button type="button" disabled={busy} onClick={activate} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                Activate Banking360
+              </button>
+            )}
+          </div>
+        }
+      />
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness={data ? 'recent' : 'unknown'}
+        dataSource="BFSI pack · RBI · PCI · payment rails"
+        coverageLabel={data ? `Score ${data.bankingScore}% · ${data.payments?.templates?.length ?? 0} payment templates` : 'Banking industry pack'}
+        integrationHealth={error ? 'degraded' : 'healthy'}
+      />
+      {data && (
+        <ExecutiveNarrative
+          happening={`Banking360 is ${data.enabled ? 'active' : 'inactive'} with overall score ${data.bankingScore}%`}
+          whyItMatters="Payment-rail latency and RBI/PCI control gaps translate directly into revenue and regulatory exposure."
+          affectedService="UPI · IMPS · RTGS · NEFT · CBS · Payment Gateway"
+          impact={`${data.payments?.sloMet ?? 0}/${data.payments?.sloTotal ?? 0} payment SLOs met · RBI ${data.frameworks.rbi.score}% · PCI ${data.frameworks.pci.score}%`}
+          nextAction={{
+            label: data.enabled ? 'Review UPI / Payments rails' : 'Activate Banking360 pack',
+            href: data.enabled ? '#payments' : '/banking360',
+          }}
+          aiConfidence={84}
+        />
+      )}
 
       {message && <SuccessBanner message={message} />}
       {error && <ErrorState message={error} onRetry={() => load()} />}
       {loading && !data && <LoadingSkeleton rows={4} />}
       {!loading && !data && !error && (
-        <EmptyState title="Banking360 not loaded" hint="Activate the BFSI pack to seed controls and payment templates." />
+        <DemoAwareEmptyState
+          title="Banking360 not loaded"
+          hint="Activate the BFSI pack to seed RBI/PCI controls and payment templates for UPI, IMPS, RTGS, NEFT, and CBS."
+          setupHref="/demo/guided"
+        />
       )}
 
       {data && (
@@ -219,14 +246,16 @@ export default function Banking360Page() {
             <div className="mt-1 text-2xl font-semibold text-sky-400">{data.bankingScore}%</div>
           </div>
           <div className="kpi-card">
-            <div className="text-xs text-slate-500">RBI-CSF</div>
-            <div className="mt-1 text-2xl font-semibold">{data.frameworks.rbi.score}%</div>
-            <div className="text-xs text-slate-500">{data.controls.rbi.passed}/{data.controls.rbi.total} passed</div>
+            <div className="text-xs text-slate-500">Payment SLOs</div>
+            <div className="mt-1 text-2xl font-semibold text-emerald-400">
+              {data.payments?.sloMet ?? 0}/{data.payments?.sloTotal ?? 0}
+            </div>
           </div>
           <div className="kpi-card">
-            <div className="text-xs text-slate-500">PCI-DSS</div>
-            <div className="mt-1 text-2xl font-semibold">{data.frameworks.pci.score}%</div>
-            <div className="text-xs text-slate-500">{data.controls.pci.passed}/{data.controls.pci.total} passed</div>
+            <div className="text-xs text-slate-500">Monitored journeys</div>
+            <div className="mt-1 text-2xl font-semibold text-amber-300">
+              {data.payments?.transactions?.length ?? data.payments?.templates?.length ?? 0}
+            </div>
           </div>
         </div>
       )}

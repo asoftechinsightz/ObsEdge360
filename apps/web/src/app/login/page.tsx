@@ -139,11 +139,14 @@ function LoginForm() {
         setNotice('Enter the 6-digit code from your authenticator app (or a backup code).');
         return;
       }
-      await finishSession(result.accessToken, {
-        passwordMustRotate: result.passwordMustRotate,
-        mustEnrollMfa: result.mustEnrollMfa,
-        role: result.user?.role,
-      });
+      setAuthCookie(result.accessToken);
+      try {
+        localStorage.setItem('oe360_role_hint', result.user?.role || 'admin');
+      } catch {
+        /* ignore */
+      }
+      router.push('/dashboard');
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Demo entry failed');
     } finally {

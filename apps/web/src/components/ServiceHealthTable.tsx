@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { fetchApi } from '@/lib/api';
-import { EmptyState } from '@/components/UiStates';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
 
 interface Service {
   id: string;
@@ -36,18 +36,11 @@ export async function ServiceHealthTable() {
       </div>
       {!services.length ? (
         <div className="p-4">
-          <EmptyState
+          <DemoAwareEmptyState
             title="No business services to display"
-            hint="Run Discovery to populate CMDB assets, then map tier-1 services — or open Evaluation Tours in Developer Mode."
+            hint="Load Illustrative Demo Data to populate tier-1 banking services with owners, SLA, and health."
+            setupHref="/demo/guided"
           />
-          <div className="mt-3 flex flex-wrap gap-2 text-xs">
-            <Link href="/discovery" className="text-sky-400 hover:underline">
-              Set up Discovery →
-            </Link>
-            <Link href="/cmdb" className="text-sky-400 hover:underline">
-              Open CMDB →
-            </Link>
-          </div>
         </div>
       ) : (
         <div className="overflow-x-auto">

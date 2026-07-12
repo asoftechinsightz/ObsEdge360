@@ -7,6 +7,7 @@ import {
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient } from '@/lib/api-client';
 import { friendlyError } from '@/lib/friendly-error';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
 import cytoscape from 'cytoscape';
 import clsx from 'clsx';
 
@@ -267,7 +268,7 @@ export default function DigitalTwinPage() {
       renderGraph(nodes, edges, ids, result.rootCiId);
       setMessage(`Blast radius: ${result.affectedCis} affected CI(s) within depth ${result.depth}`);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Impact analysis failed');
+      setMessage(friendlyError(err, 'Impact analysis is unavailable for this node. Try another CI or load Illustrative Demo Data.'));
     } finally {
       setAnalyzing(false);
     }
@@ -286,7 +287,9 @@ export default function DigitalTwinPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Digital Twin</h1>
-          <p className="text-sm text-slate-400">Topology graph, dependency impact, and blast-radius analysis</p>
+          <p className="text-sm text-slate-400">
+            What depends on what · blast radius · business impact — select a payment CI and analyze.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => loadGraph()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
@@ -347,19 +350,18 @@ export default function DigitalTwinPage() {
         <div className="lg:col-span-2 relative">
           {loading && <p className="mb-2 text-sm text-slate-400">Loading topology…</p>}
           {!loading && nodes.length === 0 && (
-            <div className="mb-3 rounded-[var(--eig-radius-lg)] border border-dashed border-white/15 bg-slate-900/40 px-6 py-8 text-center">
-              <div className="text-sm font-medium text-slate-200">No digital twin graph yet</div>
-              <p className="mt-2 text-xs text-slate-500">
-                The twin is built from discovered assets and CMDB relationships. Without discovery data, the canvas stays empty.
-              </p>
-              <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
-                <a href="/discovery" className="text-sky-400 hover:underline">Set up Discovery →</a>
-                <a href="/cmdb" className="text-sky-400 hover:underline">Open CMDB →</a>
-                <a href="/demo/guided" className="text-sky-400 hover:underline">Load Illustrative Demo Data →</a>
-              </div>
+            <div className="mb-3">
+              <DemoAwareEmptyState
+                title="No digital twin graph yet"
+                hint="The twin is built from discovered assets and CMDB relationships. Load Illustrative Demo Data to see the UPI payment dependency mesh."
+                setupHref="/discovery"
+              />
             </div>
           )}
-          <div ref={containerRef} className="h-[560px] rounded-xl border border-slate-700 bg-surface-elevated" />
+          <div
+            ref={containerRef}
+            className={`h-[560px] rounded-xl border border-slate-700 bg-surface-elevated ${!loading && nodes.length === 0 ? 'hidden' : ''}`}
+          />
           {selected && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-700 bg-surface-elevated p-4 text-sm">
               <div>

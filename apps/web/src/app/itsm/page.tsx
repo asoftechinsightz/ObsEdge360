@@ -6,6 +6,10 @@ import { apiClient } from '@/lib/api-client';
 import { EmptyState, ErrorState, LoadingSkeleton, SuccessBanner } from '@/components/UiStates';
 import { PageHeader, DataTable, JsonViewer, StatusBadge } from '@/components/eig/primitives';
 import { isDebugMode } from '@/lib/debug-mode';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { ExecutiveNarrative } from '@/components/apex/ExecutiveNarrative';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
+import { friendlyError } from '@/lib/friendly-error';
 
 function asRows(data: unknown): Array<Record<string, unknown>> {
   if (!data) return [];
@@ -46,7 +50,7 @@ export default function ItsmPage() {
                   : '/itsm/sla';
       setData(await apiClient(path));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Failed to load ITSM data');
+      setErr(friendlyError(e, 'ITSM records are unavailable. Load Illustrative Demo Data to evaluate problems, changes, and CAB.'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +78,22 @@ export default function ItsmPage() {
     <DashboardShell>
       <PageHeader
         title="Enterprise ITSM"
-        purpose="Problems, changes, CAB calendar, knowledge, catalog, and SLA — integrated with CMDB."
+        purpose="Problems, changes, CAB, knowledge, and SLA — with owners, business impact, and next approval steps."
+      />
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness={loading ? 'unknown' : 'recent'}
+        dataSource="ITSM APIs"
+        coverageLabel={`${rows.length} ${tab} records`}
+        integrationHealth={err ? 'degraded' : 'healthy'}
+      />
+      <ExecutiveNarrative
+        happening={rows.length ? `${rows.length} open ${tab} record(s) in the evaluation estate` : `No ${tab} records yet`}
+        whyItMatters="Change and problem velocity without ownership creates CAB risk and prolongs revenue-impacting incidents."
+        affectedService="ITSM · Platform Reliability · Security Operations"
+        impact="Review high-priority problems and pending CAB changes before peak payment windows."
+        nextAction={{ label: 'Open CMDB Drift for related change risk', href: '/cmdb/drift' }}
+        aiConfidence={80}
       />
       <div className="mb-4 flex flex-wrap gap-2">
         {(['problems', 'changes', 'calendar', 'knowledge', 'catalog', 'sla'] as const).map((t) => (
@@ -118,7 +137,13 @@ export default function ItsmPage() {
             { key: 'updatedAt', label: 'Updated', render: (r) => String(r.updatedAt ?? r.updated_at ?? r.createdAt ?? '—') },
           ]}
           rows={rows}
-          empty={<EmptyState title={`No ${tab} yet`} hint="Create an item above, or sync from your ITSM integration." />}
+          empty={
+            <DemoAwareEmptyState
+              title={`No ${tab} yet`}
+              hint="Load Illustrative Demo Data for problems, changes, CAB approvals, and knowledge — or create an item above."
+              setupHref="/demo/guided"
+            />
+          }
         />
       )}
       {debug && data != null && <JsonViewer data={data} title="ITSM API payload" />}

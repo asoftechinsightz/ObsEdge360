@@ -7,6 +7,10 @@ import {
 } from 'lucide-react';
 import { DashboardShell } from '@/components/DashboardShell';
 import { apiClient, getApiUrl, getAuthTokenFromDocument } from '@/lib/api-client';
+import { PageHeader } from '@/components/eig/primitives';
+import { TrustBar } from '@/components/apex/TrustBar';
+import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';
+import { friendlyError } from '@/lib/friendly-error';
 import clsx from 'clsx';
 
 const CI_TYPES = [
@@ -108,7 +112,7 @@ export default function CmdbPage() {
       setRelationships(rels.relationships);
       setStats(st);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Failed to load CMDB');
+      setMessage(friendlyError(err, 'CMDB inventory is unavailable. Load Illustrative Demo Data to populate the estate.'));
     } finally {
       setLoading(false);
     }
@@ -264,20 +268,27 @@ export default function CmdbPage() {
 
   return (
     <DashboardShell>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">CMDB Explorer</h1>
-          <p className="text-sm text-slate-400">Configuration items, relationships, and inventory stats</p>
-        </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => load()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-          </button>
-          <button type="button" onClick={openCreate} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">
-            <Plus size={16} /> Add CI
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="CMDB"
+        purpose="Enterprise configuration inventory — services, applications, servers, owners, health, risk, and relationships."
+        actions={
+          <div className="flex gap-2">
+            <button type="button" onClick={() => load()} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+            <button type="button" onClick={openCreate} className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">
+              <Plus size={16} /> Add CI
+            </button>
+          </div>
+        }
+      />
+      <TrustBar
+        lastUpdated={new Date()}
+        freshness={stats ? 'recent' : 'unknown'}
+        dataSource="CMDB inventory APIs"
+        coverageLabel={stats ? `${stats.totalAssets.toLocaleString()} CIs · ${stats.relationships.toLocaleString()} relationships` : 'Estate inventory'}
+        integrationHealth={message && /unavailable|failed|error/i.test(message) ? 'degraded' : 'healthy'}
+      />
 
       {message && (
         <div className="mb-4 rounded-lg border border-slate-600 bg-surface-elevated px-4 py-2 text-sm text-slate-300">
@@ -375,7 +386,15 @@ export default function CmdbPage() {
                   </tr>
                 ))}
                 {items.length === 0 && !loading && (
-                  <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">No configuration items</td></tr>
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8">
+                      <DemoAwareEmptyState
+                        title="No configuration items in this workspace"
+                        hint="Load Illustrative Demo Data to populate thousands of servers, apps, databases, and relationships with owners and health scores."
+                        setupHref="/discovery"
+                      />
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
