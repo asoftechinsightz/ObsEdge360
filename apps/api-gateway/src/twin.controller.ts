@@ -38,26 +38,68 @@ export class TwinController {
   }
 
   private async fallbackGraph(tenantId: string, ciType?: string, limit = 120) {
-    const params: unknown[] = [tenantId];
-    let where = 'tenant_id=$1';
-    if (ciType) {
-      params.push(ciType);
-      where += ` AND ci_type=$${params.length}`;
-    }
-    params.push(Math.min(Math.max(limit, 10), 300));
-    const nodes = await query<{
+    const max = Math.min(Math.max(limit, 10), 300);
+    // Prefer CIs that participate in relationships so Twin edges are visible
+    const relatedIds = await query<{ id: string }>(
+      `SELECT DISTINCT x.id FROM (
+         SELECT source_ci_id AS id FROM relationships WHERE tenant_id=$1
+         UNION
+         SELECT target_ci_id AS id FROM relationships WHERE tenant_id=$1
+       ) x
+       LIMIT $2`,
+      [tenantId, max],
+    ).catch(() => []);
+
+    let nodes: Array<{
       id: string;
       name: string;
       ci_type: string;
       health_score: number;
       risk_score: number;
       status: string;
-    }>(
-      `SELECT id, name, ci_type, health_score, risk_score, status
-       FROM configuration_items WHERE ${where}
-       ORDER BY name ASC LIMIT $${params.length}`,
-      params,
-    ).catch(() => []);
+    }> = [];
+
+    if (relatedIds.length) {
+      nodes = await query(
+        `SELECT id, name, ci_type, health_score, risk_score, status
+         FROM configuration_items
+         WHERE tenant_id=$1 AND id = ANY($2::uuid[])
+         ORDER BY name ASC`,
+        [tenantId, relatedIds.map((r) => r.id)],
+      ).catch(() => []);
+    }
+
+    if (nodes.length < Math.min(40, max)) {
+      const params: unknown[] = [tenantId];
+      let where = 'tenant_id=$1';
+      if (ciType) {
+        params.push(ciType);
+        where += ` AND ci_type=$${params.length}`;
+      }
+      params.push(max);
+      const more = await query<{
+        id: string;
+        name: string;
+        ci_type: string;
+        health_score: number;
+        risk_score: number;
+        status: string;
+      }>(
+        `SELECT id, name, ci_type, health_score, risk_score, status
+         FROM configuration_items WHERE ${where}
+         ORDER BY name ASC LIMIT $${params.length}`,
+        params,
+      ).catch(() => []);
+      const seen = new Set(nodes.map((n) => n.id));
+      for (const n of more) {
+        if (!seen.has(n.id)) {
+          nodes.push(n);
+          seen.add(n.id);
+        }
+        if (nodes.length >= max) break;
+      }
+    }
+
     const ids = nodes.map((n) => n.id);
     const edges =
       ids.length === 0
@@ -68,12 +110,12 @@ export class TwinController {
             relationship_type: string;
             strength: string | null;
           }>(
-            `SELECT source_ci_id, target_ci_id, relationship_type, strength
-             FROM relationships
-             WHERE tenant_id=$1 AND source_ci_id = ANY($2::uuid[]) AND target_ci_id = ANY($2::uuid[])
-             LIMIT 400`,
-            [tenantId, ids],
+            `SELECT source_ci_id, target_ci_id, relationship_type, strength::text AS strength
+             FROM relationships WHERE tenant_id=$1 LIMIT 500`,
+            [tenantId],
           ).catch(() => []);
+    const idSet = new Set(ids);
+    const filteredEdges = edges.filter((e) => idSet.has(e.source_ci_id) && idSet.has(e.target_ci_id));
     return {
       nodes: nodes.map((n) => ({
         id: n.id,
@@ -83,7 +125,7 @@ export class TwinController {
         healthScore: n.health_score,
         riskScore: n.risk_score,
       })),
-      edges: edges.map((e) => ({
+      edges: filteredEdges.map((e) => ({
         source: e.source_ci_id,
         target: e.target_ci_id,
         type: e.relationship_type,
