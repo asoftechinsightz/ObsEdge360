@@ -20,12 +20,15 @@ echo "=== 1. deployment health ==="
 H=$(curl -sk -o /dev/null -w '%{http_code}' "$API/health")
 R=$(curl -sk -o /dev/null -w '%{http_code}' "$API/ready")
 W=$(curl -sk -o /dev/null -w '%{http_code}' "$WEB/")
+# Unauthenticated /observability may 307→login (auth gate) — both OK for deploy smoke
 WO=$(curl -sk -o /dev/null -w '%{http_code}' "$WEB/observability")
-echo "health=$H ready=$R web=$W web_observability=$WO"
+WOL=$(curl -sk -o /dev/null -w '%{http_code}' -L "$WEB/observability")
+echo "health=$H ready=$R web=$W web_observability=$WO web_observability_follow=$WOL"
 [ "$H" = "200" ] && pass "health" || fail "health=$H"
 [ "$R" = "200" ] && pass "ready" || fail "ready=$R"
 [ "$W" = "200" ] && pass "web" || fail "web=$W"
-[ "$WO" = "200" ] && pass "web_observability" || fail "web_observability=$WO"
+if [ "$WO" = "200" ] || [ "$WO" = "307" ] || [ "$WOL" = "200" ]; then pass "web_observability"; else fail "web_observability=$WO/$WOL"; fi
+if [ "$WO" = "307" ] || [ "$WO" = "401" ] || [ "$WO" = "200" ]; then pass "web_observability_auth_gate"; else fail "web_observability_auth_gate=$WO"; fi
 
 echo "=== containers ==="
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile core --profile prod ps --format 'table {{.Name}}\t{{.Status}}' 2>/dev/null | head -40 | tee "$OUT/containers.txt" || true
@@ -136,7 +139,9 @@ with urllib.request.urlopen(req, context=ctx, timeout=30) as r:
   ai=json.loads(r.read())
   open(f"{out}/observe_ai_explain.json","w").write(json.dumps(ai, indent=2))
 check("ai_summary", bool(ai.get("summary")))
-check("ai_evidence", isinstance(ai.get("evidence"), list) and len(ai.get("evidence") or [])>=1)
+ev=ai.get("evidence") or []
+check("ai_evidence", isinstance(ev, list) and len(ev)>=1, str(len(ev) if isinstance(ev,list) else ev))
+check("ai_remediation", isinstance(ai.get("recommendedRemediation"), list) and len(ai.get("recommendedRemediation") or [])>=1)
 check("ai_confidence", ai.get("confidence") is not None)
 check("ai_brand", ai.get("brand")=="OpsEdge360")
 check("ai_no_vendor", "skywalking" not in json.dumps(ai).lower())

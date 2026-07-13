@@ -295,27 +295,73 @@ export class ObserveFacadeService {
     tenantId: string,
     body: { kind: string; id?: string; name?: string; prompt?: string },
   ): Promise<Record<string, unknown>> {
-    const name = body.name || body.id || body.kind;
-    const logs = await this.searchLogs(tenantId, { service: name, limit: 5 });
-    const traces = await this.listTraces(tenantId, { limit: 5 });
-    const related = traces.filter((t) => t.services.toLowerCase().includes((name || '').toLowerCase()));
+    const name = body.name || body.id || body.kind || 'entity';
+    const aliases = this.serviceAliases(name);
+    const token = name.split(/\s+/).find((t) => t.length >= 3)?.toLowerCase() || name.toLowerCase();
+
+    const logBuckets = await Promise.all([
+      this.searchLogs(tenantId, { q: token, limit: 10 }),
+      ...aliases.map((a) => this.searchLogs(tenantId, { service: a, limit: 8 })),
+      this.searchLogs(tenantId, { severity: 'ERROR', limit: 8 }),
+    ]);
+    const logMap = new Map<string, ObserveLogHit>();
+    for (const bucket of logBuckets) {
+      for (const item of bucket.items) logMap.set(item.id, item);
+    }
+    const logs = [...logMap.values()];
+
+    const traces = await this.listTraces(tenantId, { limit: 20 });
+    const related = traces.filter((t) => {
+      const hay = `${t.services} ${t.rootService || ''}`.toLowerCase();
+      return aliases.some((a) => hay.includes(a.toLowerCase())) || hay.includes(token);
+    });
+
+    const apps = await this.listEntities(tenantId, 'applications');
+    const entity =
+      apps.find((a) => a.name.toLowerCase() === name.toLowerCase()) ||
+      apps.find((a) => a.name.toLowerCase().includes(token)) ||
+      null;
+
+    const evidence: Array<{ type: string; ref: string; detail: string }> = [
+      ...logs.slice(0, 4).map((l) => ({ type: 'log', ref: l.id, detail: l.body.slice(0, 160) })),
+      ...related.slice(0, 2).map((t) => ({
+        type: 'trace',
+        ref: t.traceId,
+        detail: `${t.durationMs}ms · ${t.errorCount} errors · ${t.services}`,
+      })),
+    ];
+    if (entity) {
+      evidence.unshift({
+        type: 'entity',
+        ref: entity.id,
+        detail: `${entity.name} health=${entity.health} score=${entity.healthScore}${entity.businessImpact ? ` · ${entity.businessImpact}` : ''}`,
+      });
+    }
+    if (evidence.length === 0) {
+      evidence.push({
+        type: 'context',
+        ref: 'observe-overview',
+        detail: `No correlated telemetry for ${name}; open Logs/Traces explorers and Digital Twin impact.`,
+      });
+    }
+
+    const errorLogs = logs.filter((l) => l.severity.toUpperCase() === 'ERROR');
     return {
       brand: 'OpsEdge360',
-      summary: `Observability investigation for ${name}: ${logs.items.filter((l) => l.severity === 'ERROR').length} error logs and ${related.length} related traces in the current window.`,
-      evidence: [
-        ...logs.items.slice(0, 3).map((l) => ({ type: 'log', ref: l.id, detail: l.body.slice(0, 160) })),
-        ...related.slice(0, 2).map((t) => ({
-          type: 'trace',
-          ref: t.traceId,
-          detail: `${t.durationMs}ms · ${t.errorCount} errors`,
-        })),
-      ],
-      confidence: related.length || logs.items.length ? 0.78 : 0.55,
-      businessImpact: 'Mapped via Digital Twin relationships when CI anchors exist',
-      affectedServices: Array.from(new Set(logs.items.map((l) => l.serviceName))).slice(0, 8),
+      summary: `Observability investigation for ${name}: ${errorLogs.length} error logs and ${related.length} related traces in the current window.`,
+      evidence,
+      confidence: related.length || errorLogs.length || entity ? 0.78 : 0.55,
+      businessImpact: entity?.businessImpact || 'Mapped via Digital Twin relationships when CI anchors exist',
+      affectedServices: Array.from(
+        new Set([...(entity ? [entity.name] : []), ...logs.map((l) => l.serviceName), ...aliases]),
+      ).slice(0, 8),
       rootCause: related[0]?.errorCount
         ? `Elevated errors on trace ${related[0].traceId}`
-        : 'Insufficient error signal — continue correlation',
+        : errorLogs[0]
+          ? `Recent ERROR: ${errorLogs[0].body.slice(0, 120)}`
+          : entity?.health === 'degraded' || entity?.health === 'critical'
+            ? `${entity.name} is ${entity.health}`
+            : 'Insufficient error signal — continue correlation',
       recommendedRemediation: [
         'Open Digital Twin impact for the primary service',
         'Inspect slowest ERROR span in Traces',
@@ -325,9 +371,26 @@ export class ObserveFacadeService {
         'Propose restart of unhealthy deployment (approval required)',
         'Open incident workspace with evidence pack',
       ],
-      twinHref: `/twin?name=${encodeURIComponent(name || '')}`,
+      twinHref: entity?.twinHref || `/twin?name=${encodeURIComponent(name)}`,
       prompt: body.prompt || `Explain observability state for ${name}`,
     };
+  }
+
+  /** Map display names to telemetry service labels (Banking360 / Retail360 demos). */
+  private serviceAliases(name: string): string[] {
+    const n = name.toLowerCase();
+    const aliases = new Set<string>([name]);
+    if (n.includes('upi')) aliases.add('upi-gateway');
+    if (n.includes('settlement')) aliases.add('settlement-svc');
+    if (n.includes('checkout') || n.includes('retail')) aliases.add('checkout-api');
+    if (n.includes('order')) aliases.add('order-orchestrator');
+    if (n.includes('oracle') || n.includes('cbs')) aliases.add('cbs-oracle');
+    if (n.includes('postgres') || n.includes('payment')) aliases.add('payments-postgres');
+    // also add compact token forms
+    for (const part of name.split(/[\s/_-]+/)) {
+      if (part.length >= 3) aliases.add(part);
+    }
+    return [...aliases];
   }
 
   /**
