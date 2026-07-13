@@ -492,7 +492,7 @@ export class ExecutiveDataService {
         trend: `${kpis.availability.toFixed(2)}% availability`,
         status: overall.status,
         sparkline: availabilitySpark.length > 1 ? availabilitySpark : undefined,
-        drilldown: { href: '/ops-intelligence', label: 'Investigate' },
+        drilldown: { href: '/observability', label: 'Infrastructure' },
         metadata: { refreshIntervalSec: 60, roles: ['cio', 'admin', 'noc'], position: 1, size: 'md' },
       },
       {
@@ -515,7 +515,7 @@ export class ExecutiveDataService {
         trend: `${kpis.activeIncidents} active incidents`,
         status: this.rules.alertStatus(kpis.openAlerts),
         sparkline: incidentSpark.length > 1 ? incidentSpark : undefined,
-        drilldown: { href: '/ops-intelligence', label: 'Alerts' },
+        drilldown: { href: '/ops-intelligence', label: 'Incident Queue' },
         metadata: { refreshIntervalSec: 30, position: 3 },
       },
       {
@@ -525,7 +525,7 @@ export class ExecutiveDataService {
         score: kpis.securityPosture.toUpperCase(),
         trend: 'Enterprise security posture',
         status: this.rules.postureStatus(kpis.securityPosture),
-        drilldown: { href: '/security', label: 'Security Center' },
+        drilldown: { href: '/security', label: 'Security Operations' },
         metadata: { refreshIntervalSec: 60, roles: ['ciso', 'soc'], position: 4 },
       },
       {
@@ -535,7 +535,7 @@ export class ExecutiveDataService {
         score: `${kpis.complianceScore}/100`,
         trend: 'Control posture',
         status: this.rules.complianceStatus(kpis.complianceScore),
-        drilldown: { href: '/compliance', label: 'Compliance' },
+        drilldown: { href: '/compliance', label: 'Compliance Workspace' },
         metadata: { refreshIntervalSec: 120, roles: ['ciso', 'auditor'], position: 5 },
       },
       {
@@ -552,7 +552,7 @@ export class ExecutiveDataService {
           avgHealth,
           atRisk,
         ),
-        drilldown: { href: '/network', label: 'Network' },
+        drilldown: { href: '/network', label: 'Network Operations' },
         metadata: { refreshIntervalSec: 90, position: 6 },
       },
       {
@@ -560,9 +560,9 @@ export class ExecutiveDataService {
         title: 'Business Health',
         category: 'health',
         score: `₹${(kpis.revenueAtRisk / 1000).toFixed(0)}K/hr`,
-        trend: 'Revenue at risk',
+        trend: 'Revenue at risk · business services',
         status: this.rules.revenueAtRiskStatus(kpis.revenueAtRisk),
-        drilldown: { href: '/banking360', label: 'Banking360' },
+        drilldown: { href: '/transactions', label: 'Business Services' },
         metadata: { refreshIntervalSec: 60, position: 7 },
       },
       {
@@ -578,6 +578,18 @@ export class ExecutiveDataService {
         metadata: { refreshIntervalSec: 60, position: 8 },
       },
     ];
+
+    // Revenue-at-risk companion KPI for Banking360 workspace
+    health.push({
+      id: 'health.revenue',
+      title: 'Revenue At Risk',
+      category: 'health',
+      score: `₹${(kpis.revenueAtRisk / 1000).toFixed(0)}K/hr`,
+      trend: 'Banking journey exposure',
+      status: this.rules.revenueAtRiskStatus(kpis.revenueAtRisk),
+      drilldown: { href: '/banking360', label: 'Banking360' },
+      metadata: { refreshIntervalSec: 60, position: 9, roles: ['cio', 'admin'] },
+    });
 
     const operationalSummary = this.buildDomainWidgets(kpis, services, estateStats, avgHealth, atRisk);
     const securityCounts = this.rules.securityCounts(kpis.openAlerts, kpis.activeIncidents);
@@ -616,6 +628,7 @@ export class ExecutiveDataService {
       slaTarget: s.slaTarget,
       status: s.status,
       owner: s.owner,
+      href: `/transactions?service=${encodeURIComponent(s.id)}`,
     }));
 
     const recentIncidents: IncidentWidget[] =
@@ -705,13 +718,58 @@ export class ExecutiveDataService {
         priority: i + 1,
       })),
       {
+        id: 'action-open-incident',
+        title: 'Open incident',
+        description: 'Correlate alerts into an incident and open the investigation workspace.',
+        href: '/ops-intelligence?workflow=create-incident',
+        cta: 'Create & investigate',
+        category: 'action',
+        priority: 8,
+      },
+      {
+        id: 'action-generate-report',
+        title: 'Generate executive report',
+        description: 'Create a board-ready report and download export artifacts.',
+        href: '/reports?workflow=generate&type=executive_summary',
+        cta: 'Generate & export',
+        category: 'action',
+        priority: 9,
+      },
+      {
+        id: 'action-run-automation',
+        title: 'Run automation',
+        description: 'Open the automation catalog and execute a remediation workflow.',
+        href: '/admin/workflows?workflow=run',
+        cta: 'Open catalog',
+        category: 'action',
+        priority: 10,
+      },
+      {
+        id: 'action-twin',
+        title: 'Digital Twin',
+        description: 'Impact simulation across dependencies and blast radius.',
+        href: '/twin?workflow=impact',
+        cta: 'Simulate impact',
+        category: 'action',
+        priority: 11,
+      },
+      {
+        id: 'action-drift',
+        title: 'CMDB Drift',
+        description: 'Compare drifted configuration, affected assets, and change history.',
+        href: '/cmdb/drift',
+        cta: 'Review drift',
+        category: 'action',
+        priority: 12,
+      },
+      {
         id: 'action-investigate',
         title: 'Investigate',
         description: 'Open Ops Intelligence on active incidents and alert pressure.',
         href: '/ops-intelligence',
         cta: 'Investigate now',
         category: 'action',
-        priority: 10,
+        priority: 13,
       },
       {
         id: 'action-topology',
@@ -720,7 +778,7 @@ export class ExecutiveDataService {
         href: '/topology',
         cta: 'Open Topology',
         category: 'action',
-        priority: 11,
+        priority: 14,
       },
     ];
 

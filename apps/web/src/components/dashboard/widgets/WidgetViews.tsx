@@ -50,12 +50,14 @@ export function DomainWidgetView({ widget, security, compliance }: { widget: Dom
   useWidgetTiming(widget.id);
   const isSecurity = widget.id === 'domain.security' && security;
   const isCompliance = widget.id === 'domain.compliance' && compliance;
+  const href = widget.drilldown?.href;
+  if (!href || href === '#') return null;
   return (
     <DomainCard
       title={widget.title}
       summary={widget.summary}
       status={widget.status}
-      href={widget.drilldown?.href ?? '#'}
+      href={href}
       meta={widget.countLabel}
       trend={widget.summary}
       criticalCount={isSecurity ? security.critical : undefined}
@@ -194,15 +196,38 @@ export function TableWidgetView({ widget }: { widget: TableWidget }) {
           </tr>
         </thead>
         <tbody>
-          {widget.rows.map((row, i) => (
-            <tr key={String(row.id ?? i)} className="border-b border-white/5 hover:bg-white/[0.02]">
-              {widget.columns.map((c) => (
-                <td key={c.key} className="px-3 py-2.5 text-slate-200">
-                  {c.key === 'status' ? <StatusBadge status={String(row[c.key] ?? 'unknown')} /> : String(row[c.key] ?? '—')}
+          {widget.rows.map((row, i) => {
+            const href = typeof row.href === 'string' && row.href !== '#' ? row.href : widget.drilldown?.href;
+            const cells = (
+              <>
+                {widget.columns.map((c) => (
+                  <td key={c.key} className="px-3 py-2.5 text-slate-200">
+                    {c.key === 'status' ? <StatusBadge status={String(row[c.key] ?? 'unknown')} /> : String(row[c.key] ?? '—')}
+                  </td>
+                ))}
+              </>
+            );
+            if (!href) {
+              return (
+                <tr key={String(row.id ?? i)} className="border-b border-white/5">
+                  {cells}
+                </tr>
+              );
+            }
+            return (
+              <tr key={String(row.id ?? i)} className="border-b border-white/5 hover:bg-white/[0.02]">
+                <td colSpan={widget.columns.length} className="p-0">
+                  <Link href={href} className="grid w-full" style={{ gridTemplateColumns: `repeat(${widget.columns.length}, minmax(0, 1fr))` }}>
+                    {widget.columns.map((c) => (
+                      <span key={c.key} className="px-3 py-2.5 text-slate-200">
+                        {c.key === 'status' ? <StatusBadge status={String(row[c.key] ?? 'unknown')} /> : String(row[c.key] ?? '—')}
+                      </span>
+                    ))}
+                  </Link>
                 </td>
-              ))}
-            </tr>
-          ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -236,6 +261,7 @@ export function ActionWidgetsGrid({ actions }: { actions: ActionWidget[] }) {
   useWidgetTiming('actions.board');
   const seen = new Set<string>();
   const unique = actions.filter((a) => {
+    if (!a.href || a.href === '#') return false;
     if (seen.has(a.href)) return false;
     seen.add(a.href);
     return true;

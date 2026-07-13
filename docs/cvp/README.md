@@ -6,6 +6,7 @@
 
 | Artifact | Path |
 |----------|------|
+| Wave 2.5 review packet | [WAVE25_REVIEW_PACKET.md](./WAVE25_REVIEW_PACKET.md) |
 | Validation Report | [VALIDATION_REPORT.md](./VALIDATION_REPORT.md) |
 | Version 1.1 Backlog | [V1_1_BACKLOG.md](./V1_1_BACKLOG.md) |
 | Competitive Intelligence | [COMPETITIVE_INTELLIGENCE.md](./COMPETITIVE_INTELLIGENCE.md) |

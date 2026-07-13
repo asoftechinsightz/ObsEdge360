@@ -34,6 +34,37 @@ type Rotation = {
   maxAgeDays: number;
 };
 
+type Finding = {
+  id: string;
+  title: string;
+  severity?: string;
+  status?: string;
+  source?: string;
+  subtitle?: string;
+  href?: string;
+  mitre?: { tactic: string; technique: string; id: string };
+  evidence?: string[];
+  relatedAssets?: string[];
+  timeline?: string;
+};
+
+function mapMitre(source: string, title: string): { tactic: string; technique: string; id: string } {
+  const s = `${source} ${title}`.toLowerCase();
+  if (s.includes('fraud') || s.includes('payment')) {
+    return { tactic: 'Impact', technique: 'Resource Hijacking / Fraud', id: 'T1496' };
+  }
+  if (s.includes('anomaly') || s.includes('lateral')) {
+    return { tactic: 'Discovery', technique: 'Network Service Discovery', id: 'T1046' };
+  }
+  if (s.includes('siem') || s.includes('auth') || s.includes('login') || s.includes('mfa')) {
+    return { tactic: 'Credential Access', technique: 'Brute Force', id: 'T1110' };
+  }
+  if (s.includes('exfil') || s.includes('data')) {
+    return { tactic: 'Exfiltration', technique: 'Exfiltration Over Web Service', id: 'T1567' };
+  }
+  return { tactic: 'Initial Access', technique: 'Exploit Public-Facing Application', id: 'T1190' };
+}
+
 function SecurityCenterInner() {
   const search = useSearchParams();
   const [data, setData] = useState<Dash | null>(null);
@@ -46,18 +77,101 @@ function SecurityCenterInner() {
   const [code, setCode] = useState('');
   const [backup, setBackup] = useState<string[]>([]);
   const [mfaStatus, setMfaStatus] = useState<Record<string, unknown> | null>(null);
+  const [findings, setFindings] = useState<Finding[]>([]);
+  const [posture, setPosture] = useState<Record<string, unknown> | null>(null);
+  const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
 
   const load = async () => {
-    const [dash, sess, rot, status] = await Promise.all([
+    const [dash, sess, rot, status, postureRes, fraudRes, anomaliesRes, siemRes] = await Promise.all([
       apiClient<Dash>('/security/dashboard'),
       apiClient<{ sessions: Session[] }>('/security/sessions').catch(() => ({ sessions: [] })),
       apiClient<Rotation>('/me/password/rotation').catch(() => null),
       apiClient<Record<string, unknown>>('/me/mfa/status').catch(() => null),
+      apiClient<Record<string, unknown>>('/security/posture').catch(() => null),
+      apiClient<{ alerts?: Array<Record<string, unknown>>; items?: Array<Record<string, unknown>> }>('/security/fraud').catch(() => null),
+      apiClient<{ anomalies?: Array<Record<string, unknown>>; items?: Array<Record<string, unknown>> }>('/security/anomalies').catch(() => null),
+      apiClient<{ events?: Array<Record<string, unknown>>; items?: Array<Record<string, unknown>> }>('/security/siem/events').catch(() => null),
     ]);
     setData(dash);
     setSessions(sess.sessions || []);
     setRotation(rot);
     setMfaStatus(status);
+    setPosture(postureRes);
+
+    const next: Finding[] = [];
+    const fraudItems = fraudRes?.alerts ?? fraudRes?.items ?? [];
+    for (const f of fraudItems.slice(0, 8)) {
+      const title = String(f.title ?? f.alertType ?? 'Fraud alert');
+      const source = 'Fraud';
+      next.push({
+        id: String(f.id ?? `fraud-${next.length}`),
+        title,
+        severity: String(f.severity ?? 'medium'),
+        status: String(f.status ?? 'open'),
+        source,
+        subtitle: String(f.description ?? ''),
+        href: `/ops-intelligence?workflow=create-incident&source=fraud&id=${encodeURIComponent(String(f.id ?? ''))}`,
+        mitre: mapMitre(source, title),
+        evidence: [String(f.description ?? title), `reasonCodes: ${JSON.stringify(f.reasonCodes ?? [])}`],
+        relatedAssets: f.ciId ? [String(f.ciId)] : ['Payment services'],
+        timeline: String(f.detectedAt ?? f.created_at ?? new Date().toISOString()),
+      });
+    }
+    const anomalies = anomaliesRes?.anomalies ?? anomaliesRes?.items ?? [];
+    for (const a of anomalies.slice(0, 8)) {
+      const title = String(a.anomalyType ?? a.title ?? 'Anomaly');
+      const source = 'Anomaly';
+      next.push({
+        id: String(a.id ?? `anom-${next.length}`),
+        title,
+        severity: String(a.severity ?? 'medium'),
+        status: String(a.status ?? 'open'),
+        source,
+        subtitle: a.ciId ? `Asset ${String(a.ciId)}` : undefined,
+        href: `/ops-intelligence?workflow=create-incident&source=anomaly&id=${encodeURIComponent(String(a.id ?? ''))}`,
+        mitre: mapMitre(source, title),
+        evidence: [
+          `metric=${String(a.metricName ?? a.metric_name ?? 'n/a')}`,
+          `observed=${String(a.observedValue ?? a.observed_value ?? 'n/a')}`,
+          `baseline=${String(a.baselineValue ?? a.baseline_value ?? 'n/a')}`,
+        ],
+        relatedAssets: a.ciId ? [String(a.ciId)] : ['Infrastructure'],
+        timeline: String(a.detectedAt ?? a.detected_at ?? new Date().toISOString()),
+      });
+    }
+    const events = siemRes?.events ?? siemRes?.items ?? [];
+    for (const e of events.slice(0, 8)) {
+      const title = String(e.title ?? e.eventType ?? 'SIEM event');
+      const source = String(e.source ?? 'SIEM');
+      next.push({
+        id: String(e.id ?? `siem-${next.length}`),
+        title,
+        severity: String(e.severity ?? 'info'),
+        status: String(e.status ?? 'open'),
+        source,
+        href: `/ops-intelligence?workflow=create-incident&source=siem&id=${encodeURIComponent(String(e.id ?? ''))}`,
+        mitre: mapMitre(source, title),
+        evidence: [JSON.stringify(e).slice(0, 280)],
+        relatedAssets: ['Identity plane', 'SIEM correlation'],
+        timeline: String(e.receivedAt ?? e.created_at ?? new Date().toISOString()),
+      });
+    }
+    for (const a of dash.openAlerts ?? []) {
+      next.push({
+        id: a.id,
+        title: a.title,
+        severity: a.severity,
+        status: a.status,
+        source: 'Identity alert',
+        href: `/ops-intelligence?workflow=create-incident&source=alert&id=${encodeURIComponent(a.id)}`,
+        mitre: mapMitre('Identity alert', a.title),
+        evidence: [`alert=${a.title}`, `created=${a.created_at}`],
+        relatedAssets: ['User sessions', 'MFA factors'],
+        timeline: a.created_at,
+      });
+    }
+    setFindings(next);
+    if (next[0]) setSelectedFinding(next[0]);
   };
 
   useEffect(() => {
@@ -108,25 +222,113 @@ function SecurityCenterInner() {
   return (
     <DashboardShell>
       <PageHeader
-        title="Security Center"
-        purpose="MFA, sessions, login risk, and security alerts — CISO-ready posture without engineering clutter."
+        title="Security Operations"
+        purpose="Findings, posture, evidence, affected assets, and identity controls — investigate and remediate from one workspace."
       />
       <TrustBar
         lastUpdated={new Date()}
         freshness={data ? 'live' : 'unknown'}
-        dataSource="Security dashboard APIs"
-        coverageLabel={`${data?.counts?.activeMfaFactors ?? 0} MFA factors · ${data?.counts?.activeSessions ?? 0} sessions`}
+        dataSource="Security posture · fraud · anomalies · SIEM · identity"
+        coverageLabel={`${findings.length} findings · ${data?.counts?.activeMfaFactors ?? 0} MFA · ${data?.counts?.activeSessions ?? 0} sessions`}
         integrationHealth={data ? 'healthy' : 'unknown'}
       />
+      {posture && (
+        <div className="mb-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4 text-sm text-slate-200">
+          <div className="text-xs uppercase tracking-wide text-slate-500">Security posture</div>
+          <pre className="mt-2 max-h-40 overflow-auto text-xs text-slate-300">{JSON.stringify(posture, null, 2)}</pre>
+        </div>
+      )}
+      <section className="mb-6 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-100">Findings</h2>
+          <a href="/ops-intelligence?workflow=create-incident" className="text-xs text-sky-400 hover:underline">
+            Open incident queue →
+          </a>
+        </div>
+        {findings.length === 0 ? (
+          <p className="text-xs text-slate-500">No open findings from posture, fraud, anomalies, or SIEM for this tenant.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <ul className="space-y-2">
+              {findings.map((f) => (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFinding(f)}
+                    className={`flex w-full items-start justify-between gap-3 rounded-lg border px-3 py-2 text-left ${
+                      selectedFinding?.id === f.id ? 'border-sky-500/40 bg-sky-500/10' : 'border-white/5 bg-black/20'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-slate-100">{f.title}</div>
+                      <div className="mt-0.5 text-[11px] text-slate-500">
+                        {f.source}
+                        {f.severity ? ` · ${f.severity}` : ''}
+                        {f.mitre ? ` · ${f.mitre.id}` : ''}
+                      </div>
+                    </div>
+                    {f.href && (
+                      <a
+                        href={f.href}
+                        className="shrink-0 text-xs text-sky-400 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Investigate →
+                      </a>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {selectedFinding && (
+              <div className="space-y-3 rounded-lg border border-white/10 bg-black/20 p-3 text-xs text-slate-300">
+                <div>
+                  <div className="text-[10px] uppercase text-slate-500">MITRE ATT&CK</div>
+                  <div className="mt-1 font-medium text-slate-100">
+                    {selectedFinding.mitre?.id} · {selectedFinding.mitre?.tactic} / {selectedFinding.mitre?.technique}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase text-slate-500">Evidence</div>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    {(selectedFinding.evidence ?? []).map((e) => (
+                      <li key={e}>{e}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase text-slate-500">Threat timeline</div>
+                  <div className="mt-1">{selectedFinding.timeline ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase text-slate-500">Related assets</div>
+                  <div className="mt-1">{(selectedFinding.relatedAssets ?? []).join(' · ') || '—'}</div>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <a className="text-sky-400 hover:underline" href={selectedFinding.href ?? '/ops-intelligence'}>
+                    Remediate via incident →
+                  </a>
+                  <a className="text-sky-400 hover:underline" href="/admin/workflows?workflow=run">
+                    Run automation →
+                  </a>
+                  <a className="text-sky-400 hover:underline" href="/twin?workflow=impact">
+                    Twin impact →
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
       {data && (
         <ExecutiveNarrative
-          happening={`MFA policy is ${data.mfaPolicy?.mode || 'optional'} with ${data.openAlerts?.length ?? 0} open alert(s)`}
-          whyItMatters="Identity posture and session hygiene are the first controls buyers and auditors ask about."
-          affectedService="Tenant identity plane"
+          happening={`${findings.length} security finding(s) · MFA policy ${data.mfaPolicy?.mode || 'optional'}`}
+          whyItMatters="SOC and CISO workflows require findings, evidence, and remediation — not identity alone."
+          affectedService="Security operations plane"
           impact={`${data.counts?.activeSessions ?? 0} active sessions · ${data.counts?.activeApiTokens ?? 0} API tokens`}
           nextAction={{
-            label: (data.openAlerts?.length ?? 0) > 0 ? 'Review open security alerts below' : 'Review MFA enrollment',
-            href: '/security',
+            label: findings.length > 0 ? 'Investigate top finding' : 'Review MFA enrollment',
+            href: findings[0]?.href ?? '/security',
           }}
           aiConfidence={80}
         />

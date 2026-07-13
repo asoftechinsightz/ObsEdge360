@@ -3,13 +3,19 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 import type { Response } from 'express';
 import { ProxyService } from './proxy.service';
 import { CurrentUser } from './auth/current-user.decorator';
+import { CurrentTenant } from './auth/current-tenant.decorator';
 import type { JwtPayload } from './auth/auth.service';
+import type { TenantContext } from './auth/authorization.guard';
+import { IncidentWorkspaceService } from './incident/incident-workspace.service';
 
 @ApiTags('ops-intelligence')
 @ApiBearerAuth()
 @Controller('ops-intelligence')
 export class OpsIntelligenceController {
-  constructor(private proxy: ProxyService) {}
+  constructor(
+    private proxy: ProxyService,
+    private workspace: IncidentWorkspaceService,
+  ) {}
 
   @Get('health')
   @ApiOperation({ summary: 'Ops intelligence KPI health' })
@@ -53,6 +59,80 @@ export class OpsIntelligenceController {
       tenantId: user.tenantId,
     });
     return res.status(result.status).json(result.data);
+  }
+
+  @Get('incidents/:id/workspace')
+  @ApiOperation({ summary: 'P1 Incident Workspace — full operational context' })
+  getWorkspace(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+  ) {
+    return this.workspace.getWorkspace(user, id, tenant?.id);
+  }
+
+  @Post('incidents/:id/transition')
+  @ApiOperation({ summary: 'Advance incident lifecycle status' })
+  transition(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+    @Body() body: { status: string; ownerId?: string; priority?: string; note?: string },
+  ) {
+    return this.workspace.transition(user, id, body, tenant?.id);
+  }
+
+  @Post('incidents/:id/comments')
+  @ApiOperation({ summary: 'Add incident comment' })
+  comment(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+    @Body() body: { body: string; mentions?: string[] },
+  ) {
+    return this.workspace.addComment(user, id, body, tenant?.id);
+  }
+
+  @Post('incidents/:id/watchers')
+  @ApiOperation({ summary: 'Add incident watcher' })
+  watcher(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+    @Body() body: { userId: string },
+  ) {
+    return this.workspace.addWatcher(user, id, body.userId, tenant?.id);
+  }
+
+  @Post('incidents/:id/verify')
+  @ApiOperation({ summary: 'One-click recovery verification' })
+  verify(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+  ) {
+    return this.workspace.verify(user, id, tenant?.id);
+  }
+
+  @Post('incidents/:id/close-and-report')
+  @ApiOperation({ summary: 'Close incident and generate executive closure report' })
+  closeAndReport(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+  ) {
+    return this.workspace.closeAndReport(user, id, tenant?.id);
+  }
+
+  @Post('incidents/:id/automation')
+  @ApiOperation({ summary: 'Link automation execution to incident audit trail' })
+  automation(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant: TenantContext | undefined,
+    @Param('id') id: string,
+    @Body() body: { automationId: string; mode: string; result?: unknown },
+  ) {
+    return this.workspace.recordAutomationLink(user, id, body, tenant?.id);
   }
 
   @Post('rca')
@@ -234,11 +314,7 @@ export class OpsIntelligenceController {
 
   @Post('remediation/approvals/:id/execute')
   @ApiOperation({ summary: 'Execute remediation under policy (dry_run or controlled live)' })
-  async execute(
-    @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
-    @Res() res: Response,
-  ) {
+  async execute(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Res() res: Response) {
     const result = await this.proxy.observability(
       `/ops-intelligence/remediation/approvals/${id}/execute`,
       { method: 'POST', body: {}, tenantId: user.tenantId },

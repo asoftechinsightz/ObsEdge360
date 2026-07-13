@@ -82,6 +82,9 @@ import { SecurityService as DashboardSecurityService } from './dashboard/securit
 import { NetworkService as DashboardNetworkService } from './dashboard/network.service';
 import { AiInsightService } from './dashboard/ai-insight.service';
 import { WidgetRegistryService } from './dashboard/widget-registry.service';
+import { SearchController } from './search/search.controller';
+import { SearchService } from './search/search.service';
+import { IncidentWorkspaceService } from './incident/incident-workspace.service';
 
 @Module({
   controllers: [
@@ -91,6 +94,7 @@ import { WidgetRegistryService } from './dashboard/widget-registry.service';
     CopilotController,
     ExecutiveController,
     DashboardController,
+    SearchController,
     CmdbProxyController,
     DiscoveryProxyController,
     TwinController,
@@ -165,6 +169,8 @@ import { WidgetRegistryService } from './dashboard/widget-registry.service';
     DashboardNetworkService,
     AiInsightService,
     WidgetRegistryService,
+    SearchService,
+    IncidentWorkspaceService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

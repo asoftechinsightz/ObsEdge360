@@ -1,5 +1,7 @@
 # Wave 2.5 Screenshot Benchmark
 
+**Last capture:** 2026-07-13 (production, post-deploy `ab97beb`)
+
 Capture after Wave 1 gateway + Wave 2 web are deployed to production.
 
 ## Command

@@ -64,13 +64,55 @@ export function ExecutiveDashboardClient({
   const tableWidget = payload.tables.find((t) => t.id === 'table.services');
 
   const priorityActions = [
-    { id: 'a-incident', title: 'Open incident', description: 'Triage via ITSM with executive context.', href: '/itsm', cta: 'Open ITSM' },
-    { id: 'a-topology', title: 'View topology', description: 'Dependency paths and blast radius.', href: '/topology', cta: 'Open Topology' },
-    { id: 'a-twin', title: 'Digital Twin', description: 'Simulate impact before change windows.', href: '/twin', cta: 'Open Twin' },
-    { id: 'a-drift', title: 'CMDB Drift', description: 'Clear unauthorized configuration change.', href: '/cmdb/drift', cta: 'Review drift' },
-    { id: 'a-investigate', title: 'Investigate', description: 'Ops Intelligence on active signals.', href: '/ops-intelligence', cta: 'Investigate' },
-    { id: 'a-report', title: 'Generate executive report', description: 'Board-ready health and risk package.', href: '/reports', cta: 'Open Reports' },
-    { id: 'a-automation', title: 'Run automation', description: 'AIOps RCA and remediation suggestions.', href: '/aiops', cta: 'Open AIOps' },
+    {
+      id: 'a-incident',
+      title: 'Open incident',
+      description: 'Correlate alerts into an incident and open investigation.',
+      href: '/ops-intelligence?workflow=create-incident',
+      cta: 'Create & investigate',
+    },
+    {
+      id: 'a-topology',
+      title: 'View topology',
+      description: 'Dependency paths and blast radius.',
+      href: '/topology',
+      cta: 'Open Topology',
+    },
+    {
+      id: 'a-twin',
+      title: 'Digital Twin',
+      description: 'Simulate impact before change windows.',
+      href: '/twin?workflow=impact',
+      cta: 'Simulate impact',
+    },
+    {
+      id: 'a-drift',
+      title: 'CMDB Drift',
+      description: 'Clear unauthorized configuration change.',
+      href: '/cmdb/drift',
+      cta: 'Review drift',
+    },
+    {
+      id: 'a-investigate',
+      title: 'Investigate',
+      description: 'Ops Intelligence on active signals.',
+      href: '/ops-intelligence',
+      cta: 'Investigate',
+    },
+    {
+      id: 'a-report',
+      title: 'Generate executive report',
+      description: 'Board-ready health and risk package with download.',
+      href: '/reports?workflow=generate&type=executive_summary',
+      cta: 'Generate & export',
+    },
+    {
+      id: 'a-automation',
+      title: 'Run automation',
+      description: 'Automation catalog — execute remediation workflow.',
+      href: '/admin/workflows?workflow=run',
+      cta: 'Open catalog',
+    },
   ];
 
   const actions = [

@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import {
   Network, RefreshCw, Crosshair, Layers, AlertTriangle,
 } from 'lucide-react';
@@ -62,6 +64,16 @@ function healthColor(score?: number) {
 }
 
 export default function DigitalTwinPage() {
+  return (
+    <Suspense fallback={<DashboardShell><div className="p-6 text-sm text-slate-400">Loading Digital Twin…</div></DashboardShell>}>
+      <DigitalTwinInner />
+    </Suspense>
+  );
+}
+
+function DigitalTwinInner() {
+  const search = useSearchParams();
+  const workflowRan = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
   const [nodes, setNodes] = useState<TwinNode[]>([]);
@@ -239,8 +251,23 @@ export default function DigitalTwinPage() {
   }, [typeFilter, renderGraph]);
 
   useEffect(() => {
-    loadGraph();
+    void loadGraph().then(() => {
+      // handled in separate effect once nodes load
+    });
   }, [loadGraph]);
+
+  useEffect(() => {
+    if (workflowRan.current) return;
+    if (search.get('workflow') !== 'impact') return;
+    if (!nodes.length) return;
+    workflowRan.current = true;
+    const preferred =
+      nodes.find((n) => /business|service|payment|application/i.test(n.type) || /payment|upi|core/i.test(n.label)) ??
+      nodes[0];
+    setSelected(preferred);
+    void analyzeImpact(preferred.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, search]);
 
   useEffect(() => {
     if (nodes.length === 0) return;

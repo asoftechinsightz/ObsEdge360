@@ -44,7 +44,10 @@ Wave 3 introduces Platform Configuration APIs (`/platform/navigation`, `/platfor
 ## Sign-off checklist
 
 - [ ] Product owner approves UX review  
-- [ ] Screenshots in `docs/design-system/screenshots/`  
+- [x] Screenshots in `docs/design-system/screenshots/` (2026-07-13 prod capture)  
+- [x] Wave 1 + 2 deployed to production (`ab97beb`)  
 - [ ] No regressions on `/executive/*` legacy routes  
 - [ ] Demo guided eval completes without empty dashboard  
 - [ ] Performance telemetry shows `apiCalls: 1`
+
+**CPO packet:** [WAVE25_REVIEW_PACKET.md](../cvp/WAVE25_REVIEW_PACKET.md)

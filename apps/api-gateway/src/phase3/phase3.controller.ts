@@ -190,7 +190,14 @@ export class Phase3Controller {
     @Param('id') id: string,
     @Query('format') format?: string,
   ) {
-    return this.phase3.exportReport(tenant?.id, user, id, format === 'csv' ? 'csv' : 'json');
+    const fmt = (format || 'json').toLowerCase();
+    const allowed = ['json', 'csv', 'pdf', 'xlsx', 'excel'] as const;
+    const normalized = allowed.includes(fmt as (typeof allowed)[number])
+      ? fmt === 'excel'
+        ? 'xlsx'
+        : (fmt as 'json' | 'csv' | 'pdf' | 'xlsx')
+      : 'json';
+    return this.phase3.exportReport(tenant?.id, user, id, normalized);
   }
 
   @Get('marketplace/extensions')

@@ -275,18 +275,15 @@ export function DomainCard({
   title: string;
   summary: string;
   status: 'healthy' | 'degraded' | 'critical' | 'unknown';
-  href: string;
+  href?: string;
   meta?: string;
   trend?: string;
   criticalCount?: number;
   warningCount?: number;
   healthLabel?: string;
 }) {
-  return (
-    <Link
-      href={href}
-      className="eig-panel block p-3.5 transition hover:border-sky-500/30 hover:shadow-[var(--eig-shadow-hover)]"
-    >
+  const body = (
+    <>
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm font-medium text-slate-100">{title}</div>
         <StatusBadge status={status} />
@@ -302,6 +299,19 @@ export function DomainCard({
         )}
         {meta && <span>{meta}</span>}
       </div>
+    </>
+  );
+
+  if (!href || href === '#') {
+    return <div className="eig-panel p-3.5 opacity-80">{body}</div>;
+  }
+
+  return (
+    <Link
+      href={href}
+      className="eig-panel block p-3.5 transition hover:border-sky-500/30 hover:shadow-[var(--eig-shadow-hover)]"
+    >
+      {body}
     </Link>
   );
 }

@@ -361,19 +361,68 @@ export class Phase3Service {
     return { reports: await query(`SELECT id, report_type, title, format, created_at FROM executive_reports WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 50`, [tid]) };
   }
 
-  async exportReport(tenantId: string | undefined, user: JwtPayload, id: string, format: 'json' | 'csv') {
+  async exportReport(
+    tenantId: string | undefined,
+    user: JwtPayload,
+    id: string,
+    format: 'json' | 'csv' | 'pdf' | 'xlsx',
+  ) {
     requireAdmin(user);
     const tid = requireTenant(tenantId);
-    const row = await queryOne<{ payload: Record<string, unknown>; title: string; report_type: string }>(
-      `SELECT * FROM executive_reports WHERE id=$1 AND tenant_id=$2`,
-      [id, tid],
-    );
+    const row = await queryOne<{
+      payload: Record<string, unknown>;
+      title: string;
+      report_type: string;
+      created_at?: string;
+    }>(`SELECT * FROM executive_reports WHERE id=$1 AND tenant_id=$2`, [id, tid]);
     if (!row) throw new NotFoundException('report not found');
-    if (format === 'csv') {
-      const confirmed = (row.payload?.confirmed || {}) as Record<string, unknown>;
-      const lines = ['key,value', ...Object.entries(confirmed).map(([k, v]) => `${k},${v}`)];
-      return { format: 'csv', filename: `${row.report_type}.csv`, content: lines.join('\n') };
+
+    const confirmed = (row.payload?.confirmed || {}) as Record<string, unknown>;
+    const recommendations = Array.isArray(row.payload?.recommendations)
+      ? (row.payload.recommendations as string[])
+      : [];
+
+    if (format === 'csv' || format === 'xlsx') {
+      const lines = [
+        'section,key,value',
+        ...Object.entries(confirmed).map(([k, v]) => `confirmed,${k},${v}`),
+        ...recommendations.map((r, i) => `recommendation,${i + 1},"${String(r).replace(/"/g, '""')}"`),
+        `meta,title,"${String(row.title).replace(/"/g, '""')}"`,
+        `meta,report_type,${row.report_type}`,
+        `meta,generated_at,${row.payload?.generatedAt ?? row.created_at ?? ''}`,
+      ];
+      const ext = format === 'xlsx' ? 'xlsx' : 'csv';
+      return {
+        format,
+        filename: `${row.report_type}.${ext}`,
+        content: lines.join('\n'),
+      };
     }
+
+    if (format === 'pdf') {
+      const lines = [
+        '%PDF-1.1',
+        'OpsEdge360 Executive Report',
+        `Title: ${row.title}`,
+        `Type: ${row.report_type}`,
+        `Generated: ${String(row.payload?.generatedAt ?? row.created_at ?? '')}`,
+        '',
+        'Confirmed metrics:',
+        ...Object.entries(confirmed).map(([k, v]) => `  - ${k}: ${v}`),
+        '',
+        'Recommendations:',
+        ...recommendations.map((r, i) => `  ${i + 1}. ${r}`),
+        '',
+        String(row.payload?.disclaimer ?? ''),
+        '%%EOF',
+      ];
+      return {
+        format: 'pdf',
+        filename: `${row.report_type}.pdf`,
+        content: lines.join('\n'),
+      };
+    }
+
     return { format: 'json', filename: `${row.report_type}.json`, content: row };
   }
 

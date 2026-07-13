@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Brain, RefreshCw, Crosshair, AlertTriangle, TrendingUp, Shield,
 } from 'lucide-react';
@@ -11,6 +12,8 @@ import { TrustBar } from '@/components/apex/TrustBar';
 import { ExecutiveNarrative } from '@/components/apex/ExecutiveNarrative';
 import { InlineAiAssist } from '@/components/apex/InlineAiAssist';
 import { LoadingSkeleton } from '@/components/UiStates';
+import { Suspense } from 'react';
+import { IncidentWorkspace } from '@/components/incident/IncidentWorkspace';
 
 interface Health {
   openIncidents: number;
@@ -39,6 +42,16 @@ interface RcaSession {
 }
 
 export default function OpsIntelligencePage() {
+  return (
+    <Suspense fallback={<DashboardShell><LoadingSkeleton rows={6} /></DashboardShell>}>
+      <OpsIntelligenceInner />
+    </Suspense>
+  );
+}
+
+function OpsIntelligenceInner() {
+  const search = useSearchParams();
+  const workflowRan = useRef(false);
   const [health, setHealth] = useState<Health | null>(null);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [signals, setSignals] = useState<Array<Record<string, unknown>>>([]);
@@ -75,8 +88,26 @@ export default function OpsIntelligencePage() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void load().then(async () => {
+      const incidentId = search.get('incident');
+      if (incidentId) {
+        setSelected({ id: incidentId, title: `Incident ${incidentId}`, severity: 'high', status: 'open' });
+      }
+      if (search.get('workflow') === 'create-incident' && !workflowRan.current) {
+        workflowRan.current = true;
+        await correlate();
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load, search]);
+
+  // After correlate, auto-open newest incident into workspace
+  useEffect(() => {
+    if (search.get('workflow') !== 'create-incident') return;
+    if (!incidents.length) return;
+    if (selected?.id) return;
+    setSelected(incidents[0]);
+  }, [incidents, search, selected?.id]);
 
   async function correlate() {
     setMessage('Correlating…');
@@ -360,22 +391,11 @@ export default function OpsIntelligencePage() {
               ))}
             </div>
             {selected && (
-              <div className="mt-3 space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void runRca(selected)} className="rounded-md bg-sky-700 px-2 py-1 text-xs text-white">
-                    RCA this
-                  </button>
-                  <button type="button" onClick={() => void requestRemediation('dry_run')} className="rounded-md bg-rose-700/80 px-2 py-1 text-xs text-white">
-                    Request dry-run
-                  </button>
-                  <button type="button" onClick={() => void requestRemediation('live')} className="rounded-md bg-orange-800/80 px-2 py-1 text-xs text-white">
-                    Request live
-                  </button>
-                </div>
-                <InlineAiAssist
-                  title="Explain this incident"
-                  prompt="Explain this incident for an SRE and an executive. Include likely blast radius, SLA risk, and next actions."
-                  context={`Title: ${selected.title}\nSeverity: ${selected.severity}\nStatus: ${selected.status}\nSignals: ${selected.signalCounts?.total ?? 0}`}
+              <div className="mt-3">
+                <IncidentWorkspace
+                  incidentId={selected.id}
+                  onMessage={setMessage}
+                  onClosed={() => void load()}
                 />
               </div>
             )}
