@@ -69,7 +69,13 @@ def psql(sql):
   return r
 
 maps=int(psql("SELECT COUNT(*) FROM service_maps sm JOIN business_services b ON b.id=sm.service_id WHERE b.name LIKE '%UPI%' OR b.name LIKE '%Payment%' OR b.name LIKE '%Banking%'") or "0")
-owners=int(psql("SELECT COUNT(*) FROM business_services WHERE owner_id IS NOT NULL OR support_team IS NOT NULL OR oncall_team IS NOT NULL") or "0")
+owners=int(psql("SELECT COUNT(*) FROM business_services WHERE owner_id IS NOT NULL") or "0")
+# Sprint 3 columns may exist after migration 050
+try:
+  owners_enriched=int(psql("SELECT COUNT(*) FROM business_services WHERE support_team IS NOT NULL OR oncall_team IS NOT NULL") or "0")
+except Exception:
+  owners_enriched=0
+owners=max(owners, owners_enriched)
 bs=int(psql("SELECT COUNT(*) FROM business_services") or "0")
 print(f"service_maps_relevant={maps} owned_services={owners} business_services={bs}")
 open(f"{out}/ede-db-checks.txt","w").write(f"maps={maps}\nowners={owners}\nbs={bs}\n")

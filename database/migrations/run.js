@@ -427,6 +427,22 @@ async function main() {
     console.log('048_ede_enterprise_demo.sql already applied.');
   }
 
+  const incidentWs = await tableExists(client, 'ops_incident_activity');
+  if (!incidentWs) {
+    const s49 = path.join(migrationsDir, '049_incident_workspace.sql');
+    if (fs.existsSync(s49)) await runSqlFile(client, s49);
+  } else {
+    console.log('049_incident_workspace.sql already applied.');
+  }
+
+  const twinHealthHist = await tableExists(client, 'twin_service_health_history');
+  if (!twinHealthHist) {
+    const s50 = path.join(migrationsDir, '050_sprint3_twin_bsi.sql');
+    if (fs.existsSync(s50)) await runSqlFile(client, s50);
+  } else {
+    console.log('050_sprint3_twin_bsi.sql already applied.');
+  }
+
   const seedsDir = path.join(__dirname, '..', 'seeds');
   if (fs.existsSync(seedsDir)) {
     const seeds = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
