@@ -1,5 +1,9 @@
-import { fetchApi } from '@/lib/api';
+/**
+ * @deprecated Wave 2 — replaced by GET /dashboard/executive HealthWidget[].
+ * Retained for backward compatibility; not used on /dashboard.
+ */
 import type { ExecutiveKpis } from '@opsedge360/shared-types';
+import { fetchApi } from '@/lib/api';
 import { Activity, IndianRupee, Shield, Leaf, AlertTriangle } from 'lucide-react';
 import { DashboardClick } from '@/components/cvp/DashboardClick';
 import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';

@@ -1,3 +1,6 @@
+/**
+ * @deprecated Wave 2 — replaced by dashboard payload insights.topRisks.
+ */
 import Link from 'next/link';
 import { fetchApi } from '@/lib/api';
 import { DemoAwareEmptyState } from '@/components/ede/DemoAwareEmptyState';

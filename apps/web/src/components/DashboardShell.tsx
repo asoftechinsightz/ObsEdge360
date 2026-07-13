@@ -12,6 +12,7 @@ import {
   Bot,
   PanelLeftClose,
   PanelLeft,
+  HelpCircle,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { AUTH_COOKIE } from '@/lib/auth';
@@ -26,6 +27,9 @@ import { PageTransition } from '@/components/PageTransition';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
 import { ApexModeControls } from '@/components/apex/ApexModeControls';
 import { CvpAnalyticsListener } from '@/components/cvp/CvpAnalyticsListener';
+import { ThemeToggle } from '@/components/shell/ThemeToggle';
+import { QuickActions } from '@/components/shell/QuickActions';
+import { OrgContextBadge } from '@/components/shell/OrgContextBadge';
 import { apiClient } from '@/lib/api-client';
 import { getNavSections, INTERNAL_NAV, type NavSection } from '@/lib/nav-config';
 import { isDebugMode } from '@/lib/debug-mode';
@@ -84,7 +88,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         setOpenSections(defaults);
       }
     } catch {
-      setOpenSections({ overview: true, estate: true, assurance: true, more: false });
+      setOpenSections({
+        home: true,
+        estate: true,
+        observe: true,
+        assure: true,
+        reports: true,
+        administration: false,
+      });
     }
     apiClient<{ theme?: string }>('/me/preferences')
       .then((p) => {
@@ -122,23 +133,24 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const sidebarWidth = collapsed ? 'w-[72px]' : 'w-64';
-  const mainOffset = collapsed ? 'ml-[72px]' : 'ml-64';
+  const brandMark = (
+    <div
+      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-sky-600 text-[10px] font-semibold tracking-tight text-white"
+      aria-hidden
+    >
+      360
+    </div>
+  );
 
   const navBody = (
     <>
-      <div className="flex items-center justify-between border-b border-[var(--eig-border)] p-4">
+      <div className="flex items-center justify-between border-b border-[var(--eig-border)] px-3 py-3.5">
         <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <div
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 to-cyan-700 text-[10px] font-semibold tracking-tight text-white shadow-sm"
-            aria-hidden
-          >
-            360
-          </div>
+          {brandMark}
           {!collapsed && (
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold tracking-tight text-slate-100">OpsEdge360</div>
-              <div className="truncate text-[11px] text-slate-500">Enterprise observability</div>
+              <div className="truncate text-[10px] uppercase tracking-[0.12em] text-slate-500">Digital ops intelligence</div>
             </div>
           )}
         </Link>
@@ -152,15 +164,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </button>
       </div>
 
-      <nav className="flex-1 space-y-3 overflow-y-auto p-2" aria-label="Primary">
+      <nav className="flex-1 space-y-2 overflow-y-auto p-2" aria-label="Primary">
         {sections.map((section) => {
           const open = collapsed || openSections[section.id] !== false;
+          const singleHome = section.id === 'home' && section.items.length === 1;
           return (
             <div key={section.id}>
-              {!collapsed && (
+              {!collapsed && !singleHome && (
                 <button
                   type="button"
-                  className="mb-1 flex w-full items-center justify-between px-2 py-0.5 text-[11px] font-medium text-slate-400 hover:text-slate-200"
+                  className="mb-0.5 flex w-full items-center justify-between px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 hover:text-slate-300"
                   onClick={() => toggleSection(section.id)}
                   aria-expanded={open}
                 >
@@ -182,8 +195,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                       )}
                       onClick={() => setMobileOpen(false)}
                     >
-                      <Icon size={18} aria-hidden />
-                      {!collapsed && <span className="truncate">{label}</span>}
+                      <Icon size={17} aria-hidden />
+                      {!collapsed && <span className="truncate">{singleHome ? 'Home' : label}</span>}
                     </Link>
                   ))}
                 </div>
@@ -208,7 +221,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   className={clsx('nav-link', collapsed && 'justify-center px-2', isActive(pathname, href) && 'nav-link-active')}
                   onClick={() => setMobileOpen(false)}
                 >
-                  <Icon size={18} aria-hidden />
+                  <Icon size={17} aria-hidden />
                   {!collapsed && <span className="truncate">{label}</span>}
                 </Link>
               ))}
@@ -217,8 +230,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         )}
       </nav>
 
-      <div className="border-t border-[var(--eig-border)] p-3 text-[11px] text-slate-500">
-        {!collapsed && <div>OpsEdge360 · GA</div>}
+      <div className="border-t border-[var(--eig-border)] p-3 text-[11px] text-slate-600">
+        {!collapsed && <div>OpsEdge360 · Enterprise</div>}
         {collapsed && <div className="text-center">GA</div>}
       </div>
     </>
@@ -233,17 +246,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      {/* Desktop sticky sidebar */}
       <aside
         className={clsx(
-          'fixed z-30 hidden h-full flex-col border-r border-[var(--eig-border)] bg-[var(--eig-glass-bg-strong)] backdrop-blur-md lg:flex',
-          sidebarWidth,
+          'fixed z-30 hidden h-full flex-col border-r border-[var(--eig-border)] bg-[var(--eig-glass-bg-strong)] lg:flex',
+          collapsed ? 'w-[68px]' : 'w-60',
         )}
       >
         {navBody}
       </aside>
 
-      {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button type="button" className="absolute inset-0 bg-black/50" aria-label="Close menu" onClick={() => setMobileOpen(false)} />
@@ -259,9 +270,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <div className={clsx('flex flex-1 flex-col', 'lg:transition-[margin] lg:duration-200', mainOffset, 'ml-0 lg:ml-0', collapsed ? 'lg:ml-[72px]' : 'lg:ml-64')}>
+      <div
+        className={clsx(
+          'flex flex-1 flex-col ml-0 lg:transition-[margin] lg:duration-200',
+          collapsed ? 'lg:ml-[68px]' : 'lg:ml-60',
+        )}
+      >
         <EnvironmentBanner />
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-[var(--eig-border)] bg-[var(--eig-glass-bg)] px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-[var(--eig-border)] bg-[var(--eig-header-bg)] px-3 backdrop-blur-md sm:gap-3 sm:px-5">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
@@ -271,28 +287,44 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             >
               <Menu size={16} />
             </button>
+            <Link href="/dashboard" className="hidden items-center gap-2 lg:flex xl:hidden" aria-label="OpsEdge360 home">
+              {brandMark}
+            </Link>
             <button
               type="button"
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] bg-[var(--eig-glass-bg)] px-3 py-1.5 text-sm text-slate-400 transition hover:text-slate-200 sm:max-w-md"
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] bg-black/20 px-3 py-1.5 text-sm text-slate-400 transition hover:border-sky-500/25 hover:text-slate-200 sm:max-w-lg"
               onClick={() => window.dispatchEvent(new Event('opsedge:command-palette'))}
-              aria-label="Open command palette"
+              aria-label="Open universal search"
             >
               <Search size={14} aria-hidden />
-              <span className="truncate">Search / jump…</span>
-              <kbd className="ml-auto hidden rounded border border-slate-600 px-1 text-[10px] sm:inline">Ctrl K</kbd>
+              <span className="truncate">Search estate, incidents, services…</span>
+              <kbd className="ml-auto hidden rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-500 sm:inline">
+                Ctrl K
+              </kbd>
             </button>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <ApexModeControls />
+            <QuickActions />
             <button
               type="button"
               onClick={() => setCopilotOpen(true)}
-              className="flex items-center gap-2 rounded-[var(--eig-radius-sm)] border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-sm text-primary transition hover:bg-primary/20"
+              className="flex items-center gap-1.5 rounded-[var(--eig-radius-sm)] border border-sky-500/35 bg-sky-500/10 px-2.5 py-1.5 text-sm text-sky-300 transition hover:bg-sky-500/20"
             >
-              <Bot size={16} aria-hidden />
+              <Bot size={15} aria-hidden />
               <span className="hidden sm:inline">Copilot</span>
             </button>
             {!presentation && <NotificationCenter />}
+            <OrgContextBadge />
+            <ThemeToggle />
+            <Link
+              href="/help"
+              className="hidden rounded-[var(--eig-radius-sm)] border border-[var(--eig-border)] p-2 text-slate-400 transition hover:border-sky-500/30 hover:text-white sm:inline-flex"
+              aria-label="Help Center"
+              title="Help Center"
+            >
+              <HelpCircle size={15} />
+            </Link>
             <UserMenu label={userLabel} />
           </div>
         </header>

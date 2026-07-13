@@ -3,6 +3,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { Reflector } from '@nestjs/core';
 import { HealthController } from './health.controller';
 import { ExecutiveController } from './executive.controller';
+import { DashboardController } from './dashboard/dashboard.controller';
 import { CmdbProxyController } from './cmdb-proxy.controller';
 import { DiscoveryProxyController } from './discovery-proxy.controller';
 import { TwinController } from './twin.controller';
@@ -70,6 +71,17 @@ import { Rc3Controller } from './rc3/rc3.controller';
 import { Rc3Service } from './rc3/rc3.service';
 import { EdeController } from './ede/ede.controller';
 import { EdeSeedService } from './ede/ede-seed.service';
+import { DashboardAggregationService } from './dashboard/dashboard-aggregation.service';
+import { DashboardCacheService } from './dashboard/dashboard-cache.service';
+import { DashboardRulesService } from './dashboard/dashboard-rules.service';
+import { ExecutiveDataService } from './dashboard/executive-data.service';
+import { EstateService } from './dashboard/estate.service';
+import { ObserveService } from './dashboard/observe.service';
+import { ComplianceService as DashboardComplianceService } from './dashboard/compliance.service';
+import { SecurityService as DashboardSecurityService } from './dashboard/security.service';
+import { NetworkService as DashboardNetworkService } from './dashboard/network.service';
+import { AiInsightService } from './dashboard/ai-insight.service';
+import { WidgetRegistryService } from './dashboard/widget-registry.service';
 
 @Module({
   controllers: [
@@ -78,6 +90,7 @@ import { EdeSeedService } from './ede/ede-seed.service';
     SsoController,
     CopilotController,
     ExecutiveController,
+    DashboardController,
     CmdbProxyController,
     DiscoveryProxyController,
     TwinController,
@@ -141,6 +154,17 @@ import { EdeSeedService } from './ede/ede-seed.service';
     Rc2Service,
     Rc3Service,
     EdeSeedService,
+    DashboardAggregationService,
+    DashboardCacheService,
+    DashboardRulesService,
+    ExecutiveDataService,
+    EstateService,
+    ObserveService,
+    DashboardComplianceService,
+    DashboardSecurityService,
+    DashboardNetworkService,
+    AiInsightService,
+    WidgetRegistryService,
     Reflector,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

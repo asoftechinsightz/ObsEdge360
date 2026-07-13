@@ -1,3 +1,6 @@
+/**
+ * @deprecated Wave 2 — replaced by dashboard payload insights.aiRecommendations.
+ */
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { fetchApi } from '@/lib/api';

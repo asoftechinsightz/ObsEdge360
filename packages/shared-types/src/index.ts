@@ -60,16 +60,7 @@ export interface PlatformEvent<T = unknown> {
   payload: T;
 }
 
-export interface ExecutiveKpis {
-  availability: number;
-  revenueAtRisk: number;
-  complianceScore: number;
-  securityPosture: 'low' | 'medium' | 'high' | 'critical';
-  sustainabilityScore: number;
-  activeIncidents: number;
-  totalAssets: number;
-  openAlerts: number;
-}
+export type { ExecutiveKpis } from './executive-kpis';
 
 export interface TwinNode {
   id: string;
@@ -354,3 +345,8 @@ export interface FedrampScore {
   readinessLevel: string;
   lastAssessed: string;
 }
+
+export * from './api-envelope';
+export * from './executive-kpis';
+export * from './widgets';
+export * from './dashboard';

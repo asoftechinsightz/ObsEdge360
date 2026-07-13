@@ -27,3 +27,5 @@
 | Knowledge index | `/admin/cvp/knowledge` |
 
 Data is stored in-browser (export/import JSON) for internal PM evidence packs — no speculative product module for customers.
+
+**Next program:** [Program TITAN](../titan/README.md) — enterprise scale & customer success (not Phase 5).
