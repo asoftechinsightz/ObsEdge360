@@ -1,0 +1,128 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Unified Observability
+
+Applications, infrastructure, Kubernetes, containers, databases, logs, metrics, traces, and topology — one OpsEdge360 experience.
+
+OpsEdge360 · Unified Observability · as of 7/13/2026, 4:13:05 AM
+Refresh
+OPERATING PICTURE
+upi-gateway-7f9c is critical
+
+OOMKilled — payment path errors
+
+OOMKilled — payment path errors
+
+Next: Investigate upi-gateway-7f9c →
+METRICS (1H)
+240
+LOGS (1H)
+400
+SPANS (1H)
+210
+SERVICES
+12
+Applications
+DEGRADED
+100
+
+100 need attention
+
+Infrastructure
+DEGRADED
+100
+
+Servers, VMs, cloud instances, storage
+
+Kubernetes
+DEGRADED
+20
+
+Clusters, namespaces, workloads
+
+Containers
+CRITICAL
+2
+
+Container inventory and health
+
+Databases
+DEGRADED
+100
+
+Availability and performance
+
+Logs
+DEGRADED
+90
+
+Enterprise log explorer
+
+Metrics
+HEALTHY
+240
+
+Infra, app, and business metrics
+
+Traces
+DEGRADED
+1
+
+Distributed tracing and latency
+
+Topology
+CRITICAL
+3
+
+Dependencies and impact propagation
+
+AI executive summary
+Explain

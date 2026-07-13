@@ -1,0 +1,221 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Digital Twin
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+
+BUSINESS OPERATIONS INTELLIGENCE
+
+Enterprise Digital Twin
+
+Business services · dependencies · health propagation · blast radius · ownership · SLA · Twin-grounded AI
+
+Refresh
+Blast radius
+Twin AI
+BUSINESS HEALTH
+89
+degraded
+REVENUE AT RISK
+₹146,400/hr
+OPEN INCIDENTS
+12
+TOP TWIN RISKS
+Collections is degraded
+Corporate Portal is degraded
+Breadth-first
+Force-directed
+Circle
+Grid
+Depth
+1
+2
+3
+4
+5
+6
+Downstream
+Upstream
+Both
+25 services · 79 nodes · 83 edges
+Business services
+Collections
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Corporate Portal
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Internet Banking
+T3 · Payments · 0 deps
+Owner unassigned
+84
+KYC / AML Screening
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Notification Hub
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Reconciliation
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Statement Services
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Wealth Management
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Card Issuing
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Customer Onboarding
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Loan Origination
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Mobile Banking
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Trade Finance
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Treasury Ops
+T2 · Payments · 0 deps
+Owner unassigned
+88
+ATM Switching
+T1 · Payments · 0 deps
+Owner unassigned
+92
+NEFT Clearing
+T1 · Payments · 0 deps
+Owner unassigned
+92
+Payment Gateway
+T1 · Merchant Payments · 4 deps
+Business Owner 10
+92
+RTGS High Value
+T1 · Payments · 0 deps
+Owner unassigned
+92
+Merchant Acquiring
+T2 · Merchant Payments · 2 deps
+Business Owner 10
+92
+Core Banking (CBS)
+T1 · Core Ledger · 4 deps
+Business Owner 10
+94
+Fraud Detection
+T1 · Risk & Fraud · 3 deps
+Business Owner 10
+94
+IMPS Transfers
+T1 · Real-time Payments · 2 deps
+Business Owner 10
+94
+UPI Payments
+T1 · Real-time Payments · 4 deps
+Business Owner 10
+94
+Digital Banking
+T2 · Digital Channels · 3 deps
+Business Owner 10
+94
+Open Banking APIs
+T3 · Open Banking · 2 deps
+Business Owner 10
+94
+Overview
+Blast
+AI
+History
+Collections
+
+Retail Banking · Payments · Prod
+
+degraded
+AVAILABILITY
+98.22%
+SLA TARGET
+99.5%
+LATENCY
+220 ms
+ERROR RATE
+1.8%
+MTTR
+18 m
+REVENUE
+₹12,000/hr
+
+SLA breach predicted
+
+Elevated friction on journey
+
+Forecast: Stable forecast
+
+Ownership
+Business
+Unassigned
+Technical
+Unassigned
+Operations
+Unassigned
+Support
+Unassigned
+Escalation
+Unassigned
+On-call
+Unassigned
+Observability
+Incidents
+Changes
+Executive Home

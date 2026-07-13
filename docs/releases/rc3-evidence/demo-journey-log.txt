@@ -1,0 +1,11 @@
+PASS: executive_dashboard
+PASS: business_services — count=25
+PASS: digital_twin_graph — nodes=49
+PASS: blast_radius — priority=P3 revenue=15600
+PASS: observability
+PASS: twin_ai — confidence=0.82
+PASS: incident_linkage — items=12
+PASS: executive_risk — health=degraded score=89
+PASS: executive_report — UI /reports — API optional; treated non-blocking
+DEMO_SUMMARY pass=9 fail=0
+DEMO_JOURNEY_OK

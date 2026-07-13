@@ -1,0 +1,71 @@
+{
+  "pass": 9,
+  "fail": 0,
+  "steps": [
+    {
+      "name": "executive_dashboard",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "business_services",
+      "ok": true,
+      "detail": "count=25"
+    },
+    {
+      "name": "digital_twin_graph",
+      "ok": true,
+      "detail": "nodes=49"
+    },
+    {
+      "name": "blast_radius",
+      "ok": true,
+      "detail": "priority=P3 revenue=15600"
+    },
+    {
+      "name": "observability",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "twin_ai",
+      "ok": true,
+      "detail": "confidence=0.82"
+    },
+    {
+      "name": "incident_linkage",
+      "ok": true,
+      "detail": "items=12"
+    },
+    {
+      "name": "executive_risk",
+      "ok": true,
+      "detail": "health=degraded score=89"
+    },
+    {
+      "name": "executive_report",
+      "ok": true,
+      "detail": "UI /reports \u2014 API optional; treated non-blocking"
+    }
+  ],
+  "service": {
+    "id": "40612fc6-2fe6-498e-bbb8-38098b9f6765",
+    "name": "Payment Gateway"
+  },
+  "ai_summary": "Twin analysis for Payment Gateway: healthy with 48 CIs in blast radius. Restore order starts with foundational data/platform dependencies.",
+  "blast_priority": "P3",
+  "recovery_order": [
+    "Payment Gateway Hub",
+    "Enterprise API Gateway",
+    "AGB-APP-0001",
+    "AGB-APP-0002",
+    "AGB-APP-0003",
+    "AGB-APP-0004",
+    "AGB-APP-0005",
+    "AGB-APP-0006",
+    "AGB-APP-0007",
+    "AGB-APP-0008",
+    "AGB-APP-0009",
+    "AGB-APP-0010"
+  ]
+}

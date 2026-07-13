@@ -1,0 +1,14 @@
+{
+  "accessToken": "[REDACTED]",
+  "user": {
+    "sub": "9bb71fe1-e9ab-43bc-9579-83406a32a88e",
+    "email": "cio@asoftech-global-bank.demo",
+    "tenantId": "asoftech-global-bank-demo",
+    "role": "admin",
+    "name": "Demo CIO — Asoftech Global Bank",
+    "jti": "1be063af92184a2664cb604eb34990e9",
+    "sid": "9ba1b7fc-14e0-46a1-801e-c06abb6d104a"
+  },
+  "passwordMustRotate": false,
+  "mustEnrollMfa": false
+}

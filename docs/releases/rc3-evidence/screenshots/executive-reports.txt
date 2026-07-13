@@ -1,0 +1,98 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Executive Reports
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Executive Reporting
+
+Board-ready dashboards — generate from live backend data and download PDF, Excel, CSV, or JSON.
+
+Executive summary
+SLA compliance
+Availability
+Incident trends
+MTTR
+Capacity
+Synthetics
+Compliance
+Audit
+Generate
+Updated 7/13/2026, 4:13:10 AM
+Freshness: Recent
+Source: Reporting APIs
+Integrations: healthy
+Coverage: 4 reports · PDF · Excel · CSV · JSON
+EXECUTIVE NARRATIVE · 30-SECOND BRIEF
+What is happening
+4 executive report(s) available for review
+Why it matters
+QBR and board packs need a single narrative for availability, revenue-at-risk, and open risks.
+Owner / affected
+CIO Office · Enterprise Operations
+Financial / SLA impact
+Generate Executive summary, then export PDF/Excel/CSV for distribution.
+What to do next
+Generate executive summary →
+AI confidence
+82% · guidance
+Summarize latest reports for executives
+Explain
+Report	Status	Created	Format	Export
+Incident closure — Fraud engine model drift alert	Ready	2026-07-13T02:02:16.469Z	json	
+PDF
+XLSX
+CSV
+JSON
+
+Incident closure — Redis eviction spike on session cluster	Ready	2026-07-13T02:02:16.042Z	json	
+PDF
+XLSX
+CSV
+JSON
+
+Incident closure — Redis eviction spike on session cluster	Ready	2026-07-13T02:00:05.781Z	json	
+PDF
+XLSX
+CSV
+JSON
+
+Incident closure — Redis eviction spike on session cluster	Ready	2026-07-13T01:49:19.433Z	json	
+PDF
+XLSX
+CSV
+JSON

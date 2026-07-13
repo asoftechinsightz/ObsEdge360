@@ -1,7 +1,7 @@
 # Sprint 3 — Enterprise Digital Twin & Business Service Intelligence
 
 **Phase:** 3  
-**Status:** IMPLEMENTATION COMPLETE (pending RC3)  
+**Status:** RC3 **PASS** / **FROZEN** on production (`f5c706c`) — Sprint 4 authorized only after explicit kickoff  
 **Prior name:** Digital Twin (narrow) — **superseded by this scope**
 
 ## Positioning

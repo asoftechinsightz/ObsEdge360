@@ -1,0 +1,153 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Ops Intelligence
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Operations Intelligence
+
+Correlation, RCA, predictive anomalies, capacity forecasts, and controlled remediation.
+
+Correlate
+Scan anomalies
+Predictive scan
+Trend forecasts
+Capacity 7d
+Run RCA
+Updated 7/13/2026, 4:13:08 AM
+Freshness: Live
+Source: Ops Intelligence APIs
+Integrations: healthy
+Coverage: 10 signals / 24h
+EXECUTIVE NARRATIVE · 30-SECOND BRIEF
+What is happening
+6 open correlated incident(s)
+Why it matters
+Correlated incidents are the fastest path from noise to owned operational action.
+Owner / affected
+Select an incident for service context
+Financial / SLA impact
+0 anomalies · 4 remediations pending
+What to do next
+Open Synthetics coverage →
+AI confidence
+Guidance · verify in Ops Intelligence
+Open incidents
+6
+Open anomalies
+0
+RCA 24h
+6
+Pending rem.
+4
+Forecasts 24h
+0
+Signals 24h
+10
+Correlated incidents
+Redis eviction spike on session cluster
+WARNING
+signals 0 · open
+PCI scan finding on statement host
+INFO
+signals 0 · acknowledged
+Synthetic journey failure — Internet Banking login
+WARNING
+signals 0 · open
+IMPS success-rate dip below SLA
+CRITICAL
+signals 0 · investigating
+Kubernetes node pressure payments-pool
+WARNING
+signals 0 · open
+NEFT batch window delay
+INFO
+signals 0 · acknowledged
+ATM switch intermittent timeouts
+CRITICAL
+signals 0 · open
+Fraud engine model drift alert
+WARNING
+signals 0 · investigating
+Azure DR replication lag
+WARNING
+signals 0 · open
+CBS connection pool saturation warning
+CRITICAL
+signals 0 · open
+API Gateway certificate nearing expiry
+WARNING
+signals 0 · acknowledged
+UPI latency elevated in Mumbai region
+CRITICAL
+signals 0 · investigating
+Latest RCA
+
+Run RCA to populate
+
+Signals
+rca_completed · RCA: RC1 executive incident summary and remediation
+rca_completed · RCA: RC1 security incident root cause and MITRE mapping
+remediation_requested · restart_service
+rca_completed · RCA: RC1 payment gateway root cause
+remediation_requested · restart_service
+rca_completed · RCA: RC1 payment gateway root cause
+remediation_requested · restart_service
+rca_completed · RCA: RC1 payment gateway root cause
+remediation_requested · restart_service
+rca_completed · RCA: RC1 payment gateway root cause
+Capacity forecasts
+None yet — run Capacity 7d
+Breach predictions
+None active
+Remediation
+pending · dry_run · medium
+restart_service
+Approve
+Reject
+pending · dry_run · medium
+restart_service
+Approve
+Reject
+pending · dry_run · medium
+restart_service
+Approve
+Reject
+pending · dry_run · medium
+restart_service
+Approve
+Reject

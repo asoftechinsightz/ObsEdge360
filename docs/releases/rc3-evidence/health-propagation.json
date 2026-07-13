@@ -1,0 +1,10 @@
+{
+  "ci_id": "75893cb7-acb1-4f5c-ab0f-10f38cb5a417",
+  "before_health": "healthy",
+  "before_score": 94,
+  "after_health": "critical",
+  "after_score": 35,
+  "restored_score": 92,
+  "exec_business_health": "degraded",
+  "exec_score": 84
+}

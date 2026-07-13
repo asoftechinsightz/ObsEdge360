@@ -1,0 +1,9 @@
+PASS: twin_enterprise_graph p50=32.2ms avg=30.7ms target_p50<2000ms samples=[37.0, 22.4, 23.1, 33.2, 35.2, 32.2, 32.0]
+PASS: twin_business_services p50=26.8ms avg=26.5ms target_p50<2000ms samples=[33.1, 22.7, 23.4, 27.2, 26.8, 28.1, 24.3]
+PASS: twin_executive_risk p50=26.1ms avg=26.1ms target_p50<2000ms samples=[22.9, 23.9, 26.3, 29.1, 26.1, 26.1, 28.2]
+PASS: dashboard_executive p50=10.4ms avg=11.5ms target_p50<2000ms samples=[13.6, 12.8, 9.9, 9.7, 9.7, 10.4, 14.3]
+PASS: twin_service_detail p50=10.6ms avg=10.9ms target_p50<2000ms samples=[12.1, 13.0, 10.6, 9.9, 9.8, 10.0, 10.6]
+PASS: twin_blast_radius p50=42.6ms avg=43.2ms target_p50<500ms samples=[42.9, 45.2, 42.5, 42.6, 45.9, 42.0, 41.3]
+PASS: twin_service_graph p50=13.4ms avg=14.8ms target_p50<2000ms samples=[24.8, 13.9, 13.9, 13.4, 12.6, 12.8, 12.3]
+PASS: twin_ai_explain p50=40.7ms avg=41.0ms target_p50<2000ms samples=[40.7, 45.8, 40.4, 38.2, 38.4, 41.6, 42.0]
+PERF_ALL_PASS

@@ -1,0 +1,332 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Digital Twin
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+
+BUSINESS OPERATIONS INTELLIGENCE
+
+Enterprise Digital Twin
+
+Business services · dependencies · health propagation · blast radius · ownership · SLA · Twin-grounded AI
+
+Refresh
+Blast radius
+Twin AI
+Clear highlight
+BUSINESS HEALTH
+89
+degraded
+REVENUE AT RISK
+₹146,400/hr
+OPEN INCIDENTS
+12
+TOP TWIN RISKS
+Collections is degraded
+Corporate Portal is degraded
+Blast radius · Payment Gateway: 48 CIs · P3 · ₹15,600/hr×
+Breadth-first
+Force-directed
+Circle
+Grid
+Depth
+1
+2
+3
+4
+5
+6
+Downstream
+Upstream
+Both
+25 services · 49 nodes · 55 edges
+Business services
+Collections
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Corporate Portal
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Internet Banking
+T3 · Payments · 0 deps
+Owner unassigned
+84
+KYC / AML Screening
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Notification Hub
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Reconciliation
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Statement Services
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Wealth Management
+T3 · Payments · 0 deps
+Owner unassigned
+84
+Card Issuing
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Customer Onboarding
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Loan Origination
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Mobile Banking
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Trade Finance
+T2 · Payments · 0 deps
+Owner unassigned
+88
+Treasury Ops
+T2 · Payments · 0 deps
+Owner unassigned
+88
+ATM Switching
+T1 · Payments · 0 deps
+Owner unassigned
+92
+NEFT Clearing
+T1 · Payments · 0 deps
+Owner unassigned
+92
+Payment Gateway
+T1 · Merchant Payments · 4 deps
+Business Owner 10
+92
+RTGS High Value
+T1 · Payments · 0 deps
+Owner unassigned
+92
+Merchant Acquiring
+T2 · Merchant Payments · 2 deps
+Business Owner 10
+92
+Core Banking (CBS)
+T1 · Core Ledger · 4 deps
+Business Owner 10
+94
+Fraud Detection
+T1 · Risk & Fraud · 3 deps
+Business Owner 10
+94
+IMPS Transfers
+T1 · Real-time Payments · 2 deps
+Business Owner 10
+94
+UPI Payments
+T1 · Real-time Payments · 4 deps
+Business Owner 10
+94
+Digital Banking
+T2 · Digital Channels · 3 deps
+Business Owner 10
+94
+Open Banking APIs
+T3 · Open Banking · 2 deps
+Business Owner 10
+94
+Overview
+Blast
+AI
+History
+Business blast radius
+P3
+
+Payment Gateway
+
+AFFECTED CIS
+48
+CRITICAL
+0
+REVENUE IMPACT
+₹15,600/hr
+AVG HEALTH
+90
+
+0 critical CIs · 48 in blast radius
+
+Customers: Retail + merchant payment corridors
+
+Apps: Payment Gateway Hub, Enterprise API Gateway, AGB-APP-0001, AGB-APP-0002, AGB-APP-0003, AGB-APP-0004
+
+RECOVERY ORDER
+Payment Gateway Hub
+Enterprise API Gateway
+AGB-APP-0001
+AGB-APP-0002
+AGB-APP-0003
+AGB-APP-0004
+AGB-APP-0005
+AGB-APP-0006
+Impacted nodes
+Payment Gateway Hub
+application · depth 1
+H92
+Public ALB Payments
+load_balancer · depth 1
+H94
+AGB-APP-0001
+application · depth 1
+H81
+AGB-APP-0002
+application · depth 1
+H82
+AGB-APP-0003
+application · depth 1
+H83
+AGB-APP-0004
+application · depth 1
+H84
+AGB-APP-0005
+application · depth 1
+H85
+AGB-APP-0006
+application · depth 1
+H86
+AGB-APP-0007
+application · depth 1
+H87
+AGB-APP-0008
+application · depth 1
+H88
+AGB-APP-0009
+application · depth 1
+H89
+AGB-APP-0010
+application · depth 1
+H90
+AGB-APP-0011
+application · depth 1
+H91
+AGB-APP-0012
+application · depth 1
+H92
+AGB-APP-0013
+application · depth 1
+H93
+AGB-APP-0014
+application · depth 1
+H94
+AGB-APP-0015
+application · depth 1
+H95
+AGB-APP-0016
+application · depth 1
+H96
+AGB-APP-0017
+application · depth 1
+H97
+AGB-APP-0018
+application · depth 1
+H98
+AGB-APP-0019
+application · depth 1
+H99
+AGB-APP-0020
+application · depth 1
+H80
+AGB-APP-0021
+application · depth 1
+H81
+AGB-APP-0022
+application · depth 1
+H82
+AGB-APP-0023
+application · depth 1
+H83
+AGB-APP-0024
+application · depth 1
+H84
+AGB-APP-0025
+application · depth 1
+H85
+AGB-APP-0026
+application · depth 1
+H86
+AGB-APP-0027
+application · depth 1
+H87
+AGB-APP-0028
+application · depth 1
+H88
+AGB-APP-0029
+application · depth 1
+H89
+AGB-APP-0030
+application · depth 1
+H90
+AGB-APP-0031
+application · depth 1
+H91
+AGB-APP-0032
+application · depth 1
+H92
+AGB-APP-0033
+application · depth 1
+H93
+AGB-APP-0034
+application · depth 1
+H94
+AGB-APP-0035
+application · depth 1
+H95
+AGB-APP-0036
+application · depth 1
+H96
+AGB-APP-0037
+application · depth 1
+H97
+AGB-APP-0038
+application · depth 1
+H98

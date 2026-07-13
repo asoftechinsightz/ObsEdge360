@@ -1,0 +1,321 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Executive Home
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+EXECUTIVE COMMAND CENTER
+Is the business healthy · what is broken · what is the impact · what next
+
+OpsEdge360 executive command — business outcomes first · role: admin
+
+API 261ms
+·
+Illustrative Demo Data
+Guided eval
+Updated 7/13/2026, 4:12:55 AM
+Freshness: Recent
+Source: Illustrative Demo Data
+Integrations: healthy
+Coverage: 25 services · 350 apps · 1500 servers
+AI confidence: 88%
+EXECUTIVE NARRATIVE · 30-SECOND BRIEF
+What is happening
+8 active incidents with 120 open alerts across the banking estate
+Why it matters
+Primary pressure: Database configuration drift — max_connections reduced on CBS Oracle RAC (critical)
+Owner / affected
+Payments Platform · Security Operations
+Financial / SLA impact
+≈ ₹120K/hr revenue at risk · compliance 90/100 · availability 99.90%
+What to do next
+Review critical paths, then clear high-severity CMDB Drift before the next CAB. →
+AI confidence
+88% · guidance
+AI executive brief
+Explain
+
+Start with board-level health, then scan operational domains, understand risks and AI guidance, and act.
+
+BUSINESS OUTCOMES
+Is the business healthy?
+
+Lead with revenue risk, service health, and open incidents — then security and continuity. Each KPI drills to its workspace.
+
+BUSINESS HEALTH
+₹120K/hr
+Revenue at risk · business services
+REVENUE AT RISK
+₹120K/hr
+Banking journey exposure
+WHAT IS BROKEN
+120
+8 active incidents
+OVERALL HEALTH
+Critical
+99.90% availability
+AVAILABILITY
+99.90%
+Service continuity
+Unit: %
+SECURITY SCORE
+MEDIUM
+Enterprise security posture
+COMPLIANCE SCORE
+90/100
+Control posture
+MTTR
+35m
+Mean time to restore
+Unit: min
+NETWORK HEALTH
+—
+Awaiting inventory
+OPERATIONAL STATUS
+How is the estate performing?
+
+Domain summaries — infrastructure through compliance — without raw metric dumps.
+
+CMDB →
+Infrastructure
+Unknown
+
+Servers and hosts across the estate
+
+Awaiting inventory
+Applications
+Unknown
+
+Application health and dependency context
+
+Awaiting inventory
+Services
+Degraded
+
+Business service continuity and SLA
+
+25 in inventory
+Cloud
+Unknown
+
+Cloud resources discovered in inventory
+
+Awaiting inventory
+Databases
+Unknown
+
+Data stores supporting critical journeys
+
+Awaiting inventory
+Containers
+Unknown
+
+Clusters and containerized workloads
+
+Awaiting inventory
+Network
+Unknown
+
+Devices and path health for critical routes
+
+Awaiting inventory
+Security
+Degraded
+
+Posture medium · open alert pressure
+
+Health: MEDIUM
+48 critical
+72 warning
+120 open alerts
+Compliance
+Healthy
+
+Control posture across active frameworks
+
+Health: 90/100
+Score 90/100
+BUSINESS RISKS & INTELLIGENCE
+What needs attention now?
+
+Top risks, affected services, AI recommendations, and open incidents.
+
+Top risks
+
+Business impact · owner · next step
+
+Collections is degraded
+High
+ATM Switching
+Owner: Operations
+₹146K/hr impact
+Run blast radius on Collections →
+Corporate Portal is degraded
+High
+NEFT Clearing
+Owner: Operations
+₹90K/hr impact
+Run blast radius on Collections →
+Internet Banking is degraded
+High
+Payment Gateway
+Owner: Operations
+₹90K/hr impact
+Run blast radius on Collections →
+KYC / AML Screening is degraded
+High
+RTGS High Value
+Owner: Operations
+₹90K/hr impact
+Run blast radius on Collections →
+Notification Hub is degraded
+High
+Core Banking (CBS)
+Owner: Operations
+₹90K/hr impact
+Run blast radius on Collections →
+Affected services
+
+Business service continuity
+
+Investigate →
+Service	Status	Availability	Owner
+
+Collections
+Degraded
+98.22
+Unassigned
+
+
+Corporate Portal
+Degraded
+98.22
+Unassigned
+
+
+Internet Banking
+Degraded
+98.22
+Unassigned
+
+
+KYC / AML Screening
+Degraded
+98.22
+Unassigned
+
+
+Notification Hub
+Degraded
+98.22
+Unassigned
+
+
+Reconciliation
+Degraded
+98.22
+Unassigned
+
+
+Statement Services
+Degraded
+98.22
+Unassigned
+
+
+Wealth Management
+Degraded
+98.22
+Unassigned
+
+
+Card Issuing
+Degraded
+98.54
+Unassigned
+
+
+Customer Onboarding
+Degraded
+98.54
+Unassigned
+
+
+Loan Origination
+Degraded
+98.54
+Unassigned
+
+
+Mobile Banking
+Degraded
+98.54
+Unassigned
+
+
+Trade Finance
+Degraded
+98.54
+Unassigned
+
+
+Treasury Ops
+Degraded
+98.54
+Unassigned
+AI recommendations
+
+Proactive next moves
+
+Revenue is at risk on payment rails
+
+≈ ₹120K/hr exposed while 8 incidents remain open.
+
+Owner: Payments Platform
+
+Confidence: 82%
+
+Open Banking360 →
+Clear high-severity configuration drift
+
+Database configuration drift — max_connections reduced on CBS Oracle RAC — critical severity still unresolved.
+
+Owner: Security Operations
+
+Confidence: 85%
+
+Review CMDB Drift →

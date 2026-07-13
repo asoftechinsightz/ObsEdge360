@@ -1,0 +1,13 @@
+NAME                         STATUS
+opsedge360-api-gateway-1     Up 37 seconds (healthy)
+opsedge360-cmdb-1            Up 2 hours (healthy)
+opsedge360-compliance-1      Up 2 hours (healthy)
+opsedge360-discovery-1       Up 2 hours (healthy)
+opsedge360-kafka-1           Up 2 days
+opsedge360-nginx-1           Up 36 seconds
+opsedge360-observability-1   Up 2 hours (healthy)
+opsedge360-postgres-1        Up 32 hours (healthy)
+opsedge360-redis-1           Up 32 hours
+opsedge360-security-1        Up 2 hours (healthy)
+opsedge360-transactions-1    Up 2 hours (healthy)
+opsedge360-web-1             Up 7 minutes

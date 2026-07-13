@@ -1,0 +1,45 @@
+{
+  "id": "40612fc6-2fe6-498e-bbb8-38098b9f6765",
+  "name": "Payment Gateway",
+  "description": "Illustrative Demo Data \u2014 Payment Gateway journey for Asoftech Global Bank",
+  "businessUnit": "Retail Banking",
+  "businessCapability": "Merchant Payments",
+  "environment": "Prod",
+  "tier": 1,
+  "criticality": "tier1",
+  "lifecycle": "active",
+  "tags": [],
+  "health": "healthy",
+  "healthScore": 94,
+  "riskScore": 18,
+  "ownership": {
+    "businessOwner": "Business Owner 10",
+    "supportTeam": "Payments SRE",
+    "escalationGroup": "NOC Tier-2",
+    "onCallTeam": "Payments On-Call"
+  },
+  "sla": {
+    "target": 99.95,
+    "actual": 99.47,
+    "compliance": 99.52,
+    "breachPredicted": true,
+    "trend": "stable"
+  },
+  "kpis": {
+    "availability": 99.47,
+    "latencyMs": 85,
+    "errorRate": 0.2,
+    "incidentCount": 0,
+    "mttrMinutes": 18,
+    "slaCompliance": 99.52,
+    "businessRisk": "healthy",
+    "revenueImpactPerHour": 156000,
+    "customerImpact": "Within customer experience band",
+    "trend": "stable",
+    "forecastRisk": "Stable forecast"
+  },
+  "dependencyCount": 4,
+  "twinHref": "/twin?workflow=impact&serviceId=40612fc6-2fe6-498e-bbb8-38098b9f6765&name=Payment%20Gateway",
+  "observeHref": "/observability/applications?focus=Payment%20Gateway",
+  "asOf": "2026-07-13T04:09:13.658Z"
+}
