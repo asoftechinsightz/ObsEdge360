@@ -100,7 +100,7 @@ echo "security_fraud=$(curl -sk -o "$OUT/security-fraud.json" -w '%{http_code}' 
 echo "security_anomalies=$(curl -sk -o "$OUT/security-anomalies.json" -w '%{http_code}' -H "$AUTH" "$API/security/anomalies")"
 echo "security_siem=$(curl -sk -o "$OUT/security-siem.json" -w '%{http_code}' -H "$AUTH" "$API/security/siem/events")"
 echo "network_flows=$(curl -sk -o "$OUT/network-flows.json" -w '%{http_code}' -H "$AUTH" "$API/network/flows")"
-echo "topology=$(curl -sk -o "$OUT/topology.json" -w '%{http_code}' -H "$AUTH" "$API/topology/graph?limit=80")"
+echo "topology=$(curl -sk -o "$OUT/topology.json" -w '%{http_code}' -H "$AUTH" "$API/cmdb/topology/application")"
 echo "dashboard=$(curl -sk -o "$OUT/dashboard.json" -w '%{http_code}' -H "$AUTH" "$API/dashboard/executive?role=cio")"
 
 echo "=== Scenario 5 Security Incident ==="
