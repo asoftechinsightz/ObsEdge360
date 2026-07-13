@@ -1,0 +1,201 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Executive Home
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+EXECUTIVE COMMAND CENTER
+Is the business healthy · what is broken · what is the impact · what next
+
+OpsEdge360 executive command — business outcomes first · role: admin
+
+API 153ms
+·
+Illustrative Demo Data
+Guided eval
+Updated 7/13/2026, 3:32:17 AM
+Freshness: Recent
+Source: Illustrative Demo Data
+Integrations: healthy
+Coverage: 25 services · 350 apps · 1500 servers
+AI confidence: 88%
+EXECUTIVE NARRATIVE · 30-SECOND BRIEF
+What is happening
+8 active incidents with 120 open alerts across the banking estate
+Why it matters
+Primary pressure: Database configuration drift — max_connections reduced on CBS Oracle RAC (critical)
+Owner / affected
+Payments Platform · Security Operations
+Financial / SLA impact
+≈ ₹120K/hr revenue at risk · compliance 90/100 · availability 99.90%
+What to do next
+Review critical paths, then clear high-severity CMDB Drift before the next CAB. →
+AI confidence
+88% · guidance
+AI executive brief
+Explain
+
+Start with board-level health, then scan operational domains, understand risks and AI guidance, and act.
+
+BUSINESS OUTCOMES
+Is the business healthy?
+
+Lead with revenue risk, service health, and open incidents — then security and continuity. Each KPI drills to its workspace.
+
+BUSINESS HEALTH
+₹120K/hr
+Revenue at risk · business services
+REVENUE AT RISK
+₹120K/hr
+Banking journey exposure
+WHAT IS BROKEN
+120
+8 active incidents
+OVERALL HEALTH
+Critical
+99.90% availability
+AVAILABILITY
+99.90%
+Service continuity
+Unit: %
+SECURITY SCORE
+MEDIUM
+Enterprise security posture
+COMPLIANCE SCORE
+90/100
+Control posture
+MTTR
+35m
+Mean time to restore
+Unit: min
+NETWORK HEALTH
+—
+Awaiting inventory
+OPERATIONAL STATUS
+How is the estate performing?
+
+Domain summaries — infrastructure through compliance — without raw metric dumps.
+
+CMDB →
+Infrastructure
+Unknown
+
+Servers and hosts across the estate
+
+Awaiting inventory
+Applications
+Unknown
+
+Application health and dependency context
+
+Awaiting inventory
+Services
+Critical
+
+Business service continuity and SLA
+
+25 in inventory
+Cloud
+Unknown
+
+Cloud resources discovered in inventory
+
+Awaiting inventory
+Databases
+Unknown
+
+Data stores supporting critical journeys
+
+Awaiting inventory
+Containers
+Unknown
+
+Clusters and containerized workloads
+
+Awaiting inventory
+Network
+Unknown
+
+Devices and path health for critical routes
+
+Awaiting inventory
+Security
+Degraded
+
+Posture medium · open alert pressure
+
+Health: MEDIUM
+48 critical
+72 warning
+120 open alerts
+Compliance
+Healthy
+
+Control posture across active frameworks
+
+Health: 90/100
+Score 90/100
+BUSINESS RISKS & INTELLIGENCE
+What needs attention now?
+
+Top risks, affected services, AI recommendations, and open incidents.
+
+Top risks
+
+Business impact · owner · next step
+
+Database configuration drift — max_connections reduced on CBS Oracle RAC
+Critical
+Core banking connection pool exhaustion risk
+Owner: Platform Reliability
+₹180K/hr impact
+Restore parameter baseline; open Sev-2 change →
+Kubernetes deployment drift — payments-api replicas below desired
+High
+UPI latency risk during peak windows
+Owner: Security Operations
+₹90K/hr impact
+Restore replica count to 12 and enable HPA alert →
+Firewall rule changed — inbound 443 ACL widened in DMZ
+High
+Expanded attack surface on payment edge
+Owner: Platform Reliability
+₹90K/hr impact
+Revert ACL to approved baseline and require CAB for edge changes →
+IAM policy modified — wildcard s3:GetObject granted to payments role
+High
+Ov

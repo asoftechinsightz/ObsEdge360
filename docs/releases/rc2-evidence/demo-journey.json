@@ -1,0 +1,42 @@
+{
+  "steps": [
+    [
+      "overview",
+      200,
+      51.9,
+      "OpsEdge360"
+    ],
+    [
+      "applications",
+      200,
+      15.6,
+      100
+    ],
+    [
+      "logs_error",
+      200,
+      15.4,
+      12
+    ],
+    [
+      "traces",
+      200,
+      11.6,
+      1
+    ],
+    [
+      "topology",
+      200,
+      11.9,
+      3
+    ],
+    [
+      "ai_explain",
+      201,
+      46.6,
+      5
+    ]
+  ],
+  "ai_brand": "OpsEdge360",
+  "twin": "/twin?name=UPI%20Payments%20Fabric"
+}

@@ -1,0 +1,101 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Traces
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Traces
+
+Distributed tracing, service flow, latency, root span analysis, and error visualization.
+
+Refresh
+TRACE	DURATION	ERRORS
+
+a1b2c3d4e5f60718…
+payments-postgres, settlement-svc, upi-gateway
+	3120 ms	12
+Waterfall · a1b2c3d4e5f60718293a4b5c6d7e8f90
+upi-gateway · POST /upi/collect
+3120 ms · ERROR
+settlement-svc · POST /settle
+3000 ms · ERROR
+payments-postgres · SELECT settlement_batch
+12 ms · OK
+upi-gateway · POST /upi/collect
+3120 ms · ERROR
+settlement-svc · POST /settle
+3000 ms · ERROR
+payments-postgres · SELECT settlement_batch
+12 ms · OK
+upi-gateway · POST /upi/collect
+3120 ms · ERROR
+settlement-svc · POST /settle
+3000 ms · ERROR
+payments-postgres · SELECT settlement_batch
+12 ms · OK
+upi-gateway · POST /upi/collect
+3120 ms · ERROR
+settlement-svc · POST /settle
+3000 ms · ERROR
+payments-postgres · SELECT settlement_batch
+12 ms · OK
+upi-gateway · POST /upi/collect
+3120 ms · ERROR
+settlement-svc · POST /settle
+3000 ms · ERROR
+payments-postgres · SELECT settlement_batch
+12 ms · OK
+upi-gateway · POST /upi/collect
+3120 ms · ERROR
+settlement-svc · POST /settle
+3000 ms · ERROR
+payments-postgres · SELECT settlement_batch
+12 ms · OK
+Correlate logs →
+Explain this trace
+Explain

@@ -2,7 +2,7 @@
 
 **Status:** **FROZEN**  
 **Freeze date:** 2026-07-13  
-**Production SHA (freeze candidate):** see latest deploy evidence in `RC2_VALIDATION_REPORT.md`  
+**Production SHA (freeze):** `e472e0a4d20f9dd7506e822ad46055e8706d2b7f`  
 **Decision:** [RC2_GO_NO_GO.md](./RC2_GO_NO_GO.md)
 
 ## Freeze rules

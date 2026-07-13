@@ -1,0 +1,361 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Databases
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Databases
+
+Database inventory, availability, performance, and dependency context.
+
+OpsEdge360 Unified Observability · databases
+Refresh
+NAME	KIND	HEALTH	SCORE	TWIN
+
+AGB-DB-0020
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0040
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0060
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0080
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0100
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0120
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0140
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0160
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0180
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0200
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0220
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0240
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0260
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0280
+	database	DEGRADED	80	
+Open
+
+AGB-DB-0001
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0021
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0041
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0061
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0081
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0101
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0121
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0141
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0161
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0181
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0201
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0221
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0241
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0261
+	database	DEGRADED	81	
+Open
+
+AGB-DB-0002
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0022
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0042
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0062
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0082
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0102
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0122
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0142
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0162
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0182
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0202
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0222
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0242
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0262
+	database	DEGRADED	82	
+Open
+
+AGB-DB-0003
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0023
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0043
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0063
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0083
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0103
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0123
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0143
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0163
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0183
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0203
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0223
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0243
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0263
+	database	DEGRADED	83	
+Open
+
+AGB-DB-0004
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0024
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0044
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0064
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0084
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0104
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0124
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0144
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0164
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0184
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0204
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0224
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0244
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0264
+	database	DEGRADED	84	
+Open
+
+AGB-DB-0005
+	database	DEGRADED	85	
+Open
+
+AGB-DB-0025
+	database	DEGRADED	85	
+Open
+
+AGB-DB-0045
+	database	DEGRADED	85	
+Open
+
+AGB-DB-0065
+	database	DEGRADED	85	
+Open
+
+AGB-DB-0085
+	database	DEGRADED	85	
+Open
+
+AGB-DB-0105
+	database	DEGR

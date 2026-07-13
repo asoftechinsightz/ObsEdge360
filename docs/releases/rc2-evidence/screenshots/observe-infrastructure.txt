@@ -1,0 +1,325 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Infrastructure
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Infrastructure
+
+Servers, virtual machines, cloud instances, storage, and OS health in one estate view.
+
+OpsEdge360 Unified Observability · infrastructure
+Refresh
+NAME	KIND	HEALTH	SCORE	TWIN
+
+AGB-CLD-0020
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0040
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0060
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0080
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0100
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0120
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0140
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0160
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0180
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0200
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0220
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0240
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0260
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0280
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0300
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0320
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0340
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0360
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0380
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0400
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0420
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0440
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0460
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0480
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0500
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0520
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0540
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0560
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0580
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0600
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0620
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0640
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0660
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0680
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0700
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0720
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0740
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0760
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0780
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0800
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0820
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0840
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0860
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0880
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0900
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0020
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0040
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0060
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0080
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0100
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0120
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-K8S-0140
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-SRV-0020
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0040
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0060
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0080
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0100
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0120
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0140
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0160
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0180
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0200
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0220
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0240
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0260
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0280
+	server	DEGRADED	80	
+Open
+
+AGB-SRV-0300
+	

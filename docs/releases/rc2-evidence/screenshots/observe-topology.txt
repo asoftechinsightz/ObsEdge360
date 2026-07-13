@@ -1,0 +1,65 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Topology
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Topology
+
+Interactive dependency graph with health propagation, impact analysis, and business service mapping.
+
+Source live · 3 nodes · 2 edges
+Refresh
+SERVICE
+payments-postgres
+HEALTHY
+Digital Twin impact
+Traces
+Estate topology
+Impact analysis
+Explain

@@ -1,0 +1,8 @@
+PASS: observe_overview p50=38.2ms avg=39.7ms target_p50<300ms samples=[48.4, 38.9, 37.9, 36.9, 38.2, 39.8, 37.9]
+PASS: observe_logs p50=12.6ms avg=13.0ms target_p50<2000ms samples=[13.5, 12.0, 13.3, 12.6, 12.1, 15.1, 12.0]
+PASS: observe_metrics p50=15.0ms avg=15.4ms target_p50<300ms samples=[15.0, 14.6, 13.1, 14.4, 16.7, 16.3, 17.8]
+PASS: observe_traces p50=14.7ms avg=15.0ms target_p50<300ms samples=[13.8, 16.8, 13.3, 14.5, 15.7, 14.7, 15.9]
+PASS: observe_topology p50=16.1ms avg=16.4ms target_p50<300ms samples=[16.1, 19.9, 18.4, 16.3, 13.9, 15.9, 14.7]
+PASS: search p50=28.7ms avg=31.8ms target_p50<2000ms samples=[50.9, 27.2, 32.3, 28.7, 30.2, 27.0, 26.6]
+PASS: dashboard p50=11.0ms avg=49.9ms target_p50<2000ms samples=[277.8, 17.8, 11.2, 11.0, 10.1, 11.0, 10.5]
+PERF_ALL_PASS

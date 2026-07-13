@@ -1,0 +1,74 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Digital Twin
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Digital Twin
+
+What depends on what · blast radius · business impact — select a payment CI and analyze.
+
+Refresh
+Analyze impact
+All types
+api
+application
+cache
+cloud_resource
+database
+firewall
+load_balancer
+queue
+Breadth-first
+Force-directed
+Circle
+Grid
+Depth
+1
+2
+3
+4
+5
+6
+Downstream (depends on)
+Upstream (dependents)
+Both directions
+54 nodes · 59 edges
+
+Impact analysis
+
+Select a node on the graph, set depth and direction, then run blast-radius analysis. Downstream shows what the CI depends on; upstream shows what depends on it.

@@ -1,0 +1,146 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Kubernetes
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Kubernetes
+
+Clusters, namespaces, nodes, pods, deployments, and workload health.
+
+OpsEdge360 Unified Observability · kubernetes
+Refresh
+NAME	KIND	HEALTH	SCORE	TWIN
+
+AGB-CLD-0020
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0040
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0060
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0080
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0100
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0120
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0140
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0160
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0180
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0200
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0220
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0240
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0260
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0280
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0300
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0320
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0340
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0360
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0380
+	cloud_resource	DEGRADED	80	
+Open
+
+AGB-CLD-0400
+	cloud_resource	DEGRADED	80	
+Open
+SELECTED
+AGB-CLD-0020
+DEGRADED
+Digital Twin impact
+Related logs
+Traces
+AI investigation
+Explain

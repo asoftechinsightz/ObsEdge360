@@ -1,0 +1,206 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Logs
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Logs
+
+Enterprise log explorer with filter, search, timeline context, and correlation to traces and Twin.
+
+Search
+All severities
+ERROR
+WARN
+INFO
+30 matching events
+WARN
+cbs-oracle
+7/13/2026, 3:20:12 AM
+Twin
+Oracle RAC: wait event db file sequential read elevated on settlement batch
+ERROR
+upi-gateway
+7/13/2026, 3:18:12 AM
+Trace
+Twin
+UPI gateway: upstream timeout calling settlement-svc after 3000ms
+WARN
+order-orchestrator
+7/13/2026, 3:13:12 AM
+Twin
+Order orchestrator: retry queue depth 184 — backlog forming
+WARN
+cbs-oracle
+7/13/2026, 3:13:12 AM
+Twin
+Oracle RAC: wait event db file sequential read elevated on settlement batch
+INFO
+checkout-api
+7/13/2026, 3:10:12 AM
+Twin
+Retail checkout: payment authorization completed in 94ms
+WARN
+cbs-oracle
+7/13/2026, 3:09:40 AM
+Twin
+Oracle RAC: wait event db file sequential read elevated on settlement batch
+WARN
+order-orchestrator
+7/13/2026, 3:06:40 AM
+Twin
+Order orchestrator: retry queue depth 184 — backlog forming
+ERROR
+upi-gateway
+7/13/2026, 3:05:40 AM
+Trace
+Twin
+UPI gateway: upstream timeout calling settlement-svc after 3000ms
+ERROR
+upi-gateway
+7/13/2026, 3:05:12 AM
+Twin
+Container upi-gateway-7f9c OOMKilled: memory limit 512Mi exceeded
+ERROR
+upi-gateway
+7/13/2026, 3:03:12 AM
+Trace
+Twin
+UPI gateway: upstream timeout calling settlement-svc after 3000ms
+ERROR
+upi-gateway
+7/13/2026, 3:02:40 AM
+Trace
+Twin
+UPI gateway: upstream timeout calling settlement-svc after 3000ms
+ERROR
+upi-gateway
+7/13/2026, 3:02:17 AM
+Twin
+Container upi-gateway-7f9c OOMKilled: memory limit 512Mi exceeded
+WARN
+order-orchestrator
+7/13/2026, 3:02:17 AM
+Twin
+Order orchestrator: retry queue depth 184 — backlog forming
+ERROR
+upi-gateway
+7/13/2026, 3:00:12 AM
+Twin
+Container upi-gateway-7f9c OOMKilled: memory limit 512Mi exceeded
+INFO
+checkout-api
+7/13/2026, 2:59:17 AM
+Twin
+Retail checkout: payment authorization completed in 94ms
+WARN
+cbs-oracle
+7/13/2026, 2:59:17 AM
+Twin
+Oracle RAC: wait event db file sequential read elevated on settlement batch
+INFO
+checkout-api
+7/13/2026, 2:58:40 AM
+Twin
+Retail checkout: payment authorization completed in 94ms
+WARN
+order-orchestrator
+7/13/2026, 2:58:17 AM
+Twin
+Order orchestrator: retry queue depth 184 — backlog forming
+INFO
+checkout-api
+7/13/2026, 2:56:40 AM
+Twin
+Retail checkout: payment authorization completed in 94ms
+WARN
+order-orchestrator
+7/13/2026, 2:55:12 AM
+Twin
+Order orchestrator: retry queue depth 184 — backlog forming
+INFO
+checkout-api
+7/13/2026, 2:54:17 AM
+Twin
+Retail checkout: payment authorization completed in 94ms
+ERROR
+upi-gateway
+7/13/2026, 2:52:17 AM
+Trace
+Twin
+UPI gateway: upstream timeout calling settlement-svc after 3000ms
+INFO
+checkout-api
+7/13/2026, 2:52:12 AM
+Twin
+Retail checkout: payment authorization completed in 94ms
+ERROR
+upi-gateway
+7/13/2026, 2:51:17 AM
+Twin
+Container upi-gateway-7f9c OOMKilled: memory limit 512Mi exceeded
+WARN
+order-orchestrator
+7/13/2026, 2:49:40 AM
+Twin
+Order orchestrator: retry queue depth 184 — backlog forming
+WARN
+cbs-oracle
+7/13/2026, 2:46:40 AM
+Twin
+Oracle RAC: wait event db file sequential read elevated on settlement batch
+WARN
+cbs-oracle
+7/13/2026, 2:44:17 AM
+Twin
+Oracle RAC: wait event db file sequential read elevated on settlement batch
+ERROR
+upi-gateway
+7/13/2026, 2:43:40 AM
+Twin
+Container upi-gateway-7f9c OOMKilled: memo

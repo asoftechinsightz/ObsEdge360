@@ -1,0 +1,333 @@
+Skip to content
+360
+OpsEdge360
+DIGITAL OPS INTELLIGENCE
+Home
+ESTATE
+Discovery
+CMDB
+CMDB Drift
+Digital Twin
+Topology
+OBSERVE
+Ops Intelligence
+Observability
+Synthetics
+Network
+Transactions
+ASSURE
+Security
+Compliance
+Banking360
+ITSM
+AIOps / RCA
+REPORTS
+Executive Reports
+Guided Evaluation
+ADMINISTRATION
+OpsEdge360 · Enterprise
+Search estate, incidents, services…
+Ctrl K
+Actions
+Copilot
+asoftech-global-bank-demo
+Demo CIO â Asoftech Global Bank
+Home
+Unified Observability
+Applications
+Illustrative Demo Data
+Asoftech Global Bank (Demo) · 25 services · 350 apps · 1500 servers — not live customer telemetry.
+15-min guided eval
+Demo controls
+Overview
+Applications
+Infrastructure
+Kubernetes
+Containers
+Databases
+Logs
+Metrics
+Traces
+Topology
+Applications
+
+Application inventory, health, dependencies, and business impact — native to OpsEdge360.
+
+OpsEdge360 Unified Observability · applications
+Refresh
+NAME	KIND	HEALTH	SCORE	TWIN
+
+AGB-APP-0020
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0040
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0060
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0080
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0100
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0120
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0140
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0160
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0180
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0200
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0220
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0240
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0260
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0280
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0300
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0320
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0340
+	application	DEGRADED	80	
+Open
+
+AGB-APP-0001
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0021
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0041
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0061
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0081
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0101
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0121
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0141
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0161
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0181
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0201
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0221
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0241
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0261
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0281
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0301
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0321
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0341
+	application	DEGRADED	81	
+Open
+
+AGB-APP-0002
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0022
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0042
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0062
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0082
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0102
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0122
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0142
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0162
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0182
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0202
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0222
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0242
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0262
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0282
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0302
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0322
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0342
+	application	DEGRADED	82	
+Open
+
+AGB-APP-0003
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0023
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0043
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0063
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0083
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0103
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0123
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0143
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0163
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0183
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0203
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0223
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0243
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0263
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0283
+	application	DEGRADED	83	
+Open
+
+AGB-APP-0303
+	

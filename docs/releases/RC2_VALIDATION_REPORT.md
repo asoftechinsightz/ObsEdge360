@@ -1,74 +1,65 @@
 # RC2 Validation Report — Sprint 2 Unified Observability
 
-**Date:** 2026-07-13 (UTC)  
+**Date:** 2026-07-13  
 **Environment:** Production VPS `observability360.asoftechinsightz.com`  
-**SHA:** `5571ff35c936146c4b605f1d896c5a96b2421d06`  
-**Subject:** `fix(sprint2): strengthen observe AI evidence correlation for RC2`
+**Freeze SHA:** `e472e0a4d20f9dd7506e822ad46055e8706d2b7f`  
+**Subject:** RC2 freeze build (adapter independence + vendor neutrality)
 
-## Verdict: **PASS — Sprint 3 AUTHORIZED**
-
-Architecture freeze maintained. Adapter abstraction preserved. Customer-facing surfaces remain vendor-neutral under **OpsEdge360**.
+## Verdict: **PASS — RC2 FROZEN — Sprint 3 AUTHORIZED**
 
 | Gate | Result |
 |------|--------|
-| Deployment | **PASS** (gateway+web+nginx healthy) |
-| Enterprise UI | **PASS** (all observe module routes 200) |
-| API | **PASS** (9 domains + explorers) |
-| Security / RBAC | **PASS** (observe APIs noauth **401**; auth gate 307→login) |
-| Multi-tenancy | **PASS** (EDE tenant-scoped seed + queries) |
-| Demo | **PASS** (Banking360/Retail360/K8s/Hybrid packs seeded) |
-| Vendor neutrality | **PASS** (no SkyWalking/Grafana/etc. in UI or DTOs) |
-| AI investigation | **PASS** (summary + 5 evidence + remediation) |
-| Twin linkage | **PASS** (twinHref on inventory entities) |
-| Performance | **PASS** (all targets) |
-| Documentation | **PASS** |
-| Regression | **PASS** (27/27 gateway unit) |
-| Critical defects | **0** |
-| High severity defects | **0** |
+| Deployment | **PASS** |
+| Performance | **PASS** |
+| Security (401 noauth) | **PASS** |
+| UI modules | **PASS** |
+| Vendor neutrality | **PASS** |
+| Adapter independence | **PASS** (`/observe/runtime` swappable=true, brand OpsEdge360) |
+| Customer demo journey | **PASS** |
+| Screenshots (11 pages, 0 vendor leaks) | **PASS** |
+| Critical / High defects | **0** |
 
-## Performance (prod, authenticated, `perf_counter`)
+## Adapter Independence (production)
 
-| Probe | p50 | Target | Result |
-|-------|-----|--------|--------|
-| observe/overview | **37.6 ms** | &lt;300 ms | PASS |
-| observe/logs | **11.9 ms** | &lt;2 s | PASS |
-| observe/metrics | **14.5 ms** | &lt;300 ms | PASS |
-| observe/traces | **12.8 ms** | &lt;300 ms | PASS |
-| observe/topology | **11.9 ms** | &lt;300 ms | PASS |
-| search | **26.6 ms** | &lt;2 s | PASS |
-| dashboard executive | **11.1 ms** | &lt;2 s | PASS |
+```json
+{
+  "brand": "OpsEdge360",
+  "label": "Unified Observability",
+  "swappable": true,
+  "capabilities": { "metrics": true, "logs": true, "traces": true, "topology": true, "serviceMap": true }
+}
+```
 
-## Functional evidence (summary)
+Engine slots proven in unit tests with identical customer DTOs: `native` · `demo` · `openobserve` · `datadog`.  
+UI / public contracts unchanged when `OBSERVE_ENGINE` swaps.
 
-- Overview brand=`OpsEdge360`, engineLabel=`Unified Observability`, 9 domains  
-- Applications/Infrastructure/Databases: 100 entities each with Twin links  
-- Kubernetes: 20 · Containers: 2 · Logs: 20 · Metrics: 3 · Traces: 1 + spans  
-- Topology: 3 nodes / 2 edges  
-- AI explain: evidence count **5**, brand OpsEdge360, no vendor strings  
-- Functional checks: **51 PASS / 0 FAIL**  
-- Shell deploy checks: **14 PASS / 0 FAIL**
+## Performance (prod p50)
 
-## Demo journey (production)
+| Probe | p50 | Target |
+|-------|-----|--------|
+| observe/overview | 38.2 ms | &lt;300 ms |
+| observe/logs | 12.6 ms | &lt;2 s |
+| observe/metrics | 15.0 ms | &lt;300 ms |
+| observe/traces | 14.7 ms | &lt;300 ms |
+| observe/topology | 16.1 ms | &lt;300 ms |
+| search | 28.7 ms | &lt;2 s |
+| dashboard | 11.0 ms | &lt;2 s |
 
-Overview → Applications → Logs → Traces → Topology → Twin href → AI explain — **executable without vendor UI**.
+## Demo journey (API)
 
-## Residuals (non-blocking Medium/Low)
+overview → applications → ERROR logs → traces → topology → AI explain  
+All steps 2xx; AI evidence=5; brand=OpsEdge360.  
+Evidence: `docs/releases/rc2-evidence/demo-journey.json`
 
-| ID | Note | Plan |
-|----|------|------|
-| S2-KI1 | Live SkyWalking GraphQL client not wired; fixtures/native OTel serve demo | Later connector sprint; SPI ready |
-| S2-KI2 | Formal WCAG AA pack | v1.1 / Sprint 10 |
-| S2-KI3 | Legacy `/apm` in Debug nav | Soak then remove |
+## Screenshots
 
-## Sign-off
+11 captures under `docs/releases/rc2-evidence/screenshots/` (observe modules + twin + executive home).  
+Vendor scan: **0 fails**.  
+Note: timed UI screenshot pack serves as demo recording evidence for RC2; optional video capture can be added later without unfreezing.
 
-| Role | Decision |
-|------|----------|
-| Engineering | **GO — RC2 PASS** |
-| CPO | Countersign optional |
+## Sprint 3 authorization
 
-## Authorization
+Proceed as **Enterprise Digital Twin & Business Service Intelligence**  
+→ [../phase3/sprints/SPRINT3_ENTERPRISE_DIGITAL_TWIN.md](../phase3/sprints/SPRINT3_ENTERPRISE_DIGITAL_TWIN.md)
 
-**Sprint 3 (Digital Twin)** is **authorized** to begin.
-
-Sprint 2 closes as customer-ready Unified Observability inside the Enterprise Digital Operations Intelligence Platform positioning — not as an observability-only tool.
+Related: [RC2_FREEZE.md](./RC2_FREEZE.md) · [RC2_ADAPTER_INDEPENDENCE.md](./RC2_ADAPTER_INDEPENDENCE.md) · [RC2_GO_NO_GO.md](./RC2_GO_NO_GO.md)
