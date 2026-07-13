@@ -47,6 +47,8 @@ describe('shared-security', () => {
 
   it('infers permissions from method and path', () => {
     assert.equal(inferPermission('GET', '/api/v1/cmdb/cis'), 'cmdb:read');
+    assert.equal(inferPermission('GET', '/api/v1/twin/graph'), 'cmdb:read');
+    assert.equal(inferPermission('POST', '/api/v1/twin/ai/explain'), 'cmdb:write');
     assert.equal(inferPermission('POST', '/api/v1/discovery/scan'), 'discovery:write');
     assert.equal(inferPermission('DELETE', '/api/v1/security/rules/1'), 'security:delete');
   });

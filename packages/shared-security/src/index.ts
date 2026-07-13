@@ -120,9 +120,15 @@ export function mergePermissions(...lists: string[][]): string[] {
 export function inferPermission(method: string, path: string): string {
   const normalized = path.replace(/^\/api\/v1\/?/, '').replace(/^\//, '');
   const segment = normalized.split('/').filter(Boolean)[0] ?? 'platform';
-  // Unified Observability façade aliases to observability RBAC resource
+  // Unified Observability → observability RBAC; Digital Twin → cmdb RBAC (graph SoT)
   const resource =
-    segment === 'auth' ? 'platform' : segment === 'observe' ? 'observability' : segment;
+    segment === 'auth'
+      ? 'platform'
+      : segment === 'observe'
+        ? 'observability'
+        : segment === 'twin'
+          ? 'cmdb'
+          : segment;
   const m = method.toUpperCase();
   const action =
     m === 'GET' || m === 'HEAD' || m === 'OPTIONS'

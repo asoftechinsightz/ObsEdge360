@@ -12,6 +12,7 @@ import { AgentsController } from './agents.controller';
 import { ObservabilityController } from './observability.controller';
 import { ObserveController } from './observe/observe.controller';
 import { ObserveFacadeService } from './observe/observe-facade.service';
+import { TwinBsiService } from './twin/twin-bsi.service';
 import { TransactionsController } from './transactions.controller';
 import { NetworkController } from './network.controller';
 import { SecurityController } from './security.controller';
@@ -162,6 +163,7 @@ import { IncidentWorkspaceService } from './incident/incident-workspace.service'
     Rc3Service,
     EdeSeedService,
     ObserveFacadeService,
+    TwinBsiService,
     DashboardAggregationService,
     DashboardCacheService,
     DashboardRulesService,

@@ -146,6 +146,7 @@ export class EdeSeedService {
     await this.seedBulkCis(tenantId);
     await this.seedGraphCore(tenantId);
     await this.seedRelationships(tenantId);
+    await this.seedServiceMapsAndOwnership(tenantId);
     await this.seedDrift(tenantId);
     await this.seedDiscovery(tenantId);
     await this.seedIncidents(tenantId);
@@ -206,6 +207,10 @@ export class EdeSeedService {
       () => undefined,
     );
     await query(`DELETE FROM ede_executive_daily WHERE tenant_id=$1`, [tenantId]).catch(() => undefined);
+    await query(`DELETE FROM service_maps WHERE service_id IN (SELECT id FROM business_services WHERE tenant_id=$1 AND name = ANY($2::text[]))`, [
+      tenantId,
+      [...SERVICE_NAMES],
+    ]).catch(() => undefined);
     await query(`DELETE FROM business_services WHERE tenant_id=$1 AND name = ANY($2::text[])`, [
       tenantId,
       [...SERVICE_NAMES],
@@ -388,6 +393,72 @@ export class EdeSeedService {
          )`,
       [tenantId],
     );
+  }
+
+  /** Map business services → core CIs and assign ownership (Sprint 3 Twin BSI). */
+  private async seedServiceMapsAndOwnership(tenantId: string) {
+    const maps: Array<{ service: string; cis: string[]; capability: string; unit: string }> = [
+      { service: 'UPI Payments', cis: ['ede-core-upi', 'ede-core-pgdb', 'ede-core-api-gw', 'ede-core-k8s-mum'], capability: 'Real-time Payments', unit: 'Retail Banking' },
+      { service: 'Payment Gateway', cis: ['ede-core-pg', 'ede-core-api-gw', 'ede-core-kafka', 'ede-core-k8s-mum'], capability: 'Merchant Payments', unit: 'Retail Banking' },
+      { service: 'Core Banking (CBS)', cis: ['ede-core-cbs', 'ede-core-oracle', 'ede-core-api-gw', 'ede-core-k8s-hyd'], capability: 'Core Ledger', unit: 'Core Banking' },
+      { service: 'Fraud Detection', cis: ['ede-core-fraud', 'ede-core-kafka', 'ede-core-k8s-mum'], capability: 'Risk & Fraud', unit: 'Risk' },
+      { service: 'Digital Banking', cis: ['ede-core-api-gw', 'ede-core-lb-pub', 'ede-core-fw-dmz'], capability: 'Digital Channels', unit: 'Retail Banking' },
+      { service: 'Open Banking APIs', cis: ['ede-core-api-gw', 'ede-core-lb-pub'], capability: 'Open Banking', unit: 'Platform' },
+      { service: 'IMPS Transfers', cis: ['ede-core-upi', 'ede-core-api-gw'], capability: 'Real-time Payments', unit: 'Retail Banking' },
+      { service: 'Merchant Acquiring', cis: ['ede-core-pg', 'ede-core-pgdb'], capability: 'Merchant Payments', unit: 'Retail Banking' },
+    ];
+
+    for (const m of maps) {
+      await query(
+        `UPDATE business_services SET
+           owner_id = (SELECT id FROM users WHERE tenant_id=$1::uuid AND email LIKE 'owner%@asoftech-global-bank.demo' ORDER BY email LIMIT 1),
+           business_unit = COALESCE(business_unit, $3),
+           business_capability = COALESCE(business_capability, $4),
+           environment = COALESCE(environment, 'Prod'),
+           criticality = CASE WHEN tier=1 THEN 'tier1' WHEN tier=2 THEN 'tier2' ELSE 'tier3' END,
+           support_team = COALESCE(support_team, 'Payments SRE'),
+           escalation_group = COALESCE(escalation_group, 'NOC Tier-2'),
+           oncall_team = COALESCE(oncall_team, 'Payments On-Call'),
+           lifecycle = COALESCE(lifecycle, 'active'),
+           tags = COALESCE(tags, ARRAY['ede','banking360','twin-bsi']::text[])
+         WHERE tenant_id=$1::uuid AND name=$2::text`,
+        [tenantId, m.service, m.unit, m.capability],
+      ).catch(() => undefined);
+
+      // Fallback update without Sprint 3 columns
+      await query(
+        `UPDATE business_services SET
+           owner_id = (SELECT id FROM users WHERE tenant_id=$1::uuid AND email LIKE 'owner%@asoftech-global-bank.demo' ORDER BY email LIMIT 1)
+         WHERE tenant_id=$1::uuid AND name=$2::text AND owner_id IS NULL`,
+        [tenantId, m.service],
+      ).catch(() => undefined);
+
+      for (const ext of m.cis) {
+        await query(
+          `INSERT INTO service_maps (service_id, ci_id, role)
+           SELECT b.id, c.id, CASE WHEN c.external_id=$3::text THEN 'entry_point' ELSE 'dependency' END
+           FROM business_services b
+           JOIN configuration_items c ON c.tenant_id=b.tenant_id AND c.external_id=$3::text
+           WHERE b.tenant_id=$1::uuid AND b.name=$2::text
+             AND NOT EXISTS (
+               SELECT 1 FROM service_maps sm WHERE sm.service_id=b.id AND sm.ci_id=c.id
+             )`,
+          [tenantId, m.service, ext],
+        ).catch(() => undefined);
+      }
+    }
+
+    // Assign CI owners for mapped anchors
+    await query(
+      `UPDATE configuration_items c SET owner_id = u.id
+       FROM users u
+       WHERE c.tenant_id=$1::uuid
+         AND u.tenant_id=$1::uuid
+         AND u.email = 'owner1@asoftech-global-bank.demo'
+         AND c.external_id LIKE 'ede-core-%'
+         AND c.owner_id IS NULL`,
+      [tenantId],
+    ).catch(() => undefined);
   }
 
   private async seedDrift(tenantId: string) {

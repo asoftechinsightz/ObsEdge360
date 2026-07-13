@@ -19,6 +19,7 @@ import type {
 import type { ExecutiveKpis } from '@opsedge360/shared-types';
 import { ProxyService } from '../proxy.service';
 import { DashboardRulesService } from './dashboard-rules.service';
+import { TwinBsiService } from '../twin/twin-bsi.service';
 import { query, queryOne } from '@opsedge360/shared-db';
 
 export type KpiPayload = ExecutiveKpis & {
@@ -75,6 +76,7 @@ export class ExecutiveDataService {
   constructor(
     private readonly proxy: ProxyService,
     private readonly rules: DashboardRulesService,
+    private readonly twinBsi: TwinBsiService,
   ) {}
 
   async getKpis(tenantId: string): Promise<KpiPayload> {
@@ -221,6 +223,19 @@ export class ExecutiveDataService {
   }
 
   async getServices(tenantId: string): Promise<ServiceRow[]> {
+    try {
+      const twinRows = await this.twinBsi.getExecutiveServiceRows(tenantId);
+      if (twinRows.length) {
+        return twinRows.map((s) => ({
+          ...s,
+          illustrative: Boolean(s.illustrative),
+          label: s.illustrative ? 'Illustrative Demo Data' : undefined,
+        }));
+      }
+    } catch {
+      // fall through to legacy synthesis
+    }
+
     const rows = await query<{
       id: string;
       name: string;
@@ -263,6 +278,39 @@ export class ExecutiveDataService {
   }
 
   async getRisks(tenantId: string): Promise<RiskRow[]> {
+    try {
+      const twinRisk = await this.twinBsi.getExecutiveRisk(tenantId);
+      if (twinRisk.topRisks.length) {
+        const twinRows: RiskRow[] = twinRisk.topRisks.map((r, i) => {
+          const severity = r.severity;
+          const status =
+            severity === 'critical' || severity === 'high'
+              ? 'critical'
+              : severity === 'medium'
+                ? 'degraded'
+                : 'healthy';
+          return {
+            id: r.id,
+            title: r.title,
+            severity,
+            revenueAtRisk:
+              i === 0
+                ? twinRisk.revenueImpactPerHour
+                : this.rules.riskRevenueAtRisk(severity),
+            affectedService: twinRisk.criticalServices[i]?.name || twinRisk.customerImpact,
+            recommendedAction: twinRisk.recommendations[0]?.title || 'Open Digital Twin blast radius',
+            owner: twinRisk.criticalServices[i]?.ownership.operationsOwner || 'Operations',
+            status: status as RiskRow['status'],
+            drilldown: { href: r.href || '/twin', label: 'Open Digital Twin' },
+            illustrative: false,
+          };
+        });
+        return twinRows;
+      }
+    } catch {
+      // fall through
+    }
+
     const drifts = await query<{
       id: string;
       summary: string | null;

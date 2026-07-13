@@ -82,7 +82,7 @@ export function getNavSections(): NavSection[] {
         { href: '/discovery', label: 'Discovery', icon: Radar },
         { href: '/cmdb', label: 'CMDB', icon: Database },
         { href: '/cmdb/drift', label: 'CMDB Drift', icon: Database, keywords: ['drift', 'change'] },
-        { href: '/twin', label: 'Digital Twin', icon: Network },
+        { href: '/twin', label: 'Digital Twin', icon: Network, keywords: ['business service', 'blast radius', 'bsi', 'twin'] },
         { href: '/topology', label: 'Topology', icon: Waypoints },
       ],
     },

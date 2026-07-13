@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ProxyService } from './proxy.service';
@@ -7,12 +7,16 @@ import { CurrentTenant } from './auth/current-tenant.decorator';
 import type { JwtPayload } from './auth/auth.service';
 import type { TenantContext } from './auth/authorization.guard';
 import { query, resolveTenantId } from '@opsedge360/shared-db';
+import { TwinBsiService } from './twin/twin-bsi.service';
 
 @ApiTags('twin')
 @ApiBearerAuth()
 @Controller('twin')
 export class TwinController {
-  constructor(private proxy: ProxyService) {}
+  constructor(
+    private proxy: ProxyService,
+    private twinBsi: TwinBsiService,
+  ) {}
 
   private async tenantUuid(user: JwtPayload, tenant?: TenantContext): Promise<string> {
     if (tenant?.id) return tenant.id;
@@ -242,14 +246,28 @@ export class TwinController {
   @ApiOperation({ summary: 'Get digital twin topology graph' })
   @ApiQuery({ name: 'ciType', required: false })
   @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'serviceId', required: false })
+  @ApiQuery({ name: 'view', required: false })
+  @ApiQuery({ name: 'asOf', required: false })
   async getGraph(
     @CurrentUser() user: JwtPayload,
     @CurrentTenant() tenant: TenantContext | undefined,
     @Query('ciType') ciType: string | undefined,
     @Query('limit') limit: string | undefined,
+    @Query('serviceId') serviceId: string | undefined,
+    @Query('view') view: string | undefined,
+    @Query('asOf') asOf: string | undefined,
     @Res() res: Response,
   ) {
     const tid = await this.tenantUuid(user, tenant);
+    if (view === 'enterprise' || serviceId) {
+      const graph = await this.twinBsi.getEnterpriseGraph(tid, {
+        serviceId,
+        limit: limit ? Number(limit) : 160,
+        asOf,
+      });
+      return res.status(200).json(graph);
+    }
     const live = await this.cmdbGet('/twin/graph', tid, {
       query: {
         ...(ciType && { ciType }),
@@ -258,6 +276,88 @@ export class TwinController {
     });
     if (live) return res.status(live.status).json(live.data);
     return res.status(200).json(await this.fallbackGraph(tid, ciType, limit ? Number(limit) : 120));
+  }
+
+  @Get('business-services')
+  @ApiOperation({ summary: 'Business service modeling with health, SLA, ownership, KPIs' })
+  async listBusinessServices(@CurrentUser() user: JwtPayload, @CurrentTenant() tenant?: TenantContext) {
+    const tid = await this.tenantUuid(user, tenant);
+    const items = await this.twinBsi.listBusinessServices(tid);
+    return { brand: 'OpsEdge360', asOf: new Date().toISOString(), count: items.length, items };
+  }
+
+  @Get('business-services/:id')
+  @ApiOperation({ summary: 'Business service detail' })
+  async getBusinessService(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @CurrentTenant() tenant?: TenantContext,
+  ) {
+    const tid = await this.tenantUuid(user, tenant);
+    const item = await this.twinBsi.getBusinessService(tid, id);
+    return item ?? { error: 'not_found' };
+  }
+
+  @Get('business-services/:id/blast-radius')
+  @ApiOperation({ summary: 'Blast radius starting from a business service' })
+  @ApiQuery({ name: 'depth', required: false })
+  @ApiQuery({ name: 'direction', required: false })
+  async businessBlast(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @CurrentTenant() tenant?: TenantContext,
+    @Query('depth') depth?: string,
+    @Query('direction') direction?: string,
+  ) {
+    const tid = await this.tenantUuid(user, tenant);
+    const blast = await this.twinBsi.blastRadiusForService(tid, id, {
+      depth: depth ? Number(depth) : 3,
+      direction: direction || 'downstream',
+    });
+    return blast ?? { error: 'not_found' };
+  }
+
+  @Get('business-services/:id/history')
+  @ApiOperation({ summary: 'Health history (time-travel MVP)' })
+  @ApiQuery({ name: 'hours', required: false })
+  async serviceHistory(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @CurrentTenant() tenant?: TenantContext,
+    @Query('hours') hours?: string,
+  ) {
+    const tid = await this.tenantUuid(user, tenant);
+    return this.twinBsi.getServiceHistory(tid, id, hours ? Number(hours) : 24);
+  }
+
+  @Get('executive-risk')
+  @ApiOperation({ summary: 'Executive risk dashboard grounded in Digital Twin' })
+  async executiveRisk(@CurrentUser() user: JwtPayload, @CurrentTenant() tenant?: TenantContext) {
+    const tid = await this.tenantUuid(user, tenant);
+    return this.twinBsi.getExecutiveRisk(tid);
+  }
+
+  @Post('ai/explain')
+  @ApiOperation({ summary: 'AI investigation grounded in Digital Twin relationships' })
+  async aiExplain(
+    @CurrentUser() user: JwtPayload,
+    @CurrentTenant() tenant?: TenantContext,
+    @Body() body?: { serviceId?: string; ciId?: string; name?: string; prompt?: string },
+  ) {
+    const tid = await this.tenantUuid(user, tenant);
+    return this.twinBsi.explainWithTwin(tid, body || {});
+  }
+
+  @Post('business-services/:id/snapshot')
+  @ApiOperation({ summary: 'Record health propagation snapshot for time travel' })
+  async snapshot(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @CurrentTenant() tenant?: TenantContext,
+  ) {
+    const tid = await this.tenantUuid(user, tenant);
+    await this.twinBsi.recordHealthSnapshot(tid, id);
+    return { ok: true, serviceId: id };
   }
 
   @Get('impact/:ciId')

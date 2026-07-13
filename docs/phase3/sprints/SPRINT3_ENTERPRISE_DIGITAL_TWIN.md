@@ -1,7 +1,7 @@
 # Sprint 3 — Enterprise Digital Twin & Business Service Intelligence
 
 **Phase:** 3  
-**Status:** AUTHORIZED (after RC2 PASS + freeze)  
+**Status:** IMPLEMENTATION COMPLETE (pending RC3)  
 **Prior name:** Digital Twin (narrow) — **superseded by this scope**
 
 ## Positioning

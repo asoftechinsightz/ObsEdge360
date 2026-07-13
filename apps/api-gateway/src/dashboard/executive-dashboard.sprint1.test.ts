@@ -4,7 +4,7 @@ import { ExecutiveDataService } from './executive-data.service';
 import { DashboardRulesService } from './dashboard-rules.service';
 
 describe('ExecutiveDataService.composeDashboard (Sprint 1)', () => {
-  const service = new ExecutiveDataService({} as never, new DashboardRulesService());
+  const service = new ExecutiveDataService({} as never, new DashboardRulesService(), {} as never);
 
   const baseInput = {
     kpis: {
