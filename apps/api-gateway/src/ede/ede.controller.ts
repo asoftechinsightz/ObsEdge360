@@ -16,6 +16,7 @@ import {
   EDE_SLUG,
   EdeSeedService,
 } from './ede-seed.service';
+import { ObserveFacadeService } from '../observe/observe-facade.service';
 
 class EdeLoadDto {
   @IsOptional()
@@ -39,6 +40,7 @@ export class EdeController {
   constructor(
     private ede: EdeSeedService,
     private authService: AuthService,
+    private observe: ObserveFacadeService,
   ) {}
 
   @Get('status')
@@ -98,6 +100,9 @@ export class EdeController {
         'CMDB Drift',
         'Digital Twin',
         'Live Topology',
+        'Unified Observability',
+        'Applications / Infrastructure / Kubernetes',
+        'Logs / Metrics / Traces',
         'Banking360',
         'Security Center',
         'ITSM',
@@ -128,6 +133,7 @@ export class EdeController {
     if (!status.loaded) {
       await this.ede.loadPack(provisioned.tenantId);
     }
+    await this.observe.seedDemoTelemetry(provisioned.tenantId).catch(() => undefined);
     return this.authService.login(EDE_DEMO_EMAIL, EDE_DEMO_PASSWORD, EDE_SLUG);
   }
 
@@ -148,7 +154,8 @@ export class EdeController {
       tenantId = provisioned.tenantId;
     }
     const pack = await this.ede.loadPack(tenantId, { organizationName: body?.organizationName });
-    return { ok: true, tenantId, provisioned, pack };
+    const telemetry = await this.observe.seedDemoTelemetry(tenantId).catch(() => null);
+    return { ok: true, tenantId, provisioned, pack, telemetry };
   }
 
   @Post('reset')
@@ -159,7 +166,8 @@ export class EdeController {
     }
     const tenantId = tenant?.id ?? user.tenantId;
     const result = await this.ede.resetAndLoad(tenantId);
-    return { ok: true, label: 'Illustrative Demo Data', ...result };
+    const telemetry = await this.observe.seedDemoTelemetry(tenantId).catch(() => null);
+    return { ok: true, label: 'Illustrative Demo Data', ...result, telemetry };
   }
 
   @Post('provision')
@@ -170,6 +178,7 @@ export class EdeController {
     }
     const provisioned = await this.ede.ensureDemoTenant();
     const pack = await this.ede.loadPack(provisioned.tenantId);
+    const telemetry = await this.observe.seedDemoTelemetry(provisioned.tenantId).catch(() => null);
     return {
       ok: true,
       organization: EDE_ORG,
@@ -177,6 +186,7 @@ export class EdeController {
       email: provisioned.email,
       created: provisioned.created,
       pack,
+      telemetry,
     };
   }
 }

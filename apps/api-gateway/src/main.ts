@@ -56,6 +56,7 @@ async function bootstrap() {
       .addTag('compliance')
       .addTag('agents')
       .addTag('observability')
+      .addTag('observe')
       .addTag('transactions')
       .addTag('security')
       .addTag('copilot')

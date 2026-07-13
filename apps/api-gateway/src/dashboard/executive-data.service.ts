@@ -560,7 +560,7 @@ export class ExecutiveDataService {
         trend: `${kpis.availability.toFixed(2)}% availability`,
         status: overall.status,
         sparkline: availabilitySpark.length > 1 ? availabilitySpark : undefined,
-        drilldown: { href: '/observability', label: 'Infrastructure' },
+        drilldown: { href: '/observability/infrastructure', label: 'Infrastructure' },
         metadata: { refreshIntervalSec: 60, roles: ['cio', 'admin', 'noc'], position: 4, size: 'md' },
       },
       {
@@ -845,12 +845,12 @@ export class ExecutiveDataService {
     atRisk: number,
   ): DomainWidget[] {
     const domains: Array<{ id: string; title: string; types: string[]; href: string; summary: string }> = [
-      { id: 'domain.infrastructure', title: 'Infrastructure', types: ['server', 'host'], href: '/cmdb', summary: 'Servers and hosts across the estate' },
-      { id: 'domain.applications', title: 'Applications', types: ['application', 'app'], href: '/observability', summary: 'Application health and dependency context' },
+      { id: 'domain.infrastructure', title: 'Infrastructure', types: ['server', 'host'], href: '/observability/infrastructure', summary: 'Servers and hosts across the estate' },
+      { id: 'domain.applications', title: 'Applications', types: ['application', 'app'], href: '/observability/applications', summary: 'Application health and dependency context' },
       { id: 'domain.services', title: 'Services', types: ['business_service', 'service'], href: '/transactions', summary: 'Business service continuity and SLA' },
       { id: 'domain.cloud', title: 'Cloud', types: ['cloud_resource', 'cloud'], href: '/discovery', summary: 'Cloud resources discovered in inventory' },
-      { id: 'domain.databases', title: 'Databases', types: ['database', 'db'], href: '/cmdb', summary: 'Data stores supporting critical journeys' },
-      { id: 'domain.containers', title: 'Containers', types: ['kubernetes', 'container', 'k8s'], href: '/topology', summary: 'Clusters and containerized workloads' },
+      { id: 'domain.databases', title: 'Databases', types: ['database', 'db'], href: '/observability/databases', summary: 'Data stores supporting critical journeys' },
+      { id: 'domain.containers', title: 'Containers', types: ['kubernetes', 'container', 'k8s'], href: '/observability/kubernetes', summary: 'Clusters and containerized workloads' },
       { id: 'domain.network', title: 'Network', types: ['network_device', 'network'], href: '/network', summary: 'Devices and path health for critical routes' },
       { id: 'domain.security', title: 'Security', types: [], href: '/security', summary: `Posture ${kpis.securityPosture} · open alert pressure` },
       { id: 'domain.compliance', title: 'Compliance', types: [], href: '/compliance', summary: 'Control posture across active frameworks' },

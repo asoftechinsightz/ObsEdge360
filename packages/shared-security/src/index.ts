@@ -120,7 +120,9 @@ export function mergePermissions(...lists: string[][]): string[] {
 export function inferPermission(method: string, path: string): string {
   const normalized = path.replace(/^\/api\/v1\/?/, '').replace(/^\//, '');
   const segment = normalized.split('/').filter(Boolean)[0] ?? 'platform';
-  const resource = segment === 'auth' ? 'platform' : segment;
+  // Unified Observability façade aliases to observability RBAC resource
+  const resource =
+    segment === 'auth' ? 'platform' : segment === 'observe' ? 'observability' : segment;
   const m = method.toUpperCase();
   const action =
     m === 'GET' || m === 'HEAD' || m === 'OPTIONS'

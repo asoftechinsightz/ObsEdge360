@@ -91,8 +91,12 @@ export function getNavSections(): NavSection[] {
       label: 'Observe',
       items: [
         { href: '/ops-intelligence', label: 'Ops Intelligence', icon: Bot },
-        { href: '/observability', label: 'Observability', icon: Activity },
-        { href: '/apm', label: 'APM', icon: Waypoints },
+        {
+          href: '/observability',
+          label: 'Observability',
+          icon: Activity,
+          keywords: ['logs', 'metrics', 'traces', 'apps', 'kubernetes', 'containers'],
+        },
         { href: '/synthetics', label: 'Synthetics', icon: Activity },
         { href: '/network', label: 'Network', icon: Radio },
         { href: '/transactions', label: 'Transactions', icon: GitBranch },
@@ -128,6 +132,7 @@ export function getNavSections(): NavSection[] {
 
 /** Long-tail surfaces — Debug Mode / command palette only. */
 export const INTERNAL_NAV: NavItem[] = [
+  { href: '/apm', label: 'APM (legacy)', icon: Waypoints },
   { href: '/dashboards', label: 'Ops Dashboards', icon: LayoutDashboard },
   { href: '/fleet', label: 'Universal Agents', icon: Server },
   { href: '/ot', label: 'OT / Industrial', icon: Factory },
@@ -178,7 +183,15 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
   drift: 'Drift',
   itsm: 'ITSM',
   transactions: 'Transactions',
-  observability: 'Observability',
+  observability: 'Unified Observability',
+  applications: 'Applications',
+  infrastructure: 'Infrastructure',
+  kubernetes: 'Kubernetes',
+  containers: 'Containers',
+  databases: 'Databases',
+  logs: 'Logs',
+  metrics: 'Metrics',
+  traces: 'Traces',
   synthetics: 'Synthetics',
   fleet: 'Universal Agents',
   apm: 'APM',

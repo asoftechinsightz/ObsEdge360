@@ -6,5 +6,7 @@ describe('gateway authz policy inference', () => {
   it('centralizes permission inference for protected APIs', () => {
     assert.equal(inferPermission('GET', '/api/v1/cmdb/topology/application'), 'cmdb:read');
     assert.equal(inferPermission('POST', '/api/v1/observability/pipeline/ingest/x'), 'observability:write');
+    assert.equal(inferPermission('GET', '/api/v1/observe/logs'), 'observability:read');
+    assert.equal(inferPermission('POST', '/api/v1/observe/demo/seed'), 'observability:write');
   });
 });

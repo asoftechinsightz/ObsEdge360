@@ -146,7 +146,11 @@ export class SearchService {
 
     // Static operational workspaces matching the query (topology, twin, compliance, security)
     const workspaces = [
-      { id: 'ws-topology', title: 'Topology', subtitle: 'Dependency map', href: '/topology', keys: ['topology', 'dependency', 'graph'] },
+      { id: 'ws-observe', title: 'Unified Observability', subtitle: 'Apps, logs, metrics, traces', href: '/observability', keys: ['observability', 'logs', 'metrics', 'traces', 'apm', 'otlp'] },
+      { id: 'ws-observe-apps', title: 'Applications', subtitle: 'Application health', href: '/observability/applications', keys: ['applications', 'app health'] },
+      { id: 'ws-observe-logs', title: 'Log Explorer', subtitle: 'Enterprise logs', href: '/observability/logs', keys: ['logs', 'log explorer'] },
+      { id: 'ws-observe-traces', title: 'Traces', subtitle: 'Distributed tracing', href: '/observability/traces', keys: ['traces', 'tracing', 'spans'] },
+      { id: 'ws-topology', title: 'Topology', subtitle: 'Dependency map', href: '/observability/topology', keys: ['topology', 'dependency', 'graph'] },
       { id: 'ws-twin', title: 'Digital Twin', subtitle: 'Impact simulation', href: '/twin', keys: ['twin', 'digital', 'impact', 'blast'] },
       { id: 'ws-compliance', title: 'Compliance Workspace', subtitle: 'Frameworks & controls', href: '/compliance', keys: ['compliance', 'control', 'audit', 'policy'] },
       { id: 'ws-security', title: 'Security Operations', subtitle: 'Findings & posture', href: '/security', keys: ['security', 'siem', 'fraud', 'posture', 'finding'] },

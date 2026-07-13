@@ -10,6 +10,8 @@ import { TwinController } from './twin.controller';
 import { ComplianceController } from './compliance.controller';
 import { AgentsController } from './agents.controller';
 import { ObservabilityController } from './observability.controller';
+import { ObserveController } from './observe/observe.controller';
+import { ObserveFacadeService } from './observe/observe-facade.service';
 import { TransactionsController } from './transactions.controller';
 import { NetworkController } from './network.controller';
 import { SecurityController } from './security.controller';
@@ -101,6 +103,7 @@ import { IncidentWorkspaceService } from './incident/incident-workspace.service'
     ComplianceController,
     AgentsController,
     ObservabilityController,
+    ObserveController,
     TransactionsController,
     NetworkController,
     SecurityController,
@@ -158,6 +161,7 @@ import { IncidentWorkspaceService } from './incident/incident-workspace.service'
     Rc2Service,
     Rc3Service,
     EdeSeedService,
+    ObserveFacadeService,
     DashboardAggregationService,
     DashboardCacheService,
     DashboardRulesService,
