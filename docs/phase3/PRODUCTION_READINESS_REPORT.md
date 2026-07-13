@@ -1,32 +1,27 @@
 # OpsEdge360 — Production Readiness Report (Enterprise Gate)
 
-**Date:** 2026-07-13  
-**Branch (local):** `feature/commercial-launch-prep`  
-**Production HEAD (last known deploy):** `ab97beb` — Wave 1–2 dashboard aggregator  
-**Review type:** Enterprise product validation (no feature development)  
-**Scope:** Code evidence + production smoke + demo tenant probes  
+**Date:** 2026-07-13 (updated post-RC1 deploy)  
+**Branch:** `feature/commercial-launch-prep`  
+**Production HEAD:** `ef8183f` — RC1 twin edges + typed fallback query  
+**Review type:** Enterprise product validation  
+**RC1 package:** [RC1_RELEASE_CANDIDATE.md](./RC1_RELEASE_CANDIDATE.md)
 
 ---
 
 ## Executive Summary
 
-OpsEdge360 has matured from a multi-fetch dashboard prototype into a coherent **executive command center** with a designed **Incident Workspace lifecycle** in code. Architecture and engineering quality are strong.
+OpsEdge360 **RC1 engineering validation is PASS** on production (2026-07-13):
 
-However, the **enterprise gate is not yet green for full production approval** of the P0+P1 operational product:
+| Finding (pre-RC1) | Post-RC1 status |
+|-------------------|-----------------|
+| P0 search + P1 workspace not deployed | **PASS** — `/search` 200, `/workspace` 200 |
+| Migration 049 missing | **PASS** — workspace columns present |
+| Twin 0 nodes / 0 edges | **PASS** — 54 nodes · 59 edges (`postgres-fallback`) |
+| Scenario / security / network incomplete | **PASS** — Scenario 1 lifecycle; security + network APIs 200 |
 
-| Finding | Impact |
-|---------|--------|
-| P0 enterprise search + P1 Incident Workspace **not deployed** to production | Search `/search` → **404**; workspace route → **404** |
-| Migration **049** (incident workspace tables) **not applied** on prod | Lifecycle APIs cannot run safely until migrate |
-| Twin graph on demo tenant returned **0 nodes** in this review | Digital Twin journey blocked in live demo |
-| Scenario chains for Network / Compliance / Security (MITRE) remain incomplete | Not all five demo scenarios are continuous |
-| Local P0+P1 changes largely **uncommitted** | Deploy risk / change-control gap |
+**Recommendation:** Engineering marks **Enterprise Release Candidate (RC1)** ready for **CPO sign-off**. Residual P2 items (docx export, universal context menus, full ATT&CK engine) are accepted known issues.
 
-**Recommendation: Requires Additional Work** before production approval of the full operational platform.
-
-**Secondary recommendation:** Current production (Wave 1–2 executive dashboard) is **Ready for Customer Demo Only** for executive narrative / home surface — not for claiming complete Detect→Close incident operations.
-
-**Platform Configuration APIs must remain blocked** until this gate is re-run and approved after P0+P1 deploy + scenario validation.
+**Platform Configuration APIs remain blocked** until CPO approves RC1.
 
 ---
 
@@ -34,10 +29,13 @@ However, the **enterprise gate is not yet green for full production approval** o
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Aggregated dashboard API | **PASS** | `GET /dashboard/executive` live; 1 call; auth required (401 without token) |
-| Executive widget contracts | **PASS** | Health / domains / actions present in prod payload |
-| Incident Workspace (code) | **PASS** | `IncidentWorkspace` + lifecycle APIs in repo |
-| Incident Workspace (prod) | **FAIL** | Routes not present on production gateway |
+| Aggregated dashboard API | **PASS** | `GET /dashboard/executive` live |
+| Executive widget contracts | **PASS** | Health / domains / actions |
+| Incident Workspace (code) | **PASS** | Lifecycle APIs + UI |
+| Incident Workspace (prod) | **PASS** | Workspace + transition + close-and-report |
+| Twin graph (prod demo) | **PASS** | Nodes + edges via postgres fallback |
+| Enterprise search (prod) | **PASS** | `GET /search` |
+| Migration 049 | **PASS** | Applied on prod |
 | Enterprise search (code) | **PASS** | `SearchService` / Cmd+K live-search in repo |
 | Enterprise search (prod) | **FAIL** | `/api/v1/search` → 404 |
 | Nav → pages | **PASS** | Primary nav hrefs resolve to pages |
