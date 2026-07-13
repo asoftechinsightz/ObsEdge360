@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { query } from '@opsedge360/shared-db';
 import { ProxyService } from '../proxy.service';
 import type { ObserveAdapter } from './observe-adapter';
+import { ObserveAdapterRegistry } from './observe-adapter.registry';
 import { NativeOtelObserveAdapter } from './native-otel.adapter';
-import { SkyWalkingObserveAdapter } from './skywalking.adapter';
+import { SkyWalkingObserveAdapter } from './engine-connectors.adapter';
 import {
   DEMO_APPLICATIONS,
   DEMO_CONTAINERS,
@@ -45,18 +46,28 @@ const CI_DOMAIN_MAP: Record<string, { domain: ObserveDomain; kinds: string[] }> 
 @Injectable()
 export class ObserveFacadeService {
   private readonly log = new Logger(ObserveFacadeService.name);
+  private readonly registry: ObserveAdapterRegistry;
   private readonly native: NativeOtelObserveAdapter;
   private readonly engineSlot: SkyWalkingObserveAdapter;
 
   constructor(private readonly proxy: ProxyService) {
+    this.registry = new ObserveAdapterRegistry(proxy);
     this.native = new NativeOtelObserveAdapter(proxy);
     this.engineSlot = new SkyWalkingObserveAdapter();
   }
 
-  /** Prefer live OTel; enrich with demo when sparse so demos never empty. */
+  /** Prefer configured engine; enrich with demo when sparse so demos never empty. */
   private primaryAdapter(preferDemo = false): ObserveAdapter {
-    if (preferDemo || process.env.OBSERVE_FORCE_DEMO === 'true') return this.engineSlot;
-    return this.native;
+    if (preferDemo || process.env.OBSERVE_FORCE_DEMO === 'true') {
+      return this.registry.resolve('demo');
+    }
+    return this.registry.resolve();
+  }
+
+  /** Customer-safe runtime — proves engines are swappable without UI changes. */
+  getRuntimeDescriptor() {
+    const adapter = this.primaryAdapter();
+    return this.registry.describe(adapter);
   }
 
   async getOverview(tenantId: string): Promise<ObserveOverview> {

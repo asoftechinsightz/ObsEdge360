@@ -17,6 +17,12 @@ export class ObserveController {
     return tenant?.id ?? user.tenantId;
   }
 
+  @Get('runtime')
+  @ApiOperation({ summary: 'Customer-safe observability runtime (engine-agnostic)' })
+  runtime() {
+    return this.observe.getRuntimeDescriptor();
+  }
+
   @Get('overview')
   @ApiOperation({ summary: 'Unified Observability overview (OpsEdge360 branded)' })
   overview(@CurrentUser() user: JwtPayload, @CurrentTenant() tenant?: TenantContext) {

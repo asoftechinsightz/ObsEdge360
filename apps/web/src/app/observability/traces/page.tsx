@@ -90,7 +90,7 @@ function TracesInner() {
       {loading && <LoadingSkeleton rows={6} />}
       {err && <ErrorState message={err} onRetry={() => void load()} />}
       {!loading && !err && items.length === 0 && (
-        <EmptyState title="No traces" hint="Seed demo telemetry or ingest OTLP." />
+        <EmptyState title="No traces" hint="Seed demo telemetry or connect collectors." />
       )}
 
       {!loading && items.length > 0 && (

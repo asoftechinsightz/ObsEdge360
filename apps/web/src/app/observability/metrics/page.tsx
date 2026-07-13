@@ -78,7 +78,7 @@ export default function MetricsPage() {
 
       {loading && <LoadingSkeleton rows={6} />}
       {err && <ErrorState message={err} onRetry={() => void load()} />}
-      {!loading && !err && items.length === 0 && <EmptyState title="No metrics" hint="Seed demo telemetry or scrape targets." />}
+      {!loading && !err && items.length === 0 && <EmptyState title="No metrics" hint="Seed demo telemetry or connect collectors." />}
 
       {!loading && items.length > 0 && (
         <div className="space-y-4">

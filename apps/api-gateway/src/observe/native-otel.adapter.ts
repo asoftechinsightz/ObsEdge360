@@ -22,11 +22,11 @@ function healthFromErrors(errorRate: number, latencyMs: number): ObserveHealth {
 }
 
 /**
- * Native OTel / Prometheus path already operating in OpsEdge360 observability service.
+ * Native telemetry pipeline already operating in OpsEdge360 observability service.
  * This adapter normalizes responses into canonical DTOs — no vendor UI leakage.
  */
 export class NativeOtelObserveAdapter implements ObserveAdapter {
-  readonly id = 'native-otel';
+  readonly id = 'native-pipeline';
   readonly displayName = 'Unified Observability';
 
   constructor(private readonly proxy: ProxyService) {}

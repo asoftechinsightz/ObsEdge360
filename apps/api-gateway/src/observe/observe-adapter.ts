@@ -10,7 +10,7 @@ import type {
 
 /**
  * ObserveAdapter SPI — engines plug in here.
- * UI and gateway contracts never bind to SkyWalking/Grafana/etc.
+ * UI and gateway contracts never bind directly to external monitoring products.
  */
 export interface ObserveAdapter {
   readonly id: string;

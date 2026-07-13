@@ -7,7 +7,7 @@ import {
   domainHealth,
   demoTopology,
 } from './demo-fixtures';
-import { SkyWalkingObserveAdapter } from './skywalking.adapter';
+import { SkyWalkingObserveAdapter } from './engine-connectors.adapter';
 
 describe('Sprint 2 Unified Observability', () => {
   it('demo packs cover Banking360, Retail360, K8s, Hybrid', () => {

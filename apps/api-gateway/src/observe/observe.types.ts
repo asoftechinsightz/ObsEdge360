@@ -1,6 +1,6 @@
 /**
  * Canonical OpsEdge360 observability DTOs.
- * Engines (OTel store, SkyWalking, etc.) map into these — never leak vendor names to UI.
+ * Engines map into these — never leak vendor product names to UI or public APIs.
  */
 
 export type ObserveHealth = 'healthy' | 'degraded' | 'critical' | 'unknown';
@@ -110,7 +110,6 @@ export interface ObserveOverview {
   asOf: string;
   brand: 'OpsEdge360';
   engineLabel: 'Unified Observability';
-  /** Never expose upstream product names */
   domains: Array<{
     id: ObserveDomain;
     label: string;

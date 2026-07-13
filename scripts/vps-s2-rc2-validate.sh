@@ -42,6 +42,21 @@ AUTH="Authorization: Bearer $TOKEN"
 curl -sk -X POST "$API/observe/demo/seed" -H "$AUTH" -H 'Content-Type: application/json' -d '{}' > "$OUT/observe-seed.json" || true
 python3 -c "import json;d=json.load(open('$OUT/observe-seed.json'));print('seed_ok',d.get('ok'),'packs',d.get('packs'));print('brand',d.get('brand'))" || true
 
+echo "=== 2b. adapter independence runtime (customer-safe) ==="
+curl -sk -H "$AUTH" "$API/observe/runtime" > "$OUT/observe-runtime.json"
+python3 - <<'PY'
+import json,re
+d=json.load(open("/tmp/opsedge360-s2-rc2-evidence/observe-runtime.json"))
+blob=json.dumps(d).lower()
+ok = d.get("brand")=="OpsEdge360" and d.get("label")=="Unified Observability" and d.get("swappable") is True
+vendor = re.search(r"skywalking|grafana|datadog|openobserve|new relic|elastic", blob)
+print("runtime", d)
+print("PASS: runtime_descriptor" if ok and not vendor else "FAIL: runtime_descriptor")
+if not ok or vendor:
+  raise SystemExit(2)
+PY
+pass "adapter_runtime"
+
 echo "=== 3. security noauth (must be 401) ==="
 for path in observe/overview observe/logs observe/traces observe/topology; do
   code=$(curl -sk -o /dev/null -w '%{http_code}' "$API/$path")
