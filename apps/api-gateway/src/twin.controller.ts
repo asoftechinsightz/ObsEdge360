@@ -60,7 +60,14 @@ export class TwinController {
     }> = [];
 
     if (relatedIds.length) {
-      nodes = await query(
+      nodes = await query<{
+        id: string;
+        name: string;
+        ci_type: string;
+        health_score: number;
+        risk_score: number;
+        status: string;
+      }>(
         `SELECT id, name, ci_type, health_score, risk_score, status
          FROM configuration_items
          WHERE tenant_id=$1 AND id = ANY($2::uuid[])
