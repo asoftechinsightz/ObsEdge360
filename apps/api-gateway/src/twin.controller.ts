@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ProxyService } from './proxy.service';
@@ -338,6 +338,7 @@ export class TwinController {
   }
 
   @Post('ai/explain')
+  @HttpCode(200)
   @ApiOperation({ summary: 'AI investigation grounded in Digital Twin relationships' })
   async aiExplain(
     @CurrentUser() user: JwtPayload,
@@ -349,6 +350,7 @@ export class TwinController {
   }
 
   @Post('business-services/:id/snapshot')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Record health propagation snapshot for time travel' })
   async snapshot(
     @CurrentUser() user: JwtPayload,
