@@ -60,12 +60,12 @@ UI (OpsEdge chrome) → Gateway /observe → ObserveFacade → ObserveAdapter SP
 | API review | PASS |
 | Security / RBAC | PASS (permission alias) |
 | Multi-tenancy | PASS (tenant-scoped queries) |
-| Performance | PENDING prod smoke |
+| Performance | **PASS** (prod p50 overview 37.6 ms) |
 | Accessibility | PARTIAL (basics; AA in 1.1) |
 | Documentation | PASS |
-| Demo | PASS (fixtures + EDE seed hook) |
+| Demo | **PASS** (prod EDE + observe seed) |
 | Regression | PASS (gateway tests) |
-| Deployment | PENDING |
+| Deployment | **PASS** (prod `5571ff35`) |
 
 ## Artifacts
 
