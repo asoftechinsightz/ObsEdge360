@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   GitBranch, RefreshCw, Target, Link2, Activity, Plus, Trash2,
 } from 'lucide-react';
@@ -66,6 +67,16 @@ interface SloRow {
 }
 
 export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<DashboardShell><p className="p-6 text-sm text-slate-400">Loading business journeys…</p></DashboardShell>}>
+      <TransactionsInner />
+    </Suspense>
+  );
+}
+
+function TransactionsInner() {
+  const searchParams = useSearchParams();
+  const serviceParam = searchParams.get('service') || '';
   const [tab, setTab] = useState<Tab>('list');
   const [transactions, setTransactions] = useState<Tx[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -96,13 +107,28 @@ export default function TransactionsPage() {
     try {
       const data = await apiClient<{ transactions: Tx[] }>('/transactions');
       setTransactions(data.transactions);
-      if (!selectedId && data.transactions[0]) setSelectedId(data.transactions[0].id);
+      const needle = serviceParam.trim().toLowerCase();
+      const matched = needle
+        ? data.transactions.find(
+            (t) =>
+              t.id === serviceParam ||
+              t.name.toLowerCase().includes(needle) ||
+              t.classification.toLowerCase().includes(needle),
+          )
+        : undefined;
+      if (matched) {
+        setSelectedId(matched.id);
+        setTab('flow');
+        setMessage(`Focused business journey: ${matched.name}`);
+      } else {
+        setSelectedId((prev) => prev || data.transactions[0]?.id || '');
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Failed to load transactions');
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, [serviceParam]);
 
   useEffect(() => {
     loadList();

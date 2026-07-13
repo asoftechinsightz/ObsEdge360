@@ -67,6 +67,7 @@ export type DashboardComposeInput = {
   recommendations: RecommendationsPayload;
   estateStats: CmdbStatsPayload | null;
   role?: string;
+  incidents?: IncidentWidget[];
 };
 
 @Injectable()
@@ -168,20 +169,55 @@ export class ExecutiveDataService {
         coverageLabel,
       };
     } catch {
+      // Honest empty / illustrative fallback — do not invent a populated estate
       return {
-        availability: 99.97,
-        revenueAtRisk: 180_000,
-        complianceScore: 94,
+        availability: 0,
+        revenueAtRisk: 0,
+        complianceScore: 0,
         securityPosture: 'medium',
-        sustainabilityScore: 82,
-        activeIncidents: 2,
-        totalAssets: totalAssets || 3502,
-        openAlerts: 14,
+        sustainabilityScore: 0,
+        activeIncidents: 0,
+        totalAssets: totalAssets || 0,
+        openAlerts: 0,
         illustrative: true,
         label: 'Illustrative Demo Data',
-        coverageLabel: coverageLabel || 'Illustrative enterprise estate',
+        coverageLabel: coverageLabel || 'Load Illustrative Demo Data to populate executive KPIs',
       };
     }
+  }
+
+  async getRecentIncidents(tenantId: string, limit = 5): Promise<IncidentWidget[]> {
+    const rows = await query<{
+      id: string;
+      title: string;
+      severity: string | null;
+      status: string | null;
+      correlation_key: string | null;
+    }>(
+      `SELECT id, title, severity, status, correlation_key
+       FROM ops_incidents
+       WHERE tenant_id=$1
+         AND COALESCE(status, 'open') NOT IN ('closed', 'resolved')
+       ORDER BY
+         CASE LOWER(COALESCE(severity, 'medium'))
+           WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3
+         END,
+         created_at DESC NULLS LAST
+       LIMIT $2`,
+      [tenantId, limit],
+    ).catch(() => []);
+
+    return rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      severity: (r.severity || 'medium').toLowerCase(),
+      status: (r.status || 'open').toLowerCase(),
+      affectedService: r.correlation_key || undefined,
+      drilldown: {
+        href: `/ops-intelligence?incident=${encodeURIComponent(r.id)}`,
+        label: 'Open workspace',
+      },
+    }));
   }
 
   async getServices(tenantId: string): Promise<ServiceRow[]> {
@@ -474,7 +510,7 @@ export class ExecutiveDataService {
   }
 
   composeDashboard(input: DashboardComposeInput): ExecutiveDashboardPayload {
-    const { kpis, trends, services, risks, narrative, recommendations, estateStats, role } = input;
+    const { kpis, trends, services, risks, narrative, recommendations, estateStats, role, incidents } = input;
     const availabilitySpark = trends.series.map((p) => p.availability ?? 99.9).filter(Number.isFinite);
     const incidentSpark = trends.series.map((p) => p.activeIncidents ?? 0).filter(Number.isFinite);
     const mttrSpark = trends.series.map((p) => p.mttrMinutes ?? 0).filter(Number.isFinite);
@@ -483,7 +519,39 @@ export class ExecutiveDataService {
     const atRisk = estateStats?.atRiskAssets ?? Math.max(1, Math.round((kpis.totalAssets || 1) * 0.04));
     const overall = this.rules.overallHealth(kpis.availability, kpis.activeIncidents);
 
+    // Business outcomes first — Phase 3 Executive Dashboard Rule
     const health: HealthWidget[] = [
+      {
+        id: 'health.business',
+        title: 'Business Health',
+        category: 'health',
+        score: `₹${(kpis.revenueAtRisk / 1000).toFixed(0)}K/hr`,
+        trend: 'Revenue at risk · business services',
+        status: this.rules.revenueAtRiskStatus(kpis.revenueAtRisk),
+        drilldown: { href: '/transactions', label: 'Business Services' },
+        metadata: { refreshIntervalSec: 60, position: 1 },
+      },
+      {
+        id: 'health.revenue',
+        title: 'Revenue At Risk',
+        category: 'health',
+        score: `₹${(kpis.revenueAtRisk / 1000).toFixed(0)}K/hr`,
+        trend: 'Banking journey exposure',
+        status: this.rules.revenueAtRiskStatus(kpis.revenueAtRisk),
+        drilldown: { href: '/banking360', label: 'Banking360' },
+        metadata: { refreshIntervalSec: 60, roles: ['cio', 'admin'], position: 2 },
+      },
+      {
+        id: 'health.alerts',
+        title: 'What is broken',
+        category: 'health',
+        score: String(kpis.openAlerts),
+        trend: `${kpis.activeIncidents} active incidents`,
+        status: this.rules.alertStatus(kpis.openAlerts),
+        sparkline: incidentSpark.length > 1 ? incidentSpark : undefined,
+        drilldown: { href: '/ops-intelligence', label: 'Incident Queue' },
+        metadata: { refreshIntervalSec: 30, position: 3 },
+      },
       {
         id: 'health.overall',
         title: 'Overall Health',
@@ -493,7 +561,7 @@ export class ExecutiveDataService {
         status: overall.status,
         sparkline: availabilitySpark.length > 1 ? availabilitySpark : undefined,
         drilldown: { href: '/observability', label: 'Infrastructure' },
-        metadata: { refreshIntervalSec: 60, roles: ['cio', 'admin', 'noc'], position: 1, size: 'md' },
+        metadata: { refreshIntervalSec: 60, roles: ['cio', 'admin', 'noc'], position: 4, size: 'md' },
       },
       {
         id: 'health.availability',
@@ -505,18 +573,7 @@ export class ExecutiveDataService {
         status: this.rules.availabilityStatus(kpis.availability),
         sparkline: availabilitySpark.length > 1 ? availabilitySpark : undefined,
         drilldown: { href: '/observability', label: 'Observability' },
-        metadata: { refreshIntervalSec: 60, position: 2 },
-      },
-      {
-        id: 'health.alerts',
-        title: 'Critical Alerts',
-        category: 'health',
-        score: String(kpis.openAlerts),
-        trend: `${kpis.activeIncidents} active incidents`,
-        status: this.rules.alertStatus(kpis.openAlerts),
-        sparkline: incidentSpark.length > 1 ? incidentSpark : undefined,
-        drilldown: { href: '/ops-intelligence', label: 'Incident Queue' },
-        metadata: { refreshIntervalSec: 30, position: 3 },
+        metadata: { refreshIntervalSec: 60, position: 5 },
       },
       {
         id: 'health.security',
@@ -526,7 +583,7 @@ export class ExecutiveDataService {
         trend: 'Enterprise security posture',
         status: this.rules.postureStatus(kpis.securityPosture),
         drilldown: { href: '/security', label: 'Security Operations' },
-        metadata: { refreshIntervalSec: 60, roles: ['ciso', 'soc'], position: 4 },
+        metadata: { refreshIntervalSec: 60, roles: ['ciso', 'soc'], position: 6 },
       },
       {
         id: 'health.compliance',
@@ -536,7 +593,19 @@ export class ExecutiveDataService {
         trend: 'Control posture',
         status: this.rules.complianceStatus(kpis.complianceScore),
         drilldown: { href: '/compliance', label: 'Compliance Workspace' },
-        metadata: { refreshIntervalSec: 120, roles: ['ciso', 'auditor'], position: 5 },
+        metadata: { refreshIntervalSec: 120, roles: ['ciso', 'auditor'], position: 7 },
+      },
+      {
+        id: 'health.mttr',
+        title: 'MTTR',
+        category: 'health',
+        score: latestMttr != null ? `${Math.round(latestMttr)}m` : '—',
+        unit: 'min',
+        trend: 'Mean time to restore',
+        status: this.rules.mttrStatus(latestMttr),
+        sparkline: mttrSpark.length > 1 ? mttrSpark : undefined,
+        drilldown: { href: '/itsm', label: 'ITSM' },
+        metadata: { refreshIntervalSec: 60, position: 8 },
       },
       {
         id: 'health.network',
@@ -553,43 +622,9 @@ export class ExecutiveDataService {
           atRisk,
         ),
         drilldown: { href: '/network', label: 'Network Operations' },
-        metadata: { refreshIntervalSec: 90, position: 6 },
-      },
-      {
-        id: 'health.business',
-        title: 'Business Health',
-        category: 'health',
-        score: `₹${(kpis.revenueAtRisk / 1000).toFixed(0)}K/hr`,
-        trend: 'Revenue at risk · business services',
-        status: this.rules.revenueAtRiskStatus(kpis.revenueAtRisk),
-        drilldown: { href: '/transactions', label: 'Business Services' },
-        metadata: { refreshIntervalSec: 60, position: 7 },
-      },
-      {
-        id: 'health.mttr',
-        title: 'MTTR',
-        category: 'health',
-        score: latestMttr != null ? `${Math.round(latestMttr)}m` : '—',
-        unit: 'min',
-        trend: 'Mean time to restore',
-        status: this.rules.mttrStatus(latestMttr),
-        sparkline: mttrSpark.length > 1 ? mttrSpark : undefined,
-        drilldown: { href: '/itsm', label: 'ITSM' },
-        metadata: { refreshIntervalSec: 60, position: 8 },
+        metadata: { refreshIntervalSec: 90, roles: ['noc'], position: 9 },
       },
     ];
-
-    // Revenue-at-risk companion KPI for Banking360 workspace
-    health.push({
-      id: 'health.revenue',
-      title: 'Revenue At Risk',
-      category: 'health',
-      score: `₹${(kpis.revenueAtRisk / 1000).toFixed(0)}K/hr`,
-      trend: 'Banking journey exposure',
-      status: this.rules.revenueAtRiskStatus(kpis.revenueAtRisk),
-      drilldown: { href: '/banking360', label: 'Banking360' },
-      metadata: { refreshIntervalSec: 60, position: 9, roles: ['cio', 'admin'] },
-    });
 
     const operationalSummary = this.buildDomainWidgets(kpis, services, estateStats, avgHealth, atRisk);
     const securityCounts = this.rules.securityCounts(kpis.openAlerts, kpis.activeIncidents);
@@ -628,19 +663,18 @@ export class ExecutiveDataService {
       slaTarget: s.slaTarget,
       status: s.status,
       owner: s.owner,
-      href: `/transactions?service=${encodeURIComponent(s.id)}`,
+      href: `/twin?workflow=impact&focus=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}`,
     }));
 
     const recentIncidents: IncidentWidget[] =
-      kpis.activeIncidents > 0
-        ? Array.from({ length: Math.min(kpis.activeIncidents, 5) }).map((_, i) => ({
-            id: `inc-${i + 1}`,
-            title: `Active incident #${i + 1}`,
-            severity: i === 0 ? 'high' : 'medium',
-            status: 'open',
-            affectedService: affectedServices[i % Math.max(affectedServices.length, 1)]?.name ?? 'Enterprise services',
-            owner: affectedServices[i % Math.max(affectedServices.length, 1)]?.owner,
-            drilldown: { href: '/ops-intelligence', label: 'Investigate' },
+      incidents && incidents.length > 0
+        ? incidents.map((inc, i) => ({
+            ...inc,
+            affectedService:
+              inc.affectedService ||
+              affectedServices[i % Math.max(affectedServices.length, 1)]?.name ||
+              'Enterprise services',
+            owner: inc.owner || affectedServices[i % Math.max(affectedServices.length, 1)]?.owner,
           }))
         : [];
 

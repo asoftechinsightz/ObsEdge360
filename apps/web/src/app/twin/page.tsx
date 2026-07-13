@@ -258,11 +258,20 @@ function DigitalTwinInner() {
 
   useEffect(() => {
     if (workflowRan.current) return;
-    if (search.get('workflow') !== 'impact') return;
+    if (search.get('workflow') !== 'impact' && !search.get('focus') && !search.get('name')) return;
     if (!nodes.length) return;
     workflowRan.current = true;
+    const focusId = search.get('focus');
+    const focusName = (search.get('name') || '').toLowerCase();
     const preferred =
-      nodes.find((n) => /business|service|payment|application/i.test(n.type) || /payment|upi|core/i.test(n.label)) ??
+      (focusId && nodes.find((n) => n.id === focusId)) ||
+      (focusName &&
+        nodes.find(
+          (n) =>
+            n.label.toLowerCase().includes(focusName) ||
+            focusName.includes(n.label.toLowerCase()),
+        )) ||
+      nodes.find((n) => /business|service|payment|application/i.test(n.type) || /payment|upi|core/i.test(n.label)) ||
       nodes[0];
     setSelected(preferred);
     void analyzeImpact(preferred.id);

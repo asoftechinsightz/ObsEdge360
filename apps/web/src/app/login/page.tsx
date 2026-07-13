@@ -11,7 +11,7 @@ import {
   mfaVerifyRequest,
   setAuthCookie,
 } from '@/lib/auth';
-import { resolveLandingPath, roleDefaultLanding } from '@/lib/landing';
+import { resolveLandingPath } from '@/lib/landing';
 import { apiClient } from '@/lib/api-client';
 
 interface SsoProvider {
@@ -88,7 +88,8 @@ function LoginForm() {
       const dest = resolveLandingPath({
         redirectParam: redirect,
         savedLanding,
-        role: roleHint || roleDefaultLanding(extras?.role),
+        // Must pass role string — never a path (roleDefaultLanding returns a path)
+        role: roleHint || extras?.role,
       });
       router.push(dest);
     }

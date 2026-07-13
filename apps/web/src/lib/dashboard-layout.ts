@@ -17,15 +17,17 @@ export type LayoutSlot = {
 
 /** Layout metadata — mirrors backend WidgetRegistry; no JSX positions. */
 export const EXECUTIVE_DASHBOARD_LAYOUT: LayoutSlot[] = [
-  { widgetId: 'health.overall', section: 'health', position: 1, width: 3, height: 2, priority: 1, defaultVisible: true, roles: ['cio', 'admin', 'noc'], refreshIntervalSec: 60, contract: 'HealthWidget' },
-  { widgetId: 'health.availability', section: 'health', position: 2, width: 3, height: 2, priority: 2, defaultVisible: true, roles: ['cio', 'admin', 'noc', 'operations'], refreshIntervalSec: 60, contract: 'HealthWidget' },
-  { widgetId: 'health.alerts', section: 'health', position: 3, width: 3, height: 2, priority: 3, defaultVisible: true, roles: ['cio', 'soc', 'noc'], refreshIntervalSec: 30, contract: 'HealthWidget' },
-  { widgetId: 'health.security', section: 'health', position: 4, width: 3, height: 2, priority: 4, defaultVisible: true, roles: ['ciso', 'soc', 'cio'], refreshIntervalSec: 60, contract: 'HealthWidget' },
-  { widgetId: 'health.compliance', section: 'health', position: 5, width: 3, height: 2, priority: 5, defaultVisible: true, roles: ['ciso', 'auditor', 'cio'], refreshIntervalSec: 120, contract: 'HealthWidget' },
-  { widgetId: 'health.network', section: 'health', position: 6, width: 3, height: 2, priority: 6, defaultVisible: true, roles: ['noc', 'cio'], refreshIntervalSec: 90, contract: 'HealthWidget' },
-  { widgetId: 'health.business', section: 'health', position: 7, width: 3, height: 2, priority: 7, defaultVisible: true, roles: ['cio'], refreshIntervalSec: 60, contract: 'HealthWidget' },
-  { widgetId: 'health.revenue', section: 'health', position: 8, width: 3, height: 2, priority: 8, defaultVisible: true, roles: ['cio', 'admin'], refreshIntervalSec: 60, contract: 'HealthWidget' },
-  { widgetId: 'health.mttr', section: 'health', position: 9, width: 3, height: 2, priority: 9, defaultVisible: true, roles: ['noc', 'operations'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  // Business outcomes first (Phase 3 Executive Dashboard Rule)
+  { widgetId: 'health.business', section: 'health', position: 1, width: 3, height: 2, priority: 1, defaultVisible: true, roles: ['cio', 'admin'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  { widgetId: 'health.revenue', section: 'health', position: 2, width: 3, height: 2, priority: 2, defaultVisible: true, roles: ['cio', 'admin'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  { widgetId: 'health.alerts', section: 'health', position: 3, width: 3, height: 2, priority: 3, defaultVisible: true, roles: ['cio', 'soc', 'noc', 'admin'], refreshIntervalSec: 30, contract: 'HealthWidget' },
+  { widgetId: 'health.overall', section: 'health', position: 4, width: 3, height: 2, priority: 4, defaultVisible: true, roles: ['cio', 'admin', 'noc'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  { widgetId: 'health.availability', section: 'health', position: 5, width: 3, height: 2, priority: 5, defaultVisible: true, roles: ['cio', 'admin', 'noc', 'operations'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  { widgetId: 'health.security', section: 'health', position: 6, width: 3, height: 2, priority: 6, defaultVisible: true, roles: ['ciso', 'soc', 'cio'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  { widgetId: 'health.compliance', section: 'health', position: 7, width: 3, height: 2, priority: 7, defaultVisible: true, roles: ['ciso', 'auditor', 'cio'], refreshIntervalSec: 120, contract: 'HealthWidget' },
+  { widgetId: 'health.mttr', section: 'health', position: 8, width: 3, height: 2, priority: 8, defaultVisible: true, roles: ['noc', 'operations', 'cio'], refreshIntervalSec: 60, contract: 'HealthWidget' },
+  // Network demoted for CIO — still available for NOC
+  { widgetId: 'health.network', section: 'health', position: 9, width: 3, height: 2, priority: 9, defaultVisible: true, roles: ['noc'], refreshIntervalSec: 90, contract: 'HealthWidget' },
   { widgetId: 'domain.infrastructure', section: 'domains', position: 10, width: 4, height: 2, priority: 10, defaultVisible: true, roles: ['cio', 'noc'], refreshIntervalSec: 90, contract: 'DomainWidget' },
   { widgetId: 'domain.applications', section: 'domains', position: 11, width: 4, height: 2, priority: 11, defaultVisible: true, roles: ['cio', 'noc'], refreshIntervalSec: 90, contract: 'DomainWidget' },
   { widgetId: 'domain.services', section: 'domains', position: 12, width: 4, height: 2, priority: 12, defaultVisible: true, roles: ['cio', 'noc'], refreshIntervalSec: 90, contract: 'DomainWidget' },

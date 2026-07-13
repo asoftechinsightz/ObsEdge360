@@ -1,38 +1,45 @@
-# Phase 2 — Enterprise Security & Compliance Foundation
+# OpsEdge360 — Phase 2 Index
 
-**Planning:** ✅ Accepted  
-**Implementation:** Waves 1–2 ✅ Closed · Wave 3 ⏸️ SDS review  
-**EAB:** [EAB_RESOLUTION_2026-07-11.md](../governance/EAB_RESOLUTION_2026-07-11.md) · [WAVE2_EAB_CLOSURE.md](./WAVE2_EAB_CLOSURE.md)  
-**Waves:** [PHASE2_IMPLEMENTATION_WAVES.md](./PHASE2_IMPLEMENTATION_WAVES.md)  
-**Security baseline:** [SECURITY_BASELINE_v1.0.md](../security/SECURITY_BASELINE_v1.0.md)  
+**Status:** MVP definition, validation, and implementation roadmap complete  
+**Date:** 2026-07-13  
+**Architecture SSOT:** `docs/architecture/OPSEDGE360_ENTERPRISE_ARCHITECTURE.md` (Phase 1 — accepted)
 
-## Documents
+---
 
-| Document | Purpose |
-|----------|---------|
-| [PHASE2_GATE.md](./PHASE2_GATE.md) | Gate / authorization |
-| [PHASE2_IMPLEMENTATION_PLAN.md](./PHASE2_IMPLEMENTATION_PLAN.md) | Plan & milestones |
-| [PHASE2_IMPLEMENTATION_WAVES.md](./PHASE2_IMPLEMENTATION_WAVES.md) | Wave cadence |
-| [WAVE3_PLANNING.md](./WAVE3_PLANNING.md) | Wave 3 planning (no coding) |
-| [sds/SDS-2.3-AuditFramework.md](./sds/SDS-2.3-AuditFramework.md) | Audit SDS — **in review** |
-| [PHASE2_WBS.md](./PHASE2_WBS.md) | Work breakdown |
-| [PHASE2_SECURITY_THREAT_MODEL.md](./PHASE2_SECURITY_THREAT_MODEL.md) | Threat model |
-| [PHASE2_SECURITY_TEST_PLAN.md](./PHASE2_SECURITY_TEST_PLAN.md) | Security tests |
-| [PHASE2_PERFORMANCE_IMPACT.md](./PHASE2_PERFORMANCE_IMPACT.md) | Perf budgets |
-| [PHASE2_ROLLBACK_STRATEGY.md](./PHASE2_ROLLBACK_STRATEGY.md) | Rollback |
-| [PHASE2_DEPLOYMENT_PLAN.md](./PHASE2_DEPLOYMENT_PLAN.md) | Deploy order |
-| [HLD_v1.1.md](../architecture/HLD_v1.1.md) | HLD delta |
-| [LLD_v1.1.md](../architecture/LLD_v1.1.md) | LLD delta |
-| [ADR-009…018](../adr/README.md) | **Accepted** |
-| [MODULE_PLUGIN_PRINCIPLE.md](../governance/MODULE_PLUGIN_PRINCIPLE.md) | Permanent rule |
+## Deliverables
 
-## Closed waves
-
-| Wave | Evidence |
+| Task | Document |
 |------|----------|
-| 1 | [WAVE1_ACCEPTANCE.md](./WAVE1_ACCEPTANCE.md) |
-| 2 | [WAVE2_EAB_CLOSURE.md](./WAVE2_EAB_CLOSURE.md) · [WAVE2_DEPLOYED.md](./WAVE2_DEPLOYED.md) |
+| Competitive validation | [../competitive/OPSEDGE360_COMPETITIVE_ANALYSIS.md](../competitive/OPSEDGE360_COMPETITIVE_ANALYSIS.md) |
+| Product releases (MVP→3.0) | [OPSEDGE360_PRODUCT_RELEASES.md](./OPSEDGE360_PRODUCT_RELEASES.md) |
+| Feature prioritization | [OPSEDGE360_FEATURE_PRIORITIZATION.md](./OPSEDGE360_FEATURE_PRIORITIZATION.md) |
+| Customer journeys | [OPSEDGE360_CUSTOMER_JOURNEYS.md](./OPSEDGE360_CUSTOMER_JOURNEYS.md) |
+| Demo scenarios | [OPSEDGE360_DEMO_SCENARIOS.md](./OPSEDGE360_DEMO_SCENARIOS.md) |
+| UI validation | [OPSEDGE360_UI_VALIDATION.md](./OPSEDGE360_UI_VALIDATION.md) |
+| Implementation plan | [OPSEDGE360_IMPLEMENTATION_PLAN.md](./OPSEDGE360_IMPLEMENTATION_PLAN.md) |
+| Integration readiness | [OPSEDGE360_INTEGRATION_READINESS.md](./OPSEDGE360_INTEGRATION_READINESS.md) |
+| Executive acceptance | [OPSEDGE360_EXECUTIVE_ACCEPTANCE_CHECKLIST.md](./OPSEDGE360_EXECUTIVE_ACCEPTANCE_CHECKLIST.md) |
 
-## Prior phase
+---
 
-[PHASE1_FINAL_STATUS.md](../phase1/PHASE1_FINAL_STATUS.md)
+## One-question answer
+
+> If development starts tomorrow, can the engineering team build OpsEdge360 without major architectural uncertainty?
+
+**YES.** Remaining work is MVP execution (adapters, journeys, demo data, hardening), not redesign.
+
+---
+
+## Principles (unchanged)
+
+- No fork/rebrand of upstream engines  
+- Adapters only; single OpsEdge360 UX  
+- Proprietary value: Twin, AI, executive workflows, unified experience  
+- SaaS / on-prem / hybrid from day one in design  
+- Powered by AsoftechInsightz  
+
+---
+
+## Next step
+
+CPO + Engineering sign Section D of the acceptance checklist, then start **Sprint 1** per implementation plan.

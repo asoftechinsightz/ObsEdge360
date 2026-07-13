@@ -63,67 +63,8 @@ export function ExecutiveDashboardClient({
   const domainWidgets = payload.operationalSummary.filter((w) => slotVisible(w.id, role));
   const tableWidget = payload.tables.find((t) => t.id === 'table.services');
 
-  const priorityActions = [
-    {
-      id: 'a-incident',
-      title: 'Open incident',
-      description: 'Correlate alerts into an incident and open investigation.',
-      href: '/ops-intelligence?workflow=create-incident',
-      cta: 'Create & investigate',
-    },
-    {
-      id: 'a-topology',
-      title: 'View topology',
-      description: 'Dependency paths and blast radius.',
-      href: '/topology',
-      cta: 'Open Topology',
-    },
-    {
-      id: 'a-twin',
-      title: 'Digital Twin',
-      description: 'Simulate impact before change windows.',
-      href: '/twin?workflow=impact',
-      cta: 'Simulate impact',
-    },
-    {
-      id: 'a-drift',
-      title: 'CMDB Drift',
-      description: 'Clear unauthorized configuration change.',
-      href: '/cmdb/drift',
-      cta: 'Review drift',
-    },
-    {
-      id: 'a-investigate',
-      title: 'Investigate',
-      description: 'Ops Intelligence on active signals.',
-      href: '/ops-intelligence',
-      cta: 'Investigate',
-    },
-    {
-      id: 'a-report',
-      title: 'Generate executive report',
-      description: 'Board-ready health and risk package with download.',
-      href: '/reports?workflow=generate&type=executive_summary',
-      cta: 'Generate & export',
-    },
-    {
-      id: 'a-automation',
-      title: 'Run automation',
-      description: 'Automation catalog — execute remediation workflow.',
-      href: '/admin/workflows?workflow=run',
-      cta: 'Open catalog',
-    },
-  ];
-
-  const actions = [
-    ...priorityActions.map((a, i) => ({
-      ...a,
-      category: 'action' as const,
-      priority: i,
-      permission: undefined,
-    })),
-    ...payload.recommendedActions,
-  ];
+  // Backend SSOT — never hardcode action hrefs on the client
+  const actions = payload.recommendedActions;
 
   return (
     <div className="space-y-6 eig-page-enter">
@@ -132,9 +73,11 @@ export function ExecutiveDashboardClient({
           <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             Executive command center
           </div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Where am I · what is unhealthy · what next</h1>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            Is the business healthy · what is broken · what is the impact · what next
+          </h1>
           <p className="mt-0.5 max-w-2xl text-xs text-slate-400 sm:text-sm">
-            Enterprise digital operations — one aggregated view · role: {role}
+            OpsEdge360 executive command — business outcomes first · role: {role}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
@@ -157,9 +100,9 @@ export function ExecutiveDashboardClient({
       <section aria-labelledby="exec-kpis">
         <SectionHeader
           id="exec-kpis"
-          eyebrow="Executive health"
-          title="Are we within tolerance?"
-          description="Availability, security, compliance, business impact — each KPI drills into the owning workspace."
+          eyebrow="Business outcomes"
+          title="Is the business healthy?"
+          description="Lead with revenue risk, service health, and open incidents — then security and continuity. Each KPI drills to its workspace."
         />
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-4">
           {healthWidgets.map((w: HealthWidget) => (

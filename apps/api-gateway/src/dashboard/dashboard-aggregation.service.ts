@@ -42,7 +42,7 @@ export class DashboardAggregationService {
   }
 
   private async compose(tenantId: string, role?: string): Promise<ExecutiveDashboardPayload> {
-    const [kpis, trends, services, risks, narrative, recommendations, estateStats, complianceScore] =
+    const [kpis, trends, services, risks, narrative, recommendations, estateStats, complianceScore, incidents] =
       await Promise.all([
         this.executiveData.getKpis(tenantId),
         this.executiveData.getTrends(tenantId),
@@ -52,10 +52,15 @@ export class DashboardAggregationService {
         this.aiInsight.getRecommendations(tenantId),
         this.estate.getStats(tenantId),
         this.compliance.getScore(tenantId),
+        this.executiveData.getRecentIncidents(tenantId, 5),
       ]);
 
     if (complianceScore != null && complianceScore > 0) {
       kpis.complianceScore = complianceScore;
+    }
+
+    if (incidents.length > 0) {
+      kpis.activeIncidents = Math.max(kpis.activeIncidents, incidents.length);
     }
 
     const avgHealth = estateStats?.avgHealth ?? Math.round(kpis.availability);
@@ -74,6 +79,7 @@ export class DashboardAggregationService {
       recommendations,
       estateStats,
       role,
+      incidents,
     });
   }
 }
