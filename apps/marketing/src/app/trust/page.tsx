@@ -3,16 +3,10 @@ import { PageHero } from '@/components/PageHero';
 import {
   BenefitIcons,
   ComplianceMatrix,
+  DpdpSection,
   SecurityCapabilityGrid,
 } from '@/components/trust/TrustVisuals';
-import {
-  COMPLIANCE_GLOBAL,
-  COMPLIANCE_INDIA,
-  DPDP_CAPABILITIES,
-  POSITIONING_SIGNALS,
-  SECURITY_CAPABILITIES,
-  TRUST_CENTER_NAV,
-} from '@/lib/trust-content';
+import { POSITIONING_SIGNALS, TRUST_CENTER_NAV } from '@/lib/trust-content';
 
 export default function TrustPage() {
   return (
@@ -23,45 +17,32 @@ export default function TrustPage() {
       <section className="section-pad mx-auto max-w-wide space-y-16">
         <nav className="flex flex-wrap gap-3 text-sm">
           {TRUST_CENTER_NAV.map((item) => (
-            <a key={item.href} href={item.href} className="text-accent hover:underline">
-              {item.label}
+            <a key={item.id} href={`#${item.id}`} className="text-accent hover:underline">
+              {item.title}
             </a>
           ))}
         </nav>
 
-        <div id="security">
-          <h2 className="font-display text-xl font-semibold">Security capabilities</h2>
+        <div id="overview" className="scroll-mt-28">
+          <h2 className="font-display text-xl font-semibold">Security overview</h2>
           <p className="mt-2 max-w-2xl text-sm text-mist">
             Controls and platform behaviors buyers can evaluate during diligence.
           </p>
           <div className="mt-6">
-            <SecurityCapabilityGrid items={SECURITY_CAPABILITIES} />
+            <SecurityCapabilityGrid />
           </div>
         </div>
 
-        <div id="privacy">
-          <h2 className="font-display text-xl font-semibold">DPDP-aligned privacy controls</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {DPDP_CAPABILITIES.map((c) => (
-              <li key={c} className="border-l-2 border-accent/40 pl-3 text-sm text-mist">
-                {c}
-              </li>
-            ))}
-          </ul>
+        <div id="privacy" className="scroll-mt-28">
+          <DpdpSection />
         </div>
 
-        <div id="compliance">
-          <h2 className="font-display text-xl font-semibold">Compliance matrix</h2>
-          <div className="mt-6 space-y-10">
-            <ComplianceMatrix title="India" rows={COMPLIANCE_INDIA} />
-            <ComplianceMatrix title="Global alignment" rows={COMPLIANCE_GLOBAL} />
-          </div>
-        </div>
+        <ComplianceMatrix />
 
-        <div id="positioning">
+        <div id="rai" className="scroll-mt-28">
           <h2 className="font-display text-xl font-semibold">Buyer positioning signals</h2>
           <div className="mt-6">
-            <BenefitIcons items={POSITIONING_SIGNALS} />
+            <BenefitIcons items={[...POSITIONING_SIGNALS]} />
           </div>
         </div>
       </section>
