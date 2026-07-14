@@ -1,0 +1,9 @@
+﻿# AsoftechInsightz Marketing Website
+.next
+node_modules
+out
+*.log
+.env*.local
+.lh-tmp
+.lh-chrome
+*.tsbuildinfo
