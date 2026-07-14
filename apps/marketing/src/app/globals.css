@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f4f6f8;
+  --fg: #0c1520;
+  --muted: #5f7082;
+  --elev: #ffffff;
+  --line: #dde3ea;
+  --accent: #0d6e66;
+  --focus: #1a456e;
+}
+
+.dark {
+  --bg: #0a121c;
+  --fg: #e6edf4;
+  --muted: #8b9aab;
+  --elev: #152030;
+  --line: #2a3a4d;
+  --accent: #1a9a8f;
+  --focus: #2d5f8a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body), system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(13, 110, 102, 0.22);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: -0.022em;
+}
+
+.section-pad {
+  @apply px-6 py-20 md:px-10 md:py-24 lg:px-16 lg:py-28;
+}
+
+.section-lede {
+  @apply max-w-2xl text-base leading-relaxed text-mist;
+}
+
+.eyebrow {
+  @apply text-xs font-semibold uppercase tracking-[0.16em] text-accent;
+}
+
+.prose-muted {
+  color: var(--muted);
+}
+
+.glass-panel {
+  background: color-mix(in srgb, var(--elev) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(12, 21, 32, 0.05);
+}
+
+.bg-teal-tint {
+  background-color: #eef6f5;
+  background-image: linear-gradient(180deg, #eef6f5 0%, #f4f6f8 100%);
+}
+
+.dark .bg-teal-tint {
+  background-color: #0f1c22;
+  background-image: linear-gradient(180deg, #0f1c22 0%, #0a121c 100%);
+}
+
+.bg-glass-section {
+  background-color: #f7faf9;
+  background-image: none;
+}
+
+.dark .bg-glass-section {
+  background-color: color-mix(in srgb, #152030 88%, #0d6e66 12%);
+  background-image: none;
+}
+
+.bg-section-wash {
+  background-color: #f4f6f8;
+  background-image: linear-gradient(180deg, #f4f6f8 0%, #ffffff 100%);
+}
+
+.dark .bg-section-wash {
+  background-color: #0a121c;
+  background-image: none;
+}
+
+.btn-primary {
+  @apply inline-flex items-center rounded-md bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-deep;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center rounded-md border border-paper-line bg-paper-elev px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent dark:border-ink-muted dark:bg-ink-soft dark:text-paper dark:hover:border-accent-bright;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-up {
+    animation: none !important;
+  }
+}
