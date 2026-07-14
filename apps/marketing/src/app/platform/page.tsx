@@ -1,9 +1,5 @@
-﻿import { PageHero } from '@/components/PageHero';
+﻿import { PlatformExperience } from '@/components/platform/PlatformExperience';
 
 export default function Page() {
-  return (
-    <PageHero eyebrow="Platform" title="Platform experience">
-      This page lands in a follow-on marketing PR on the commercial-launch-prep track.
-    </PageHero>
-  );
+  return <PlatformExperience />;
 }
